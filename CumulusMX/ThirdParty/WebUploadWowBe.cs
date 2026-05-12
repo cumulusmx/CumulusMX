@@ -168,7 +168,7 @@ namespace CumulusMX.ThirdParty
 				bodyObj.Add("tempf", ConvertUnits.UserTempToF(MetData.Temperature));
 
 			// send average speed and bearing
-			bodyObj.Add("winddir", MetData.AvgBearing);
+			bodyObj.Add("winddir", MetData.WindAvgBearing);
 
 			if (MetData.WindAverage >= 0)
 				bodyObj.Add("windspeedmph", ConvertUnits.UserWindToMPH(MetData.WindAverage));

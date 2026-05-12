@@ -564,7 +564,7 @@ namespace CumulusMX.Stations
 								CheckForWindrunHighLow(windruncheckTS);
 
 								// update dominant wind bearing
-								CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, interval);
+								CalculateDominantWindBearing(MetData.WindBearing, MetData.WindAverage, interval);
 							}
 
 							if (sl[TEMP1AVGPOS].Length > 0)
@@ -673,8 +673,7 @@ namespace CumulusMX.Stations
 								_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 							}
 
-							AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-								MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, -1, -1, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+							AddRecentDataEntry(timestamp, -1, -1);
 							UpdateStatusPanel(timestamp.ToUniversalTime());
 
 							// Add current data to the lists of web service updates to be done

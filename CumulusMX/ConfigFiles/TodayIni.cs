@@ -131,11 +131,11 @@ namespace CumulusMX
 			DailyHighLow.Today.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
 			DailyHighLow.Today.HighRain24hTime = ini.GetValue("Rain", "High24hTime", meteoTodayDate);
 			MetData.RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
-			RainCounterDayStart = ini.GetValue("Rain", "Start", -1.0);
+			MetData.RainCounterDayStart = ini.GetValue("Rain", "Start", -1.0);
 			MetData.MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
-			RainCounter = ini.GetValue("Rain", "Last", -1.0);
+			MetData.RainCounter = ini.GetValue("Rain", "Last", -1.0);
 
-			if (RainCounterDayStart < -0.5)
+			if (MetData.RainCounterDayStart < -0.5)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainDayStart true");
 				initialiseRainDayStart = true;
@@ -145,7 +145,7 @@ namespace CumulusMX
 				initialiseRainDayStart = false;
 			}
 
-			if (RainCounter < -0.5)
+			if (MetData.RainCounter < -0.5)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData true");
 				initialiseRainCounter = true;
@@ -160,7 +160,7 @@ namespace CumulusMX
 				if (cumulus.RolloverHour == 0 && !initialiseRainDayStart)
 				{
 					// midnight and rollover are the same
-					MetData.MidnightRainCount = RainCounterDayStart;
+					MetData.MidnightRainCount = MetData.RainCounterDayStart;
 					initialiseMidnightRain = false;
 				}
 				else
@@ -174,7 +174,7 @@ namespace CumulusMX
 				initialiseMidnightRain = false;
 			}
 
-			cumulus.LogMessage($"ReadTodayfile: Rain day start: {RainCounterDayStart:F4}, midnight counter: {MetData.MidnightRainCount:F4}, last counter: {RainCounter:F4}");
+			cumulus.LogMessage($"ReadTodayfile: Rain day start: {MetData.RainCounterDayStart:F4}, midnight counter: {MetData.MidnightRainCount:F4}, last counter: {MetData.RainCounter:F4}");
 
 			// humidity
 			DailyHighLow.Today.LowHumidity = ini.GetValue("Humidity", "Low", 100);
@@ -307,9 +307,9 @@ namespace CumulusMX
 				ini.SetValue("Rain", "High24h", DailyHighLow.Today.HighRain24h);
 				ini.SetValue("Rain", "High24hTime", DailyHighLow.Today.HighRain24hTime);
 				ini.SetValue("Rain", "Yesterday", MetData.RainYesterday);
-				ini.SetValue("Rain", "Start", RainCounterDayStart);
+				ini.SetValue("Rain", "Start", MetData.RainCounterDayStart);
 				ini.SetValue("Rain", "Midnight", MetData.MidnightRainCount);
-				ini.SetValue("Rain", "Last", RainCounter);
+				ini.SetValue("Rain", "Last", MetData.RainCounter);
 				ini.SetValue("Rain", "LastTip", LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", ConsecutiveRainDays);
 				ini.SetValue("Rain", "ConsecutiveDryDays", ConsecutiveDryDays);
@@ -394,7 +394,7 @@ namespace CumulusMX
 
 				if (Log)
 				{
-					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + RainCounterDayStart.ToString("F2") + " rain counter = " + RainCounter.ToString("F2"));
+					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + MetData.RainCounterDayStart.ToString("F2") + " rain counter = " + MetData.RainCounter.ToString("F2"));
 
 					if (cumulus.FineOffsetStation)
 					{

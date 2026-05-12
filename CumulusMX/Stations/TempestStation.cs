@@ -167,13 +167,13 @@ namespace CumulusMX.Stations
 
 				var rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
 
-				var newRain = RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
+				var newRain = MetData.RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
 				cumulus.LogMessage(
 					$"TempestDoRainHist: New Precip: {historydata.Precipitation}, Type: {historydata.PrecipType}, Rate: {rainrate}, LocalDayRain: {historydata.LocalDayRain}, LocalRainChecked: {historydata.LocalRainChecked}, FinalRainChecked: {historydata.FinalRainChecked}");
 
 				DoRain(newRain, rainrate, timestamp);
 				cumulus.LogMessage(
-					$"TempestDoRainHist: Total Precip for Day: {RainCounter}");
+					$"TempestDoRainHist: Total Precip for Day: {MetData.RainCounter}");
 
 				// calculate dp
 				DoOutdoorDewpoint(-999, timestamp);
@@ -194,7 +194,7 @@ namespace CumulusMX.Stations
 					DoSolarRad(historydata.SolarRadiation, timestamp);
 
 					// add in archive period worth of sunshine, if sunny
-					if (IsSunny)
+					if (MetData.IsSunny)
 					{
 						MetData.SunshineHours += historydata.ReportInterval / 60.0;
 					}
@@ -213,7 +213,7 @@ namespace CumulusMX.Stations
 				UpdateDegreeDays(historydata.ReportInterval);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, historydata.ReportInterval);
+				CalculateDominantWindBearing(MetData.WindBearing, MetData.WindAverage, historydata.ReportInterval);
 
 				DoTrendValues(timestamp);
 
@@ -281,8 +281,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+				AddRecentDataWithAq(timestamp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -361,11 +360,11 @@ namespace CumulusMX.Stations
 						}
 						var rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
-						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
+						var newRain = MetData.RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
 						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
 						DoRain(newRain, rainrate, ts);
-						cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {RainCounter}");
+						cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {MetData.RainCounter}");
 
 						DoOutdoorDewpoint(-999, ts);
 						DoApparentTemp(ts);

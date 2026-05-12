@@ -556,7 +556,7 @@ namespace CumulusMX.Stations
 								DoSolarRad((int) Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
 
 								// add in archive period worth of sunshine, if sunny
-								if (IsSunny)
+								if (MetData.IsSunny)
 									MetData.SunshineHours += historydata.interval / 60.0;
 
 								MetData.LightValue = historydata.solarVal;
@@ -578,7 +578,7 @@ namespace CumulusMX.Stations
 				UpdateDegreeDays(historydata.interval);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, historydata.interval);
+				CalculateDominantWindBearing(MetData.WindBearing, MetData.WindAverage, historydata.interval);
 
 				CheckForWindrunHighLow(timestamp);
 				DoTrendValues(timestamp);
@@ -647,8 +647,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+				AddRecentDataWithAq(timestamp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -1350,10 +1349,10 @@ namespace CumulusMX.Stations
 						if (ignoreraincount == 6)
 						{
 							cumulus.LogMessage("Six consecutive rain readings; accepting value. Adjusting start of day figure to compensate");
-							RainCounterDayStart += raindiff * 0.3;
+							MetData.RainCounterDayStart += raindiff * 0.3;
 							// adjust current rain total counter
-							RainCounter += raindiff * 0.3;
-							cumulus.LogMessage("Setting raindaystart to " + RainCounterDayStart);
+							MetData.RainCounter += raindiff * 0.3;
+							cumulus.LogMessage("Setting raindaystart to " + MetData.RainCounterDayStart);
 							ignoreraincount = 0;
 						}
 						else

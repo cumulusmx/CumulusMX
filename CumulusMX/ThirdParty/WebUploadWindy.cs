@@ -191,21 +191,21 @@ namespace CumulusMX.ThirdParty
 			URL.Append("&time=" + dateUTC);
 
 			if (MetData.WindAverage >= 0)
-				URL.Append("&wind=" + station.WindMSStr(MetData.WindAverage));
+				URL.Append("&wind=" + DataToStr.WindMSStr(MetData.WindAverage, cumulus.StationOptions.RoundWindSpeed));
 
 			if (MetData.RecentMaxGust >= 0)
-				URL.Append("&gust=" + station.WindMSStr(MetData.RecentMaxGust));
+				URL.Append("&gust=" + DataToStr.WindMSStr(MetData.RecentMaxGust, cumulus.StationOptions.RoundWindSpeed));
 
-			URL.Append("&winddir=" + MetData.AvgBearing);
+			URL.Append("&winddir=" + MetData.WindAvgBearing);
 
 			if (MetData.Humidity >= 0)
 				URL.Append("&rh=" + MetData.Humidity);
 
 			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
-				URL.Append("&dewpoint=" + WeatherStation.TempCstr(MetData.Dewpoint));
+				URL.Append("&dewpoint=" + DataToStr.TempCstr(MetData.Dewpoint));
 
 			if (MetData.Pressure > 0)
-				URL.Append("&pressure=" + WeatherStation.PressPAstr(MetData.Pressure));
+				URL.Append("&pressure=" + DataToStr.PressPAstr(MetData.Pressure));
 
 			if (SendUV && MetData.UV.HasValue)
 				URL.Append("&uv=" + MetData.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
@@ -213,10 +213,10 @@ namespace CumulusMX.ThirdParty
 			if (SendSolar && MetData.SolarRad.HasValue)
 				URL.Append("&solarradiation=" + MetData.SolarRad);
 
-			URL.Append("&precip=" + WeatherStation.RainMMstr(MetData.RainLastHour));
+			URL.Append("&precip=" + DataToStr.RainMMstr(MetData.RainLastHour));
 
 			if (MetData.Temperature > Cumulus.DefaultHiVal)
-				URL.Append("&temp=" + WeatherStation.TempCstr(MetData.Temperature));
+				URL.Append("&temp=" + DataToStr.TempCstr(MetData.Temperature));
 
 			URL.Append("&softwaretype=CumulusMX+v" + cumulus.Version);
 			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel.Length > 95 ? cumulus.StationModel[..95] : cumulus.StationModel));

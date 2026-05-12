@@ -70,7 +70,7 @@ namespace CumulusMX
 
 
 					// calculate and display rainfall in last hour
-					if (RainCounter < retVals[0].raincounter)
+					if (MetData.RainCounter < retVals[0].raincounter)
 					{
 						// rain total is not available or has gone down, assume it was reset to zero, just use zero
 						MetData.RainLastHour = 0;
@@ -78,7 +78,7 @@ namespace CumulusMX
 					else
 					{
 						// normal case
-						trendval = RainCounter - retVals[0].raincounter;
+						trendval = MetData.RainCounter - retVals[0].raincounter;
 
 						// Round value as some values may have been read from log file and already rounded
 						trendval = Math.Round(trendval, cumulus.RainDPlaces);
@@ -143,13 +143,13 @@ namespace CumulusMX
 				{
 					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddMinutes(-5.5).ToUnixTime());
 
-					if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
+					if (retVals.Count != 1 || MetData.RainCounter < retVals[0].raincounter)
 					{
 						MetData.RainRate = 0;
 					}
 					else
 					{
-						var raindiff = Math.Round(RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
+						var raindiff = Math.Round(MetData.RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
 
 						var timediffhours = 1.0 / 12.0;
 
@@ -219,13 +219,13 @@ namespace CumulusMX
 			{
 				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddDays(-1).ToUnixTime());
 
-				if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
+				if (retVals.Count != 1 || MetData.RainCounter < retVals[0].raincounter)
 				{
 					RainLast24Hour = 0;
 				}
 				else
 				{
-					trendval = Math.Round(RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
+					trendval = Math.Round(MetData.RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
 
 					if (trendval < 0)
 					{
@@ -326,6 +326,32 @@ namespace CumulusMX
 			return ConvertUnits.PressMBToUser(MeteoLib.VapourPressureDeficit(tempC, hum));
 		}
 
+		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
+		public void CalculateEvapotranspiration(DateTime date)
+		{
+			cumulus.LogDebugMessage("Calculating ET from data");
 
+			var dateFrom = date.AddHours(-1);
+
+			// get the min and max temps, humidity, pressure, and mean solar rad and wind speed for the last hour
+			var result = RecentDataDb.Query<EtData>("select avg(OutsideTemp) avgTemp, avg(Humidity) avgHum, avg(Pressure) avgPress, avg(SolarRad) avgSol, avg(SolarMax) avgSolMax, avg(WindSpeed) avgWind from RecentData where Timestamp >= ? order by Timestamp", dateFrom.ToUnixTime());
+
+			// finally calculate the ETo
+			var newET = MeteoLib.Evapotranspiration(
+				ConvertUnits.UserTempToC(result[0].avgTemp),
+				result[0].avgHum,
+				result[0].avgSol,
+				result[0].avgSolMax,
+				ConvertUnits.UserWindToMS(result[0].avgWind),
+				ConvertUnits.UserPressToHpa(result[0].avgPress) / 10
+			);
+
+			// convert to user units
+			newET = ConvertUnits.RainMMToUser(newET);
+			cumulus.LogDebugMessage($"Calculated ET for the last hour = {newET:F3}");
+
+			// DoET expects the running annual total to be sent
+			DoET(AnnualETTotal + newET, date);
+		}
 	}
 }

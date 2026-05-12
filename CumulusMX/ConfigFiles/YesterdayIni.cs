@@ -25,7 +25,7 @@ namespace CumulusMX
 			MetData.YestChillHours = ini.GetValue("Temp", "ChillHours", -1.0);
 			YestHeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			YestCoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
-			YestAvgTemp = ini.GetValue("Temp", "AvgTemp", 0.0);
+			MetData.YestAvgTemp = ini.GetValue("Temp", "AvgTemp", 0.0);
 			DailyHighLow.Yest.TempRange = DailyHighLow.Yest.HighTemp - DailyHighLow.Yest.LowTemp;
 			// Temperature midnight
 			DailyHighLow.YestMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 0.0);
@@ -118,7 +118,7 @@ namespace CumulusMX
 			ini.SetValue("Temp", "ChillHours", MetData.YestChillHours);
 			ini.SetValue("Temp", "HeatingDegreeDays", YestHeatingDegreeDays);
 			ini.SetValue("Temp", "CoolingDegreeDays", YestCoolingDegreeDays);
-			ini.SetValue("Temp", "AvgTemp", YestAvgTemp);
+			ini.SetValue("Temp", "AvgTemp", MetData.YestAvgTemp);
 			// Temperature midnight
 			ini.SetValue("TempMidnight", "Low", DailyHighLow.YestMidnight.LowTemp);
 			ini.SetValue("TempMidnight", "LTime", DailyHighLow.YestMidnight.LowTempTime);

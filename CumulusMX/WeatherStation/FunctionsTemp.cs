@@ -557,6 +557,18 @@ namespace CumulusMX
 			}
 		}
 
+		public void UpdateDegreeDays(int interval)
+		{
+			if (MetData.Temperature < cumulus.NOAAconf.HeatThreshold)
+			{
+				MetData.HeatingDegreeDays += (cumulus.NOAAconf.HeatThreshold - MetData.Temperature) * interval / 1440;
+			}
+			if (MetData.Temperature > cumulus.NOAAconf.CoolThreshold)
+			{
+				MetData.CoolingDegreeDays += (MetData.Temperature - cumulus.NOAAconf.CoolThreshold) * interval / 1440;
+			}
+		}
+
 
 	}
 }

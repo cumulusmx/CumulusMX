@@ -163,7 +163,7 @@ namespace CumulusMX.ThirdParty
 			URL.Append("&wind_avg=" + ConvertUnits.UserWindToKnots(avgwind).ToString("F1", InvC));
 			URL.Append("&wind_max=" + ConvertUnits.UserWindToKnots(maxwind).ToString("F1", InvC));
 			URL.Append("&wind_min=" + ConvertUnits.UserWindToKnots(minwind).ToString("F1", InvC));
-			URL.Append("&wind_direction=" + MetData.AvgBearing);
+			URL.Append("&wind_direction=" + MetData.WindAvgBearing);
 			if (MetData.Temperature > Cumulus.DefaultHiVal)
 				URL.Append("&temperature=" + ConvertUnits.UserTempToC(MetData.Temperature).ToString("F1", InvC));
 			if (MetData.Humidity >= 0)

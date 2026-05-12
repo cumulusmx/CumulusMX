@@ -87,7 +87,7 @@ namespace CumulusMX.LogFiles
 		{
 			// 0   Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Highest wind gust
-			// 2  Bearing of highest wind gust
+			// 2  WindBearing of highest wind gust
 			// 3  Time of highest wind gust
 			// 4  Minimum temperature
 			// 5  Time of minimum temperature

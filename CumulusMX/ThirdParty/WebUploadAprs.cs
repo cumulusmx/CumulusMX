@@ -47,8 +47,8 @@ namespace CumulusMX.ThirdParty
 					message.Clear();
 					message.Append($"{cumulus.APRS.ID}>APRS,TCPIP*:@{timeUTC}z{APRSLat(cumulus)}/{APRSLon(cumulus)}");
 					// bearing _nnn
-					if (MetData.AvgBearing >= 0)
-						message.Append($"_{MetData.AvgBearing:D3}");
+					if (MetData.WindAvgBearing >= 0)
+						message.Append($"_{MetData.WindAvgBearing:D3}");
 					// wind speed mph /nnn
 					if (MetData.WindAverage >= 0)
 						message.Append($"/{APRSwind(MetData.WindAverage)}");

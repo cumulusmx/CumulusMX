@@ -828,8 +828,7 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-						MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+					AddRecentDataWithAq(timestamp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2405,7 +2404,7 @@ namespace CumulusMX.Stations
 									{
 										cumulus.LogDebugMessage($"DecodeHistoric: Adding rain {rain.ToString(cumulus.RainFormat)}");
 									}
-									rain += RainCounter;
+									rain += MetData.RainCounter;
 
 									if (rainrate < 0)
 									{
@@ -2502,7 +2501,7 @@ namespace CumulusMX.Stations
 										cumulus.LogDebugMessage($"DecodeHistoric: using solar data from TxId {data.tx_id}");
 										DoSolarRad(data.solar_rad_avg.Value, lastRecordTime);
 
-										if (!current && IsSunny)
+										if (!current && MetData.IsSunny)
 										{
 											// add in archive period worth of sunshine, if sunny - arch_int in seconds
 											MetData.SunshineHours += (data.arch_int / 3600.0);
@@ -2976,7 +2975,7 @@ namespace CumulusMX.Stations
 										{
 											cumulus.LogDebugMessage($"DecodeHistoric: Adding rain {rain.ToString(cumulus.RainFormat)}");
 										}
-										rain += RainCounter;
+										rain += MetData.RainCounter;
 
 										if (rainrate < 0)
 										{
@@ -3048,7 +3047,7 @@ namespace CumulusMX.Stations
 										cumulus.LogDebugMessage($"DecodeHistoric: using solar data from TxId {data.tx_id}");
 										DoSolarRad((int) data.solar_rad_avg, lastRecordTime);
 
-										if (!current && IsSunny)
+										if (!current && MetData.IsSunny)
 										{
 											// add in archive period worth of sunshine, if sunny - arch_int in seconds
 											MetData.SunshineHours += (data.arch_int / 3600.0);

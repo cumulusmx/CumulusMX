@@ -165,8 +165,8 @@ namespace CumulusMX.ThirdParty
 			sb.Append("&wspdavg=" + (int) Math.Round(ConvertUnits.UserWindToMS(MetData.WindAverage) * 10));
 
 			// Wind Direction
-			sb.Append("&wdir=" + MetData.Bearing);
-			sb.Append("&wdiravg=" + MetData.AvgBearing);
+			sb.Append("&wdir=" + MetData.WindBearing);
+			sb.Append("&wdiravg=" + MetData.WindAvgBearing);
 
 			// Pressure
 			if (MetData.Pressure > 0)

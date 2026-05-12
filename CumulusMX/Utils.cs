@@ -532,5 +532,31 @@ namespace CumulusMX
 			else
 				return true;
 		}
+
+		/// <summary>
+		/// Returns the angle from bearing2 to bearing1, in the range -180 to +180 degrees
+		/// </summary>
+		/// <param name="bearing1"></param>
+		/// <param name="bearing2"></param>
+		/// <returns>the required angle</returns>
+		public static int GetShortestAngle(int bearing1, int bearing2)
+		{
+			var diff = bearing2 - bearing1;
+
+			if (diff >= 180)
+			{
+				// result is obtuse and positive, subtract 360 to go the other way
+				diff -= 360;
+			}
+			else
+			{
+				if (diff <= -180)
+				{
+					// result is obtuse and negative, add 360 to go the other way
+					diff += 360;
+				}
+			}
+			return diff;
+		}
 	}
 }

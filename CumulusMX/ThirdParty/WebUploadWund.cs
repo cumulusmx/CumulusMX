@@ -188,33 +188,33 @@ namespace CumulusMX.ThirdParty
 			if (SendAverage && MetData.WindAverage >= 0)
 			{
 				// send average speed and bearing
-				Data.Append($"&winddir={MetData.AvgBearing}&windspeedmph={station.WindMPHStr(MetData.WindAverage)}");
+				Data.Append($"&winddir={MetData.WindAvgBearing}&windspeedmph={DataToStr.WindMPHStr(MetData.WindAverage, cumulus.StationOptions.RoundWindSpeed)}");
 			}
 			else if (MetData.WindLatest >= 0)
 			{
 				// send "instantaneous" speed (i.e. latest) and bearing
-				Data.Append($"&winddir={MetData.Bearing}&windspeedmph={station.WindMPHStr(MetData.WindLatest)}");
+				Data.Append($"&winddir={MetData.WindBearing}&windspeedmph={DataToStr.WindMPHStr(MetData.WindLatest, cumulus.StationOptions.RoundWindSpeed)}");
 			}
 			if (MetData.RecentMaxGust >= 0)
-				Data.Append($"&windgustmph={station.WindMPHStr(MetData.RecentMaxGust)}");
+				Data.Append($"&windgustmph={DataToStr.WindMPHStr(MetData.RecentMaxGust, cumulus.StationOptions.RoundWindSpeed)}");
 			// may not strictly be a 2 min average!
 			if (MetData.WindAverage >= 0)
 			{
-				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(MetData.WindAverage)}");
-				Data.Append($"&winddir_avg2m={MetData.AvgBearing}");
+				Data.Append($"&windspdmph_avg2m={DataToStr.WindMPHStr(MetData.WindAverage, cumulus.StationOptions.RoundWindSpeed)}");
+				Data.Append($"&winddir_avg2m={MetData.WindAvgBearing}");
 			}
 			if (MetData.Humidity >= 0)
 				Data.Append($"&humidity={MetData.Humidity}");
 			if (MetData.Temperature >= Cumulus.DefaultHiVal)
-				Data.Append($"&tempf={WeatherStation.TempFstr(MetData.Temperature)}");
-			Data.Append($"&rainin={WeatherStation.RainINstr(MetData.RainLastHour)}");
+				Data.Append($"&tempf={DataToStr.TempFstr(MetData.Temperature)}");
+			Data.Append($"&rainin={DataToStr.RainINstr(MetData.RainLastHour)}");
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
+			Data.Append(DataToStr.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
 			if (MetData.Pressure >= Cumulus.DefaultHiVal)
-				Data.Append($"&baromin={WeatherStation.PressINstr(MetData.Pressure)}");
+				Data.Append($"&baromin={DataToStr.PressINstr(MetData.Pressure)}");
 			if (MetData.Dewpoint >= Cumulus.DefaultHiVal)
-				Data.Append($"&dewptf={WeatherStation.TempFstr(MetData.Dewpoint)}");
+				Data.Append($"&dewptf={DataToStr.TempFstr(MetData.Dewpoint)}");
 			if (SendUV && MetData.UV.HasValue)
 				Data.Append($"&UV={MetData.UV.Value.ToString(cumulus.UVFormat, invC)}");
 			if (SendSolar && MetData.SolarRad.HasValue)
@@ -222,19 +222,19 @@ namespace CumulusMX.ThirdParty
 			if (SendIndoor)
 			{
 				if (MetData.TemperatureIn.HasValue)
-					Data.Append($"&indoortempf={WeatherStation.TempFstr(MetData.TemperatureIn.Value)}");
+					Data.Append($"&indoortempf={DataToStr.TempFstr(MetData.TemperatureIn.Value)}");
 				if (MetData.HumidityIn.HasValue)
 					Data.Append($"&indoorhumidity={MetData.HumidityIn}");
 			}
 			// Davis soil and leaf sensors
 			if (SendSoilTemp1 && MetData.SoilTemp[1].HasValue)
-				Data.Append($"&soiltempf={WeatherStation.TempFstr(MetData.SoilTemp[1].Value)}");
+				Data.Append($"&soiltempf={DataToStr.TempFstr(MetData.SoilTemp[1].Value)}");
 			if (SendSoilTemp2 && MetData.SoilTemp[2].HasValue)
-				Data.Append($"&soiltempf2={WeatherStation.TempFstr(MetData.SoilTemp[2].Value)}");
+				Data.Append($"&soiltempf2={DataToStr.TempFstr(MetData.SoilTemp[2].Value)}");
 			if (SendSoilTemp3 && MetData.SoilTemp[3].HasValue)
-				Data.Append($"&soiltempf3={WeatherStation.TempFstr(MetData.SoilTemp[3].Value)}");
+				Data.Append($"&soiltempf3={DataToStr.TempFstr(MetData.SoilTemp[3].Value)}");
 			if (SendSoilTemp4 && MetData.SoilTemp[4].HasValue)
-				Data.Append($"&soiltempf4={WeatherStation.TempFstr(MetData.SoilTemp[4].Value)}");
+				Data.Append($"&soiltempf4={DataToStr.TempFstr(MetData.SoilTemp[4].Value)}");
 
 			if (SendSoilMoisture1 && MetData.SoilMoisture[1].HasValue)
 				Data.Append($"&soilmoisture={MetData.SoilMoisture[1]}");
@@ -277,19 +277,19 @@ namespace CumulusMX.ThirdParty
 
 			if (cumulus.Wund.SendExtraTemp1 > 0 && cumulus.Wund.SendExtraTemp1 <= 10 && MetData.ExtraTemp[cumulus.Wund.SendExtraTemp1].HasValue)
 			{
-				Data.Append($"&temp2f={WeatherStation.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp1].Value)}");
+				Data.Append($"&temp2f={DataToStr.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp1].Value)}");
 			}
 			if (cumulus.Wund.SendExtraTemp2 > 0 && cumulus.Wund.SendExtraTemp2 <= 10 && MetData.ExtraTemp[cumulus.Wund.SendExtraTemp2].HasValue)
 			{
-				Data.Append($"&temp3f={WeatherStation.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp2].Value)}");
+				Data.Append($"&temp3f={DataToStr.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp2].Value)}");
 			}
 			if (cumulus.Wund.SendExtraTemp3 > 0 && cumulus.Wund.SendExtraTemp3 <= 10 && MetData.ExtraTemp[cumulus.Wund.SendExtraTemp3].HasValue)
 			{
-				Data.Append($"&temp4f={WeatherStation.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp3].Value)}");
+				Data.Append($"&temp4f={DataToStr.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp3].Value)}");
 			}
 			if (cumulus.Wund.SendExtraTemp4 > 0 && cumulus.Wund.SendExtraTemp4 <= 10 && MetData.ExtraTemp[cumulus.Wund.SendExtraTemp4].HasValue)
 			{
-				Data.Append($"&temp5f={WeatherStation.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp4].Value)}");
+				Data.Append($"&temp5f={DataToStr.TempFstr(MetData.ExtraTemp[cumulus.Wund.SendExtraTemp4].Value)}");
 			}
 
 			Data.Append($"&softwaretype=Cumulus%20v{cumulus.Version}");

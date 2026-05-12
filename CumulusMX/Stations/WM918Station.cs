@@ -284,7 +284,7 @@ namespace CumulusMX.Stations
 			// CF S2S3 B3S1 B1B2 A2A3 xxA1     W1W2     WS      C1C2
 			// 0  1    2    3    4    5    ... 16   ... 21  ... 26
 			// Battery status b
-			// Wind Bearing B1B2B3
+			// Wind WindBearing B1B2B3
 			// Wind Gust   S1S2.S3
 			// Wind Speed Average A1A2.A3
 			// Wind Chill W1W2 (WS bit 1 gives sign)

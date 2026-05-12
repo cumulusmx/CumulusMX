@@ -99,7 +99,7 @@ namespace CumulusMX.Stations
 
 			DoWind(ConvertUnits.WindMPHToUser(currData.windSpeedVal), currData.windBearingVal, -1, recDate);
 
-			var rain = RainCounter + ConvertUnits.RainMMToUser(currData.rainRateVal * dataUpdateRate / 1000 / 3600);
+			var rain = MetData.RainCounter + ConvertUnits.RainMMToUser(currData.rainRateVal * dataUpdateRate / 1000 / 3600);
 
 			DoRain(rain, ConvertUnits.RainMMToUser(currData.rainRateVal), recDate);
 

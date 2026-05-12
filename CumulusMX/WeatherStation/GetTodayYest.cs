@@ -48,7 +48,7 @@ namespace CumulusMX
 			json.Append((MetData.TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
-			json.Append(YestAvgTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(MetData.YestAvgTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\"],");
 

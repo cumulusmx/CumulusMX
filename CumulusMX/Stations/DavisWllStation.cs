@@ -976,7 +976,7 @@ namespace CumulusMX.Stations
 										var rain = ConvertRainClicksToUser(data1.rainfall_year.Value, data1.rain_size.Value);
 										var rainrate = ConvertRainClicksToUser(data1.rain_rate_last.Value, data1.rain_size.Value);
 
-										if (rain > 0 && rain < RainCounter)
+										if (rain > 0 && rain < MetData.RainCounter)
 										{
 											cumulus.LogDebugMessage("Current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
 										}
@@ -1861,8 +1861,7 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-						MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+					AddRecentDataWithAq(timestamp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2228,7 +2227,7 @@ namespace CumulusMX.Stations
 									{
 										cumulus.LogDebugMessage($"WL.com historic: Adding rain {rain.ToString(cumulus.RainFormat)}");
 									}
-									rain += RainCounter;
+									rain += MetData.RainCounter;
 
 									if (rainrate < 0)
 									{
@@ -2302,7 +2301,7 @@ namespace CumulusMX.Stations
 									DoSolarRad((int) data11.solar_rad_avg, recordTs);
 
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
-									if (cumulus.WllPrimarySunshine == 0 && IsSunny)
+									if (cumulus.WllPrimarySunshine == 0 && MetData.IsSunny)
 									{
 										MetData.SunshineHours += data11.arch_int / 3600.0;
 									}

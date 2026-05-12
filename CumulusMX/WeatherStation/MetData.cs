@@ -6,10 +6,7 @@ namespace CumulusMX
 {
 	internal class MetData
 	{
-
-		public static double THWIndex { get; set; } = 0;
-
-		public static double THSWIndex { get; set; } = 0;
+		#region humidty
 
 		/// <summary>
 		/// Indoor relative humidity in %
@@ -21,6 +18,10 @@ namespace CumulusMX
 		/// </summary>
 		public static int Humidity { get; set; } = 0;
 
+		#endregion
+
+		#region temperature
+
 		/// <summary>
 		/// Outdoor temp
 		/// </summary>
@@ -31,16 +32,13 @@ namespace CumulusMX
 		/// </summary>
 		public static double? TemperatureIn { get; set; }
 
-		/// <summary>
-		/// Sea-level pressure
-		/// </summary>
-		public static double Pressure { get; set; } = 0;
+		public static double YestAvgTemp { get; set; }
 
-		public static string PressTrendStr { get; set; }
+		public static double? BlackGlobeTemp { get; set; }
 
-		public static double StationPressure { get; set; } = 0;
+		#endregion
 
-		public static double AltimeterPressure { get; set; }
+		#region derived temps
 
 		/// <summary>
 		/// Outdoor dew point
@@ -72,6 +70,45 @@ namespace CumulusMX
 		/// </summary>
 		public static double FeelsLike { get; set; } = 0;
 
+		public static double THWIndex { get; set; } = 0;
+
+		public static double THSWIndex { get; set; } = 0;
+
+		public static double? WetBulbGlobeTemp { get; set; }
+
+		public static double HeatingDegreeDays { get; set; }
+
+		public static double CoolingDegreeDays { get; set; }
+
+		public static double GrowingDegreeDaysThisYear1 { get; set; }
+
+		public static double GrowingDegreeDaysThisYear2 { get; set; }
+
+		public static double TempTotalToday { get; set; }
+
+		public static double ChillHours { get; set; }
+
+		public static double YestChillHours { get; set; }
+
+		#endregion
+
+		#region pressure
+
+		/// <summary>
+		/// Sea-level pressure
+		/// </summary>
+		public static double Pressure { get; set; } = 0;
+
+		public static string PressTrendStr { get; set; }
+
+		public static double StationPressure { get; set; } = 0;
+
+		public static double AltimeterPressure { get; set; }
+
+		#endregion
+
+		#region wind
+
 		/// <summary>
 		/// Latest wind speed/gust
 		/// </summary>
@@ -90,7 +127,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Wind direction in degrees
 		/// </summary>
-		public static int Bearing { get; set; } = 0;
+		public static int WindBearing { get; set; } = 0;
 
 
 		/// <summary>
@@ -101,7 +138,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Wind direction in degrees
 		/// </summary>
-		public static int AvgBearing { get; set; } = 0;
+		public static int WindAvgBearing { get; set; } = 0;
 
 		/// <summary>
 		/// Wind direction as compass points
@@ -110,7 +147,7 @@ namespace CumulusMX
 		{
 			get
 			{
-				return AvgBearing == 0 ? "-" : Program.cumulus.Trans.compassp[(AvgBearing * 100 + 1125) % 36000 / 2250];
+				return WindAvgBearing == 0 ? "-" : Program.cumulus.Trans.compassp[(WindAvgBearing * 100 + 1125) % 36000 / 2250];
 			}
 		}
 
@@ -137,24 +174,16 @@ namespace CumulusMX
 		/// </summary>
 		public static double WindRunToday { get; set; } = 0;
 
+		#endregion
+
+		#region rainfall
+
 		/// <summary>
 		/// Rainfall today
 		/// </summary>
 		public static double RainToday { get; set; } = 0;
 
 		public static double RainSinceMidnight { get; set; }
-
-		/// <summary>
-		/// Solar Radiation in W/m2
-		/// </summary>
-		public static int? SolarRad { get; set; }
-
-		/// <summary>
-		/// UV index
-		/// </summary>
-		public static double? UV { get; set; }
-
-		public static double ET { get; set; }
 
 		/// <summary>
 		/// Rain this month
@@ -185,25 +214,48 @@ namespace CumulusMX
 
 		public static int MidnightRainResetDay { get; set; }
 
-		public static double? BlackGlobeTemp { get; set; }
+		public static double RainCounterDayStart { get; set; } = 0.0;
 
-		public static double? WetBulbGlobeTemp { get; set; }
+		public static double RainCounter { get; set; } = 0.0;
+
+		public static double RG11RainToday { get; set; }
+		public static double RG11RainYesterday { get; set; }
+
+		#endregion
+
+		#region solar
+
+		/// <summary>
+		/// Solar Radiation in W/m2
+		/// </summary>
+		public static int? SolarRad { get; set; }
+
+		/// <summary>
+		/// UV index
+		/// </summary>
+		public static double? UV { get; set; }
 
 		public static double LightValue { get; set; }
 
-		public static double HeatingDegreeDays { get; set; }
+		public static double SunshineHours { get; set; } = 0;
 
-		public static double CoolingDegreeDays { get; set; }
+		public static double YestSunshineHours { get; set; } = 0;
 
-		public static double GrowingDegreeDaysThisYear1 { get; set; }
+		public static double SunshineToMidnight { get; set; }
 
-		public static double GrowingDegreeDaysThisYear2 { get; set; }
+		public static double SunHourCounter { get; set; }
 
-		public static double TempTotalToday { get; set; }
+		public static double StartOfDaySunHourCounter { get; set; }
 
-		public static double ChillHours { get; set; }
+		public static bool IsSunny { get; set; }
 
-		public static double YestChillHours { get; set; }
+		public static int CurrentSolarMax { get; set; }
+
+		public static double ET { get; set; }
+
+		#endregion
+
+		#region extra sensors
 
 		/// <summary>
 		/// Extra Temps
@@ -237,19 +289,6 @@ namespace CumulusMX
 
 		public static double?[] LeafWetness { get; set; } = new double?[9];
 
-		/// <summary>
-		/// Laser distance
-		/// </summary>
-		public static double?[] LaserDist { get; set; } = new double?[5];
-
-		public static double?[] LaserDepth { get; set; } = new double?[5];
-
-		public static double?[] LastLaserSnowDepth { get; set; } = new double?[5];
-
-		public static double?[] Snow24h { get; set; } = new double?[5];
-
-		public static double?[] SnowSeason { get; set; } = new double?[5];
-
 		public static int?[] SoilMoisture { get; set; } = new int?[17];
 
 		public static double?[] AirQuality { get; set; } = new double?[5];
@@ -276,6 +315,27 @@ namespace CumulusMX
 
 		public static int? LeakSensor4 { get; set; }
 
+		#endregion
+
+		#region laser/snow
+
+		/// <summary>
+		/// Laser distance
+		/// </summary>
+		public static double?[] LaserDist { get; set; } = new double?[5];
+
+		public static double?[] LaserDepth { get; set; } = new double?[5];
+
+		public static double?[] LastLaserSnowDepth { get; set; } = new double?[5];
+
+		public static double?[] Snow24h { get; set; } = new double?[5];
+
+		public static double?[] SnowSeason { get; set; } = new double?[5];
+
+		#endregion
+
+		#region co2
+
 		public static int? CO2 { get; set; }
 		public static int? CO2_24h { get; set; }
 		public static double? CO2_pm2p5 { get; set; }
@@ -293,26 +353,18 @@ namespace CumulusMX
 		public static double? CO2_pm10_aqi { get; set; }
 		public static double? CO2_pm10_24h_aqi { get; set; }
 
-		public static double SunshineHours { get; set; } = 0;
+		#endregion
 
-		public static double YestSunshineHours { get; set; } = 0;
-
-		public static double SunshineToMidnight { get; set; }
-
-		public static double SunHourCounter { get; set; }
-
-		public static double StartOfDaySunHourCounter { get; set; }
-
-		public static int CurrentSolarMax { get; set; }
+		#region lightning
 
 		public static double LightningDistance { get; set; }
 		public static DateTime LightningTime { get; set; } = DateTime.MinValue;
 		public static int LightningCounter { get; set; } = 0;
 		public static int LightningStrikesToday { get; set; } = 0;
 
-		public static double RG11RainToday { get; set; }
-		public static double RG11RainYesterday { get; set; }
+		#endregion
 
+		#region forecast
 		public static string ForecastStr { get; set; } = string.Empty;
 
 		public static string CumulusForecast { get; set; } = string.Empty;
@@ -321,5 +373,6 @@ namespace CumulusMX
 
 		public static int Forecastnumber { get; set; }
 
+		#endregion
 	}
 }

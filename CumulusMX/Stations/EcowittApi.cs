@@ -1910,7 +1910,7 @@ namespace CumulusMX.Stations
 				station.UpdateDegreeDays(rec.Value.Interval);
 
 				// update dominant wind bearing
-				station.CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, rec.Value.Interval);
+				station.CalculateDominantWindBearing(MetData.WindBearing, MetData.WindAverage, rec.Value.Interval);
 				station.DoTrendValues(recDateTime);
 
 				if (cumulus.StationOptions.CalculatedET && recDateTime.Minute == 0)
@@ -1978,8 +1978,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(recDateTime, false);
 				}
 
-				station.AddRecentDataWithAq(recDateTime, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, station.RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+				station.AddRecentDataWithAq(recDateTime);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

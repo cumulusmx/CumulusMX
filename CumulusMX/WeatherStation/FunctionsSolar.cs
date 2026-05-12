@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace CumulusMX
@@ -40,7 +42,7 @@ namespace CumulusMX
 
 					if (!cumulus.SolarOptions.UseBlakeLarsen)
 					{
-						IsSunny = MetData.SolarRad > MetData.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 && MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum;
+						MetData.IsSunny = MetData.SolarRad > MetData.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 && MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum;
 					}
 				}
 			}
@@ -91,6 +93,28 @@ namespace CumulusMX
 			MetData.SunshineHours = hrs - MetData.StartOfDaySunHourCounter;
 		}
 
+		private void ReadBlakeLarsenData()
+		{
+			var blFile = Path.Combine(Directory.GetCurrentDirectory(), "SRsunshine.dat");
+
+			if (File.Exists(blFile))
+			{
+				try
+				{
+					using var sr = new StreamReader(blFile);
+					var line = sr.ReadLine();
+					MetData.SunshineHours = double.Parse(line, CultureInfo.InvariantCulture.NumberFormat);
+					sr.ReadLine();
+					sr.ReadLine();
+					line = sr.ReadLine();
+					MetData.IsSunny = line == "True";
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("Error reading SRsunshine.dat: " + ex.Message);
+				}
+			}
+		}
 
 	}
 }

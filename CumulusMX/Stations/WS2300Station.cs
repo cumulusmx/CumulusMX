@@ -403,7 +403,7 @@ namespace CumulusMX.Stations
 				DoCloudBaseHeatIndex(timestamp);
 				DoTrendValues(timestamp);
 
-				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, historydata.interval);
+				CalculateDominantWindBearing(MetData.WindBearing, MetData.WindAverage, historydata.interval);
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
@@ -426,7 +426,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex, MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, rainrate, -1, -1, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+				AddRecentDataEntry(timestamp, -1, -1);
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 

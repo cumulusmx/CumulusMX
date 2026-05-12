@@ -578,12 +578,12 @@ namespace CumulusMX
 
 		private string Tagcurrentwdir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(MetData.Bearing);
+			return station.CompassPoint(MetData.WindBearing);
 		}
 
 		private string Tagwdir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(MetData.AvgBearing);
+			return station.CompassPoint(MetData.WindAvgBearing);
 		}
 
 		private string Tagwgust(Dictionary<string, string> tagParams)
@@ -925,7 +925,7 @@ namespace CumulusMX
 
 		private string TagavgtempY(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.YestAvgTemp, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(MetData.YestAvgTemp, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagapptemp(Dictionary<string, string> tagParams)
@@ -1024,12 +1024,12 @@ namespace CumulusMX
 
 		private string Tagbearing(Dictionary<string, string> tagParams)
 		{
-			return MetData.Bearing.ToString();
+			return MetData.WindBearing.ToString();
 		}
 
 		private string Tagavgbearing(Dictionary<string, string> tagParams)
 		{
-			return MetData.AvgBearing.ToString();
+			return MetData.WindAvgBearing.ToString();
 		}
 
 		private string TagBearingRangeFrom(Dictionary<string, string> tagParams)
@@ -4442,7 +4442,7 @@ namespace CumulusMX
 
 		private string TagIsSunny(Dictionary<string, string> tagParams)
 		{
-			return station.IsSunny ? "1" : "0";
+			return MetData.IsSunny ? "1" : "0";
 		}
 
 		private string TagIsFreezing(Dictionary<string, string> tagParams)
@@ -6901,7 +6901,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return result.HasValue ? result.ToString() : MetData.Bearing.ToString();
+			return result.HasValue ? result.ToString() : MetData.WindBearing.ToString();
 		}
 
 		private string TagRecentWindAvgDir(Dictionary<string, string> tagParams)
@@ -6910,7 +6910,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return result.HasValue ? result.ToString() : MetData.AvgBearing.ToString();
+			return result.HasValue ? result.ToString() : MetData.WindAvgBearing.ToString();
 		}
 
 		private string TagRecentWindChill(Dictionary<string, string> tagParams)

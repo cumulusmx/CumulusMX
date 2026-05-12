@@ -64,26 +64,26 @@ namespace CumulusMX
 			// use bearing of zero when calm
 			if (Math.Abs(gustpar) < 0.001 && cumulus.StationOptions.UseZeroBearing)
 			{
-				MetData.Bearing = 0;
+				MetData.WindBearing = 0;
 			}
 			else
 			{
-				MetData.Bearing = (bearingpar + (int) cumulus.Calib.WindDir.Offset) % 360;
-				if (MetData.Bearing < 0)
+				MetData.WindBearing = (bearingpar + (int) cumulus.Calib.WindDir.Offset) % 360;
+				if (MetData.WindBearing < 0)
 				{
-					MetData.Bearing = 360 + MetData.Bearing;
+					MetData.WindBearing = 360 + MetData.WindBearing;
 				}
 
-				if (MetData.Bearing == 0)
+				if (MetData.WindBearing == 0)
 				{
-					MetData.Bearing = 360;
+					MetData.WindBearing = 360;
 				}
 			}
 
 			MetData.WindLatest = cumulus.StationOptions.UseSpeedForLatest ? calibratedspeed : calibratedgust;
 
 			windspeeds[nextwindvalue] = calibratedgust;
-			windbears[nextwindvalue] = MetData.Bearing;
+			windbears[nextwindvalue] = MetData.WindBearing;
 			nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 
 			// Recalculate wind rose data
@@ -103,7 +103,7 @@ namespace CumulusMX
 				numwindvalues++;
 			}
 
-			CheckHighGust(calibratedgust, MetData.Bearing, timestamp);
+			CheckHighGust(calibratedgust, MetData.WindBearing, timestamp);
 
 			lock (recentwindLock)
 			{
@@ -173,12 +173,12 @@ namespace CumulusMX
 
 			CheckHighAvgSpeed(timestamp);
 
-			WindVec[nextwindvec].X = calibratedgust * Math.Sin(DegToRad(MetData.Bearing));
-			WindVec[nextwindvec].Y = calibratedgust * Math.Cos(DegToRad(MetData.Bearing));
+			WindVec[nextwindvec].X = calibratedgust * Math.Sin(Trig.DegToRad(MetData.WindBearing));
+			WindVec[nextwindvec].Y = calibratedgust * Math.Cos(Trig.DegToRad(MetData.WindBearing));
 			// save timestamp of this reading
 			WindVec[nextwindvec].Timestamp = timestamp;
 			// save bearing
-			WindVec[nextwindvec].Bearing = MetData.Bearing; // savedBearing
+			WindVec[nextwindvec].Bearing = MetData.WindBearing; // savedBearing
 															// increment index for next reading
 			nextwindvec = (nextwindvec + 1) % MaxWindRecent;
 
@@ -198,7 +198,7 @@ namespace CumulusMX
 					if (WindVec[i].Bearing != 0)
 					{
 						// this reading was within the last N minutes
-						var difference = getShortestAngle(MetData.AvgBearing, WindVec[i].Bearing);
+						var difference = Utils.GetShortestAngle(MetData.WindAvgBearing, WindVec[i].Bearing);
 						if (difference > diffTo)
 						{
 							diffTo = difference;
@@ -214,30 +214,30 @@ namespace CumulusMX
 			}
 			if (Math.Abs(totalwindX) < 0.001 && Math.Abs(totalwindY) < 0.001)
 			{
-				MetData.AvgBearing = 0;
+				MetData.WindAvgBearing = 0;
 			}
 			else
 			{
-				MetData.AvgBearing = (int) Math.Round(RadToDeg(Math.Atan(totalwindY / totalwindX)));
+				MetData.WindAvgBearing = (int) Math.Round(Trig.RadToDeg(Math.Atan(totalwindY / totalwindX)));
 
 				if (totalwindX < 0)
 				{
-					MetData.AvgBearing = 270 - MetData.AvgBearing;
+					MetData.WindAvgBearing = 270 - MetData.WindAvgBearing;
 				}
 				else
 				{
-					MetData.AvgBearing = 90 - MetData.AvgBearing;
+					MetData.WindAvgBearing = 90 - MetData.WindAvgBearing;
 				}
 
-				if (MetData.AvgBearing == 0)
+				if (MetData.WindAvgBearing == 0)
 				{
-					MetData.AvgBearing = 360;
+					MetData.WindAvgBearing = 360;
 				}
 			}
 
 			if (Math.Abs(MetData.WindAverage) < 0.01 && cumulus.StationOptions.UseZeroBearing)
 			{
-				MetData.AvgBearing = 0;
+				MetData.WindAvgBearing = 0;
 			}
 
 			if (Math.Abs(MetData.WindAverage) < 0.01)
@@ -265,7 +265,6 @@ namespace CumulusMX
 			WindReadyToPlot = true;
 			HaveReadData = true;
 		}
-
 
 		public double GetWindAverageFromArray(DateTime fromTime)
 		{
@@ -420,8 +419,8 @@ namespace CumulusMX
 
 		public void CalculateDominantWindBearing(int averageBearing, double averageSpeed, int minutes)
 		{
-			MetData.DominantWindBearingX += minutes * averageSpeed * Math.Sin(DegToRad(averageBearing));
-			MetData.DominantWindBearingY += minutes * averageSpeed * Math.Cos(DegToRad(averageBearing));
+			MetData.DominantWindBearingX += minutes * averageSpeed * Math.Sin(Trig.DegToRad(averageBearing));
+			MetData.DominantWindBearingY += minutes * averageSpeed * Math.Cos(Trig.DegToRad(averageBearing));
 			MetData.DominantWindBearingMinutes += minutes;
 
 			if (Math.Abs(MetData.DominantWindBearingX) < 0.001 && Math.Abs(MetData.DominantWindBearingY) < 0.001)
@@ -481,7 +480,7 @@ namespace CumulusMX
 
 		private static int calcavgbear(double x, double y)
 		{
-			var avg = 90 - (int) RadToDeg(Math.Atan2(y, x));
+			var avg = 90 - (int) Trig.RadToDeg(Math.Atan2(y, x));
 			if (avg < 0)
 			{
 				avg = 360 + avg;
@@ -516,6 +515,29 @@ namespace CumulusMX
 			CheckMonthlyAlltime("HighWindRun", MetData.WindRunToday, true, adjustedtimestamp);
 		}
 
+		public double GetWindRunMonth(int year, int month)
+		{
+			var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Local);
+			var enddate = startDate.AddMonths(1);
 
+			var now = cumulus.MeteoDate();
+
+			if (now.Day == 1 && now.Date == startDate.Date)
+			{
+				// This month, and first day so no day file entries
+				// return windrun so far today
+				return MetData.WindRunToday;
+			}
+
+			var dayfile = DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
+
+			// if the current month add todays windrun
+			if (year == now.Year && month == now.Month)
+			{
+				dayfile += MetData.WindRunToday;
+			}
+
+			return dayfile;
+		}
 	}
 }

@@ -30,23 +30,23 @@ namespace CumulusMX
 				return;
 			}
 
-			var previoustotal = RainCounter;
+			var previoustotal = MetData.RainCounter;
 
-			RainCounter = total;
+			MetData.RainCounter = total;
 
 			if (initialiseRainDayStart || initialiseMidnightRain)
 			{
 
 				if (initialiseRainDayStart)
 				{
-					RainCounterDayStart = RainCounter;
-					cumulus.LogMessage(" First rain data, raindaystart = " + RainCounterDayStart);
+					MetData.RainCounterDayStart = MetData.RainCounter;
+					cumulus.LogMessage(" First rain data, raindaystart = " + MetData.RainCounterDayStart);
 					initialiseRainDayStart = false;
 				}
 
 				if (initialiseMidnightRain)
 				{
-					MetData.MidnightRainCount = RainCounter;
+					MetData.MidnightRainCount = MetData.RainCounter;
 					initialiseMidnightRain = false;
 				}
 
@@ -59,21 +59,21 @@ namespace CumulusMX
 			// raindaystart greater than current total, allow for rounding
 			// or current has jumped by more than 40 mm/1.5 inch
 			var maxIncrement = cumulus.Units.Rain == 0 ? 40 : 1.5;
-			var counterReset = Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0;
-			var counterJumped = Math.Round(RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
+			var counterReset = Math.Round(MetData.RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(MetData.RainCounter, cumulus.RainDPlaces) > 0;
+			var counterJumped = Math.Round(MetData.RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
 
 			// Davis VP2 console loses todays rainfall when it is power cycled
 			// so check if the current value is less than previous and has returned to the previous midnight value
-			if (Math.Round(RainCounter, cumulus.RainDPlaces) < Math.Round(previoustotal, cumulus.RainDPlaces) &&
-				Math.Abs(RainCounter - MetData.MidnightRainCount) < Math.Pow(10, -cumulus.RainDPlaces) &&
+			if (Math.Round(MetData.RainCounter, cumulus.RainDPlaces) < Math.Round(previoustotal, cumulus.RainDPlaces) &&
+				Math.Abs(MetData.RainCounter - MetData.MidnightRainCount) < Math.Pow(10, -cumulus.RainDPlaces) &&
 				cumulus.StationType == StationTypes.VantagePro2)
 			{
 				var counterLost = previoustotal - MetData.MidnightRainCount;
-				RainCounterDayStart -= counterLost;
+				MetData.RainCounterDayStart -= counterLost;
 				MetData.MidnightRainCount -= counterLost;
 
 				cumulus.LogWarningMessage($" ****Rain counter reset to previous midnight value (VP2 console power cycled?), lost {counterLost} counts");
-				cumulus.LogWarningMessage($"     New values:  RaindayStart = {RainCounterDayStart}, MidnightRainCount = {MetData.MidnightRainCount}, Raincounter = {RainCounter}");
+				cumulus.LogWarningMessage($"     New values:  RaindayStart = {MetData.RainCounterDayStart}, MidnightRainCount = {MetData.MidnightRainCount}, Raincounter = {MetData.RainCounter}");
 
 				// update any data in the recent data db
 				//var counterChange = RainCounter - prevraincounter
@@ -87,23 +87,23 @@ namespace CumulusMX
 				{
 					if (counterReset)
 					{
-						cumulus.LogWarningMessage(" ****Rain counter reset confirmed: RaindayStart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+						cumulus.LogWarningMessage(" ****Rain counter reset confirmed: RaindayStart = " + MetData.RainCounterDayStart + ", Raincounter = " + MetData.RainCounter);
 					}
 					else
 					{
-						cumulus.LogWarningMessage(" ****Rain counter jump confirmed: Previous Value = " + previoustotal + ", Raincounter = " + RainCounter);
+						cumulus.LogWarningMessage(" ****Rain counter jump confirmed: Previous Value = " + previoustotal + ", Raincounter = " + MetData.RainCounter);
 					}
 
 					// set the start of day figure so it reflects the rain
 					// so far today
-					RainCounterDayStart = RainCounter - (previoustotal - RainCounterDayStart);
-					cumulus.LogMessage("Setting RaindayStart to " + RainCounterDayStart);
+					MetData.RainCounterDayStart = MetData.RainCounter - (previoustotal - MetData.RainCounterDayStart);
+					cumulus.LogMessage("Setting RaindayStart to " + MetData.RainCounterDayStart);
 
-					MetData.MidnightRainCount = RainCounter;
+					MetData.MidnightRainCount = MetData.RainCounter;
 					previoustotal = total;
 
 					// update any data in the recent data db
-					var counterChange = RainCounter - prevraincounter;
+					var counterChange = MetData.RainCounter - prevraincounter;
 					RecentDataDb.Execute("update RecentData set raincounter=raincounter+?", counterChange);
 
 					SecondChanceRainReset = false;
@@ -113,19 +113,19 @@ namespace CumulusMX
 				{
 					if (counterReset)
 					{
-						cumulus.LogMessage(" ****Rain reset? RaindayStart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+						cumulus.LogMessage(" ****Rain reset? RaindayStart = " + MetData.RainCounterDayStart + ", Raincounter = " + MetData.RainCounter);
 					}
 					else
 					{
-						cumulus.LogWarningMessage(" ****Rain counter jump? Previous Value = " + previoustotal + ", Raincounter = " + RainCounter);
+						cumulus.LogWarningMessage(" ****Rain counter jump? Previous Value = " + previoustotal + ", Raincounter = " + MetData.RainCounter);
 					}
 
 					// reset the counter to ignore this reading
-					RainCounter = previoustotal;
-					cumulus.LogMessage("Leaving counter at " + RainCounter);
+					MetData.RainCounter = previoustotal;
+					cumulus.LogMessage("Leaving counter at " + MetData.RainCounter);
 
 					// stash the previous rain counter
-					prevraincounter = RainCounter;
+					prevraincounter = MetData.RainCounter;
 
 					rainResetCount++;
 
@@ -203,12 +203,12 @@ namespace CumulusMX
 				}
 
 				// Calculate today's rainfall
-				MetData.RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
+				MetData.RainToday = (MetData.RainCounter - MetData.RainCounterDayStart) * cumulus.Calib.Rain.Mult;
 				// Allow for rounding errors
 				if (MetData.RainToday < 0) MetData.RainToday = 0;
 
 				// Calculate rain since midnight for Wunderground etc
-				var trendval = RainCounter - MetData.MidnightRainCount;
+				var trendval = MetData.RainCounter - MetData.MidnightRainCount;
 
 				// Round value as some values may have been read from log file and already rounded
 				trendval = Math.Round(trendval, cumulus.RainDPlaces);

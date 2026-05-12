@@ -130,23 +130,23 @@ namespace CumulusMX.ThirdParty
 			StringBuilder Data = new StringBuilder(1024);
 
 			// send average speed and bearing
-			Data.Append("&winddir=" + MetData.AvgBearing);
+			Data.Append("&winddir=" + MetData.WindAvgBearing);
 			if (MetData.WindAverage >= 0)
-				Data.Append("&windspeedmph=" + station.WindMPHStr(MetData.WindAverage));
+				Data.Append("&windspeedmph=" + DataToStr.WindMPHStr(MetData.WindAverage, cumulus.StationOptions.RoundWindSpeed));
 			if (MetData.RecentMaxGust >= 0)
-				Data.Append("&windgustmph=" + station.WindMPHStr(MetData.RecentMaxGust));
+				Data.Append("&windgustmph=" + DataToStr.WindMPHStr(MetData.RecentMaxGust, cumulus.StationOptions.RoundWindSpeed));
 			if (MetData.Humidity >= 0)
 				Data.Append("&humidity=" + MetData.Humidity);
 			if (MetData.Temperature > Cumulus.DefaultHiVal)
-				Data.Append("&tempf=" + WeatherStation.TempFstr(MetData.Temperature));
-			Data.Append("&rainin=" + WeatherStation.RainINstr(MetData.RainLastHour));
+				Data.Append("&tempf=" + DataToStr.TempFstr(MetData.Temperature));
+			Data.Append("&rainin=" + DataToStr.RainINstr(MetData.RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
+			Data.Append(DataToStr.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
 			if (MetData.Pressure > 0)
-				Data.Append("&baromin=" + WeatherStation.PressINstr(MetData.Pressure));
+				Data.Append("&baromin=" + DataToStr.PressINstr(MetData.Pressure));
 			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
-				Data.Append("&dewptf=" + WeatherStation.TempFstr(MetData.Dewpoint));
+				Data.Append("&dewptf=" + DataToStr.TempFstr(MetData.Dewpoint));
 			if (SendUV && MetData.UV.HasValue)
 			{
 				Data.Append("&UV=" + MetData.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
