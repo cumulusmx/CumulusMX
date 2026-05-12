@@ -25,12 +25,6 @@ namespace CumulusMX.Stations
 
 		private readonly int[] WMR928PacketLength = [11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255];
 
-		private bool[] WMR928ChannelPresent = [false, false, false, false];
-		private bool[] WMR928ExtraTempValueOnly = [false, false, false, false];
-		private double[] WMR928ExtraTempValues = [0.0, 0.0, 0.0, 0.0];
-		private double[] WMR928ExtraDPValues = [0.0, 0.0, 0.0, 0.0];
-		private int[] WMR928ExtraHumValues = [0, 0, 0, 0];
-
 
 		public WMR928Station(Cumulus cumulus) : base(cumulus)
 		{
@@ -303,14 +297,10 @@ namespace CumulusMX.Stations
 				channel = 1;
 			}
 
-			WMR928ChannelPresent[channel] = true;
-			WMR928ExtraTempValueOnly[channel] = true;
-			ExtraSensorsDetected = true;
 
 			var temp = ExtractTemp(buff[4], buff[5]);
 
-			WMR928ExtraTempValues[channel] = ConvertUnits.TempCToUser(temp);
-			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
+			DoExtraTemp(ConvertUnits.TempCToUser(temp), channel);
 
 			if (cumulus.WMR928TempChannel == channel)
 			{
@@ -319,7 +309,7 @@ namespace CumulusMX.Stations
 
 				var now = DateTime.Now;
 
-				DoOutdoorTemp(WMR928ExtraTempValues[channel], now);
+				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), now);
 
 				DoApparentTemp(now);
 				DoFeelsLike(now);
@@ -370,20 +360,14 @@ namespace CumulusMX.Stations
 				channel = 1;
 			}
 
-			WMR928ChannelPresent[channel] = true;
-			ExtraSensorsDetected = true;
-
 			var hum = BCDchartoint(buff[6]);
-			WMR928ExtraHumValues[channel] = hum;
 			DoExtraHum(hum, channel);
 
 			var temp = ExtractTemp(buff[4], buff[5]);
 
-			WMR928ExtraTempValues[channel] = ConvertUnits.TempCToUser(temp);
-			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
+			DoExtraTemp(ConvertUnits.TempCToUser(temp), channel);
 
-			WMR928ExtraDPValues[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
-			MetData.ExtraDewPoint[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
+			DoExtraDP(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), channel);
 
 			if (cumulus.WMR928TempChannel == channel)
 			{

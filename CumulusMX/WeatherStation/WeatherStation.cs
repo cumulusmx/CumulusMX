@@ -102,17 +102,9 @@ namespace CumulusMX
 		public int TempBattStatus;
 		public int UVBattStatus;
 
-		public double[] WMR200ExtraDPValues { get; set; }
-
-		public bool[] WMR200ChannelPresent { get; set; }
-
-		public double[] WMR200ExtraHumValues { get; set; }
-
 		public DateTime LastDataReadTime;
 		public DateTime DataDateTime;
 		public bool haveReadData = false;
-
-		public bool ExtraSensorsDetected = false;
 
 		// Should Cumulus find the peak gust?
 		// This gets set to false for Davis stations after logger download

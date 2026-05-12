@@ -68,10 +68,6 @@ namespace CumulusMX.Stations
 
 				packetBuffer = new byte[PacketBufferBound];
 
-				WMR200ExtraHumValues = new double[11];
-				WMR200ChannelPresent = new bool[11];
-				WMR200ExtraDPValues = new double[11];
-
 				var hearbeatTimer = new Timer(30000);
 				hearbeatTimer.Elapsed += HearbeatTimerProc;
 				hearbeatTimer.Start();
@@ -602,10 +598,8 @@ namespace CumulusMX.Stations
 			}
 			if (sensor > 1 && sensor < 11)
 			{
-				WMR200ChannelPresent[sensor] = true;
 				// outdoor hum
-				WMR200ExtraHumValues[sensor] = packetBuffer[10];
-				DoExtraHum((int) WMR200ExtraHumValues[sensor], sensor);
+				DoExtraHum((int) packetBuffer[10], sensor);
 				// outdoor temp
 				if ((packetBuffer[9] & 0x80) == 0x80)
 				{
@@ -628,9 +622,8 @@ namespace CumulusMX.Stations
 					sign = 1;
 				}
 
-				WMR200ExtraDPValues[sensor] = ConvertUnits.TempCToUser(sign * ((packetBuffer[12] & 0xF) * 256 + packetBuffer[11]) / 10.0);
-				DoExtraDP(WMR200ExtraDPValues[sensor], sensor);
-				ExtraSensorsDetected = true;
+				val = ConvertUnits.TempCToUser(sign * ((packetBuffer[12] & 0xF) * 256 + packetBuffer[11]) / 10.0);
+				DoExtraDP(val, sensor);
 			}
 		}
 
@@ -1006,13 +999,6 @@ namespace CumulusMX.Stations
 					num = 16;
 
 				DoUV(num, DateTime.Now);
-
-				// UV value is stored as channel 1 of the extra sensors
-				WMR200ExtraHumValues[1] = num;
-
-				ExtraSensorsDetected = true;
-
-				WMR200ChannelPresent[1] = true;
 			}
 		}
 

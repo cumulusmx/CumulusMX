@@ -52,10 +52,6 @@ namespace CumulusMX.Stations
 
 				packetBuffer = new byte[PacketBufferBound];
 
-				WMR200ExtraHumValues = new double[11];
-				WMR200ChannelPresent = new bool[11];
-				WMR200ExtraDPValues = new double[11];
-
 				LoadLastHoursFromDataLogs(DateTime.Now);
 			}
 			else
@@ -287,9 +283,8 @@ namespace CumulusMX.Stations
 
 			if (sensor > 1 && sensor < 11)
 			{
-				WMR200ChannelPresent[sensor] = true;
 				// Humidity n/a
-				WMR200ExtraHumValues[sensor] = 0;
+				DoExtraHum(null, sensor);
 
 				// temp
 				if ((packetBuffer[4] & 0x80) == 0x80)
@@ -302,9 +297,7 @@ namespace CumulusMX.Stations
 				DoExtraTemp(ConvertUnits.TempCToUser(num), sensor);
 
 				// outdoor dewpoint - n/a
-
-				WMR200ExtraDPValues[sensor] = 0;
-				ExtraSensorsDetected = true;
+				DoExtraDP(null,  sensor);
 			}
 		}
 
@@ -324,13 +317,6 @@ namespace CumulusMX.Stations
 					num = 16;
 
 				DoUV(num, DateTime.Now);
-
-				// UV value is stored as channel 1 of the extra sensors
-				WMR200ExtraHumValues[1] = num;
-
-				ExtraSensorsDetected = true;
-
-				WMR200ChannelPresent[1] = true;
 			}
 		}
 
@@ -459,11 +445,8 @@ namespace CumulusMX.Stations
 
 			if (sensor > 1 && sensor < 11)
 			{
-				WMR200ChannelPresent[sensor] = true;
 				// outdoor hum
-				WMR200ExtraHumValues[sensor] = packetBuffer[5];
-
-				DoExtraHum((int) WMR200ExtraHumValues[sensor], sensor);
+				DoExtraHum((int) packetBuffer[5], sensor);
 
 				// outdoor temp
 				if ((packetBuffer[4] & 0x80) == 0x80)
@@ -482,9 +465,7 @@ namespace CumulusMX.Stations
 					sign = 1;
 
 				num = sign * ((packetBuffer[7] & 0xF) * 256 + packetBuffer[6]) / 10.0;
-				WMR200ExtraDPValues[sensor] = ConvertUnits.TempCToUser(num);
-				DoExtraDP(WMR200ExtraDPValues[sensor], sensor);
-				ExtraSensorsDetected = true;
+				DoExtraDP(ConvertUnits.TempCToUser(num), sensor);
 			}
 		}
 
