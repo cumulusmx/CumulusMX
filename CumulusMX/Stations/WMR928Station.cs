@@ -25,6 +25,13 @@ namespace CumulusMX.Stations
 
 		private readonly int[] WMR928PacketLength = [11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255];
 
+		private bool[] WMR928ChannelPresent = [false, false, false, false];
+		private bool[] WMR928ExtraTempValueOnly = [false, false, false, false];
+		private double[] WMR928ExtraTempValues = [0.0, 0.0, 0.0, 0.0];
+		private double[] WMR928ExtraDPValues = [0.0, 0.0, 0.0, 0.0];
+		private int[] WMR928ExtraHumValues = [0, 0, 0, 0];
+
+
 		public WMR928Station(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGON;

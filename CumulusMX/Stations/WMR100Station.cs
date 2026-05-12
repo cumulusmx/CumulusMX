@@ -52,7 +52,6 @@ namespace CumulusMX.Stations
 
 				packetBuffer = new byte[PacketBufferBound];
 
-				WMR200ExtraTempValues = new double[11];
 				WMR200ExtraHumValues = new double[11];
 				WMR200ChannelPresent = new bool[11];
 				WMR200ExtraDPValues = new double[11];
@@ -300,8 +299,7 @@ namespace CumulusMX.Stations
 
 				var num = sign * ((packetBuffer[4] & 0xF) * 256 + packetBuffer[3]) / 10.0;
 
-				WMR200ExtraTempValues[sensor] = ConvertUnits.TempCToUser(num);
-				DoExtraTemp(WMR200ExtraTempValues[sensor], sensor);
+				DoExtraTemp(ConvertUnits.TempCToUser(num), sensor);
 
 				// outdoor dewpoint - n/a
 
@@ -475,8 +473,7 @@ namespace CumulusMX.Stations
 
 				num = sign * ((packetBuffer[4] & 0xF) * 256 + packetBuffer[3]) / 10.0;
 
-				WMR200ExtraTempValues[sensor] = ConvertUnits.TempCToUser(num);
-				DoExtraTemp(WMR200ExtraTempValues[sensor], sensor);
+				DoExtraTemp(ConvertUnits.TempCToUser(num), sensor);
 
 				// outdoor dewpoint
 				if ((packetBuffer[7] & 0x80) == 0x80)
