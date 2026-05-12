@@ -854,7 +854,7 @@ namespace CumulusMX
 
 		private string Tagforecastnumber(Dictionary<string, string> tagParams)
 		{
-			return MetData.ForecastNumber.ToString();
+			return MetData.Forecastnumber.ToString();
 		}
 
 		private string Tagforecast(Dictionary<string, string> tagParams)

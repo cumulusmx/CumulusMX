@@ -319,7 +319,7 @@ namespace CumulusMX
 
 		public static string WsForecast { get; set; } = string.Empty;
 
-		public static int ForecastNumber { get; set; }
+		public static int Forecastnumber { get; set; }
 
 	}
 }

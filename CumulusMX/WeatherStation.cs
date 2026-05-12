@@ -10573,19 +10573,19 @@ namespace CumulusMX
 			if (z_trend == 1)
 			{
 				// rising
-				MetData.ForecastNumber = riseOptions[z_option] + 1;
+				MetData.Forecastnumber = riseOptions[z_option] + 1;
 				z_output.Append(cumulus.Trans.zForecast[riseOptions[z_option]]);
 			}
 			else if (z_trend == 2)
 			{
 				// falling
-				MetData.ForecastNumber = fallOptions[z_option] + 1;
+				MetData.Forecastnumber = fallOptions[z_option] + 1;
 				z_output.Append(cumulus.Trans.zForecast[fallOptions[z_option]]);
 			}
 			else
 			{
 				// must be "steady"
-				MetData.ForecastNumber = steadyOptions[z_option] + 1;
+				MetData.Forecastnumber = steadyOptions[z_option] + 1;
 				z_output.Append(cumulus.Trans.zForecast[steadyOptions[z_option]]);
 			}
 			return z_output.ToString();

@@ -8147,7 +8147,7 @@ namespace CumulusMX
 				sb.Append((MetData.SolarRad ?? 0).ToString() + ' ');                          // 46
 				sb.Append(MetData.AvgBearing.ToString() + ' ');                               // 47
 				sb.Append(MetData.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
-				sb.Append(MetData.ForecastNumber.ToString() + ' ');                           // 49
+				sb.Append(MetData.Forecastnumber.ToString() + ' ');                           // 49
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
 				sb.Append(station.SensorContactLost ? "1 " : "0 ");                           // 51
 				sb.Append(station.CompassPoint(MetData.AvgBearing) + ' ');                    // 52
@@ -8234,7 +8234,7 @@ namespace CumulusMX
 			values.Append(sep + MetData.SolarRad.ToText("NULL"));
 			values.Append(sep + MetData.AvgBearing.ToString());
 			values.Append(sep + MetData.RainLastHour.ToString(RainFormat, InvC));
-			values.Append(sep + MetData.ForecastNumber.ToString());
+			values.Append(sep + MetData.Forecastnumber.ToString());
 			values.Append(sep + (IsDaylight() ? "'1'" : "'0'"));
 			values.Append(sep + (station.SensorContactLost ? "'1'" : "'0'"));
 			values.Append(sep + "'" + station.CompassPoint(MetData.AvgBearing) + "'");
