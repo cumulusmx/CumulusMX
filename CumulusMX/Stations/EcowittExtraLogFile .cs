@@ -178,11 +178,12 @@ namespace CumulusMX.Stations
 						{
 							if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
 							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.SoilTemp[i] = varDbl;
+							if (FieldIndex.TryGetValue("soilec ch" + i, out idx) && int.TryParse(fields[idx], invc, out varInt)) rec.SoilEc[i] = varInt;
 						}
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing Soil Moisture/Temperature - " + ex.Message);
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing Soil Moisture/Temperature/EC - " + ex.Message);
 					}
 
 					// Water - unused
@@ -377,6 +378,7 @@ namespace CumulusMX.Stations
 			baseRec.CO2Pm10 = extraRec.CO2Pm10;
 			baseRec.SoilMoist = extraRec.SoilMoist;
 			baseRec.SoilTemp = extraRec.SoilTemp;
+			baseRec.SoilEc = extraRec.SoilEc;
 			baseRec.Pm2p5 = extraRec.Pm2p5;
 			baseRec.UserTemp = extraRec.UserTemp;
 			baseRec.LaserDist = extraRec.LaserDist;
@@ -501,7 +503,7 @@ namespace CumulusMX.Stations
 			miles = 1
 		}
 
-		public class Record
+/*		public class Record
 		{
 			public DateTime Time { get; set; }
 			public double?[] ExtraTemp { get; set; } = new double?[8];
@@ -524,7 +526,7 @@ namespace CumulusMX.Stations
 			public double?[] UserTemp { get; set; } = new double?[8];
 			public double?[] LdsAir { get; set; } = new double?[4];
 		}
-
+*/
 		[System.Text.RegularExpressions.GeneratedRegex(@"\(([^)]*)\)")]
 		private partial System.Text.RegularExpressions.Regex UnitsRegEx();
 	}
