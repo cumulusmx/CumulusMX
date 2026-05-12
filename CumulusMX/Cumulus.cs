@@ -4247,6 +4247,12 @@ namespace CumulusMX
 			Trans.WebTagRecDryWetDate = ini.GetValue("WebTags", "RecordDryWetDate", "'to' dd MMMM yyyy");
 			Trans.WebTagElapsedTime = ini.GetValue("WebTags", "ElapsedTime", "{0:%d} days {0:%h} hours");
 
+			// Hi/Lo Captions
+			foreach (var key in Trans.HiLoCaptions.Keys)
+			{
+				Trans.HiLoCaptions[key] = ini.GetValue("HiLoCaptions", key, Trans.HiLoCaptions[key]);
+			}
+
 			if (!File.Exists("strings.ini"))
 			{
 				WriteStringsFile();
@@ -4467,6 +4473,11 @@ namespace CumulusMX
 			ini.SetValue("WebTags", "RecordDryWetDate", Trans.WebTagRecDryWetDate);
 			ini.SetValue("WebTags", "ElapsedTime", Trans.WebTagElapsedTime);
 
+			// Hi/Lo Captions
+			foreach (var key in Trans.HiLoCaptions.Keys)
+			{
+				ini.SetValue("HiLoCaptions", key, Trans.HiLoCaptions[key]);
+			}
 
 			ini.Flush();
 

@@ -1,4 +1,6 @@
-﻿namespace CumulusMX
+﻿using System.Collections.Generic;
+
+namespace CumulusMX
 {
 	internal class Lang
 	{
@@ -115,6 +117,49 @@
 				"Windy.",
 				"Increasing winds."
 			];
+
+			HiLoCaptions = new Dictionary<string, string>
+			{
+				{ "HiTemp", "High Temperature" },
+				{ "LoTemp", "Low Temperature" },
+				{ "HiTempRange", "High Daily Temp Range" },
+				{ "LoTempRange", "Low Daily Temp Range" },
+				{ "TempRange", "Temperature Range" },
+				{ "AvgTemp", "Average Temp" },
+				{ "HiMinTemp", "High Minimum Temp" },
+				{ "LoMaxTemp", "Low Maximum Temp" },
+				{ "LoWindChill", "Low Wind Chill" },
+				{ "HiAppTemp", "High Apparent Temp" },
+				{ "LoAppTemp", "Low Apparent Temp" },
+				{ "HiHeatInd", "High Heat Index" },
+				{ "HiDewPnt", "High Dew Point" },
+				{ "LoDewPnt", "Low Dew Point" },
+				{ "HiFeelsLike", "High Feels Like" },
+				{ "LoFeelsLike", "Low Feels Like" },
+				{ "HiHumidex", "High Humidex" },
+				{ "HiHum", "High Humidity" },
+				{ "LoHum", "Low Humidity" },
+				{ "TotalRain", "Total Rain" },
+				{ "HiRainRate", "High Rain Rate" },
+				{ "HiHourlyRain", "High Hourly Rain" },
+				{ "HiMonthRain", "High Monthly Rainfall" },
+				{ "HiDailyRain", "High Daily Rain" },
+				{ "Hi24hRain", "High 24-Hour Rain" },
+				{ "LongDryPeriod", "Longest Dry Period" },
+				{ "LongWetPeriod", "Longest Wet Period" },
+				{ "LoPress", "Low Pressure" },
+				{ "HiPress", "High Pressure" },
+				{ "HiGust", "High Gust" },
+				{ "HiWindSpeed", "High Wind Speed" },
+				{ "HiWindDailyRun", "High Daily Windrun" },
+				{ "WindRun", "Wind Run" },
+				{ "DomDir", "Dominant Direction" },
+				{ "HiBGT", "High BGT" },
+				{ "HiWBGT", "High WBGT" },
+				{ "HiSolar", "High Solar Radiation" },
+				{ "HrsSunshine", "Hours of Sunshine" },
+				{ "HiUV", "High UV-Index" }
+			};
 		}
 
 		// Forecasts
@@ -210,5 +255,7 @@
 		public string Snow24h { get; set; }
 		// Laser
 		public string[] LaserCaptions { get; set; }
+		// Hi/Lo captions
+		public Dictionary<string, string> HiLoCaptions { get; set; }
 	}
 }
