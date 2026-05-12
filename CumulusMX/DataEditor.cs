@@ -3681,7 +3681,7 @@ namespace CumulusMX
 								updt.Append(sep +$"AnnualEvapTran={LogRec.AnnualETTotal.ToFixed(cumulus.ETFormat, "NULL")}");
 								updt.Append(sep +$"ApparentTemp={LogRec.ApparentTemperature.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"MaxSolarRad={LogRec.CurrentSolarMax.ToText("NULL")}");
-								updt.Append(sep +$"HrsSunShine={LogRec.SunshineHours.ToFixed(cumulus.SunFormat, "NULL")}");
+								updt.Append(sep +$"SunshineHrs={LogRec.SunshineHours.ToFixed(cumulus.SunFormat, "NULL")}");
 								updt.Append(sep +$"CurrWindBearing={LogRec.Bearing.ToText("NULL")}");
 								updt.Append(sep +$"RG11rain={LogRec.RG11RainToday.ToFixed(cumulus.RainFormat, "NULL")}");
 								updt.Append(sep +$"RainSinceMidnight={LogRec.RainSinceMidnight.ToFixed(cumulus.RainFormat, "NULL")}");

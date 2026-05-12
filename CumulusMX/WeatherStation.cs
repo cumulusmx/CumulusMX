@@ -211,7 +211,7 @@ namespace CumulusMX
 			WindVec = new TWindVec[MaxWindRecent];
 
 			// set some hi/lo descriptions
-			Record.Captions = cumulus.Trans.HiLoCaptions;
+			Record.Captions = cumulus.Trans.DataCaptions;
 
 			// Open database (create file if it doesn't exist)
 			var flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
@@ -11822,7 +11822,7 @@ namespace CumulusMX
 			var closeStr = "\"],";
 			var tempUnitStr = "&nbsp;&deg;" + cumulus.Units.TempText[1].ToString() + sepStr;
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiTemp"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiTemp"]}\",\"");
 			json.Append(DailyHighLow.Today.HighTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11832,7 +11832,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoTemp"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoTemp"]}\",\"");
 			json.Append(DailyHighLow.Today.LowTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11842,7 +11842,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["TempRange"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["TempRange"]}\",\"");
 			json.Append((DailyHighLow.Today.HighTemp - DailyHighLow.Today.LowTemp).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
@@ -11850,7 +11850,7 @@ namespace CumulusMX
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["AvgTemp"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["AvgTemp"]}\",\"");
 			json.Append((MetData.TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
@@ -11859,7 +11859,7 @@ namespace CumulusMX
 			json.Append("&nbsp;\"],");
 
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiAppTemp"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiAppTemp"]}\",\"");
 			json.Append(DailyHighLow.Today.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11869,7 +11869,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoAppTemp"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoAppTemp"]}\",\"");
 			json.Append(DailyHighLow.Today.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11879,7 +11879,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiFeelsLike"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiFeelsLike"]}\",\"");
 			json.Append(DailyHighLow.Today.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11889,7 +11889,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoFeelsLike"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoFeelsLike"]}\",\"");
 			json.Append(DailyHighLow.Today.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11899,7 +11899,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHumidex"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiHumidex"]}\",\"");
 			json.Append(DailyHighLow.Today.HighHumidex.ToFixedLocal(cumulus.TempFormat));
 			json.Append("\",\"");
 			json.Append(DailyHighLow.Today.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11909,7 +11909,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiDewPnt"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiDewPnt"]}\",\"");
 			json.Append(DailyHighLow.Today.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11919,7 +11919,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoDewPnt"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoDewPnt"]}\",\"");
 			json.Append(DailyHighLow.Today.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11929,7 +11929,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoWindChill"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoWindChill"]}\",\"");
 			json.Append(DailyHighLow.Today.LowWindChill.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11939,7 +11939,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHeatInd"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiHeatInd"]}\",\"");
 			json.Append(DailyHighLow.Today.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11959,7 +11959,7 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 			var unitStr = "&nbsp;%" + sepStr;
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHum"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiHum"]}\",\"");
 			json.Append(DailyHighLow.Today.HighHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
 			json.Append(DailyHighLow.Today.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11969,7 +11969,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoHum"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoHum"]}\",\"");
 			json.Append(DailyHighLow.Today.LowHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
 			json.Append(DailyHighLow.Today.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -11989,7 +11989,7 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 			var unitStr = "&nbsp;" + cumulus.Units.RainText;
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["TotalRain"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["TotalRain"]}\",\"");
 			json.Append(MetData.RainToday.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -12001,7 +12001,7 @@ namespace CumulusMX
 			json.Append("&nbsp;");
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiRainRate"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiRainRate"]}\",\"");
 			json.Append(DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat));
 			json.Append(unitStr + "/hr");
 			json.Append(sepStr);
@@ -12013,7 +12013,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHourlyRain"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiHourlyRain"]}\",\"");
 			json.Append(DailyHighLow.Today.HighHourlyRain.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -12025,7 +12025,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["Hi24hRain"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["Hi24hRain"]}\",\"");
 			json.Append(DailyHighLow.Today.HighRain24h.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -12047,7 +12047,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 512);
 			var sepStr = "\",\"";
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiGust"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiGust"]}\",\"");
 			json.Append(DailyHighLow.Today.HighGust.ToString(cumulus.WindFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
@@ -12059,7 +12059,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiWindSpeed"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiWindSpeed"]}\",\"");
 			json.Append(DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
@@ -12071,7 +12071,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["WindRun"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["WindRun"]}\",\"");
 			json.Append(MetData.WindRunToday.ToString(cumulus.WindRunFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindRunText);
 			json.Append(sepStr);
@@ -12083,7 +12083,7 @@ namespace CumulusMX
 			json.Append("&nbsp;");
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["DomDir"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["DomDir"]}\",\"");
 			json.Append(MetData.DominantWindBearing.ToString("F0"));
 			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(MetData.DominantWindBearing));
 			json.Append(sepStr);
@@ -12105,7 +12105,7 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 			var unitStr = "&nbsp;" + cumulus.Units.PressText;
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiPress"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiPress"]}\",\"");
 			json.Append(DailyHighLow.Today.HighPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -12117,7 +12117,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoPress"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["LoPress"]}\",\"");
 			json.Append(DailyHighLow.Today.LowPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -12138,7 +12138,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 512);
 			var sepStr = "\",\"";
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiSolar"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiSolar"]}\",\"");
 			json.Append(DailyHighLow.Today.HighSolar.ToString("F0"));
 			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
@@ -12150,7 +12150,7 @@ namespace CumulusMX
 			json.Append(DailyHighLow.Yest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HrsSunshine"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["SunshineHrs"]}\",\"");
 			json.Append(MetData.SunshineHours.ToString(cumulus.SunFormat));
 			json.Append("&nbsp;hrs");
 			json.Append(sepStr);
@@ -12162,7 +12162,7 @@ namespace CumulusMX
 			json.Append("&nbsp;");
 			json.Append("\"],");
 
-			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiUV"]}\",\"");
+			json.Append($"[\"{cumulus.Trans.DataCaptions["HiUV"]}\",\"");
 			json.Append(DailyHighLow.Today.HighUv.ToString("F1"));
 			json.Append("&nbsp;");
 			json.Append(sepStr);
@@ -12936,21 +12936,21 @@ namespace CumulusMX
 
 			// temp
 			if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
-				json.Append($"\"temp\":{{\"name\":\"Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.Temp}\"}},");
+				json.Append($"\"temp\":{{\"name\":\"{cumulus.Trans.DataCaptions["Temp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.Temp}\"}},");
 			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
-				json.Append($"\"apptemp\":{{\"name\":\"Apparent Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.AppTemp}\"}},");
+				json.Append($"\"apptemp\":{{\"name\":\"{cumulus.Trans.DataCaptions["AppTemp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.AppTemp}\"}},");
 			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
-				json.Append($"\"feelslike\":{{\"name\":\"Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.FeelsLike}\"}},");
+				json.Append($"\"feelslike\":{{\"name\":\"{cumulus.Trans.DataCaptions["FeelsLike"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.FeelsLike}\"}},");
 			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-				json.Append($"\"wchill\":{{\"name\":\"Wind Chill\",\"colour\":\"{cumulus.GraphOptions.Colour.WindChill}\"}},");
+				json.Append($"\"wchill\":{{\"name\":\"{cumulus.Trans.DataCaptions["WindChill"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.WindChill}\"}},");
 			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-				json.Append($"\"heatindex\":{{\"name\":\"Heat Index\",\"colour\":\"{cumulus.GraphOptions.Colour.HeatIndex}\"}},");
+				json.Append($"\"heatindex\":{{\"name\":\"{cumulus.Trans.DataCaptions["HeatInd"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.HeatIndex}\"}},");
 			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
-				json.Append($"\"dew\":{{\"name\":\"Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.DewPoint}\"}},");
+				json.Append($"\"dew\":{{\"name\":\"{cumulus.Trans.DataCaptions["DewPnt"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.DewPoint}\"}},");
 			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-				json.Append($"\"humidex\":{{\"name\":\"Humidex\",\"colour\":\"{cumulus.GraphOptions.Colour.Humidex}\"}},");
+				json.Append($"\"humidex\":{{\"name\":\"{cumulus.Trans.DataCaptions["Humidex"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.Humidex}\"}},");
 			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
-				json.Append($"\"intemp\":{{\"name\":\"Indoor Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.InTemp}\"}},");
+				json.Append($"\"intemp\":{{\"name\":\"{cumulus.Trans.DataCaptions["TempIn"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.InTemp}\"}},");
 			if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
 			{
 				json.Append($"\"bgt\":{{\"name\":\"BGT\",\"colour\":\"{cumulus.GraphOptions.Colour.BGT}\"}},");
@@ -12958,28 +12958,28 @@ namespace CumulusMX
 			}
 			// hum
 			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
-				json.Append($"\"hum\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.OutHum}\"}},");
+				json.Append($"\"hum\":{{\"name\":\"{cumulus.Trans.DataCaptions["Hum"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.OutHum}\"}},");
 			if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
-				json.Append($"\"inhum\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.InHum}\"}},");
+				json.Append($"\"inhum\":{{\"name\":\"{cumulus.Trans.DataCaptions["HumIn"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.InHum}\"}},");
 			// press
-			json.Append($"\"press\":{{\"name\":\"Pressure\",\"colour\":\"{cumulus.GraphOptions.Colour.Press}\"}},");
+			json.Append($"\"press\":{{\"name\":\"{cumulus.Trans.DataCaptions["Press"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.Press}\"}},");
 			// wind
-			json.Append($"\"wspeed\":{{\"name\":\"Wind Speed\",\"colour\":\"{cumulus.GraphOptions.Colour.WindAvg}\"}},");
-			json.Append($"\"wgust\":{{\"name\":\"Wind Gust\",\"colour\":\"{cumulus.GraphOptions.Colour.WindGust}\"}},");
-			json.Append($"\"windrun\":{{\"name\":\"Wind Run\",\"colour\":\"{cumulus.GraphOptions.Colour.WindRun}\"}},");
-			json.Append($"\"bearing\":{{\"name\":\"Bearing\",\"colour\":\"{cumulus.GraphOptions.Colour.WindBearing}\"}},");
-			json.Append($"\"avgbearing\":{{\"name\":\"Average Bearing\",\"colour\":\"{cumulus.GraphOptions.Colour.WindBearingAvg}\"}},");
+			json.Append($"\"wspeed\":{{\"name\":\"{cumulus.Trans.DataCaptions["WindSpeed"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.WindAvg}\"}},");
+			json.Append($"\"wgust\":{{\"name\":\"{cumulus.Trans.DataCaptions["WindGust"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.WindGust}\"}},");
+			json.Append($"\"windrun\":{{\"name\":\"{cumulus.Trans.DataCaptions["WindRun"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.WindRun}\"}},");
+			json.Append($"\"bearing\":{{\"name\":\"{cumulus.Trans.DataCaptions["LatestBearing"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.WindBearing}\"}},");
+			json.Append($"\"avgbearing\":{{\"name\":\"{cumulus.Trans.DataCaptions["AvgBearing"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.WindBearingAvg}\"}},");
 			// rain
-			json.Append($"\"rfall\":{{\"name\":\"Rainfall\",\"colour\":\"{cumulus.GraphOptions.Colour.Rainfall}\"}},");
-			json.Append($"\"rrate\":{{\"name\":\"Rainfall Rate\",\"colour\":\"{cumulus.GraphOptions.Colour.RainRate}\"}},");
+			json.Append($"\"rfall\":{{\"name\":\"{cumulus.Trans.DataCaptions["TotalRain"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.Rainfall}\"}},");
+			json.Append($"\"rrate\":{{\"name\":\"{cumulus.Trans.DataCaptions["RainRate"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.RainRate}\"}},");
 			// solar
 			if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
-				json.Append($"\"solarrad\":{{\"name\":\"Solar Irradiation\",\"colour\":\"{cumulus.GraphOptions.Colour.Solar}\"}},");
+				json.Append($"\"solarrad\":{{\"name\":\"{cumulus.Trans.DataCaptions["SolarIrrad"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.Solar}\"}},");
 			json.Append($"\"currentsolarmax\":{{\"name\":\"Solar theoretical\",\"colour\":\"{cumulus.GraphOptions.Colour.SolarTheoretical}\"}},");
 			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				json.Append($"\"uv\":{{\"name\":\"UV-I\",\"colour\":\"{cumulus.GraphOptions.Colour.UV}\"}},");
 			if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
-				json.Append($"\"sunshine\":{{\"name\":\"Sunshine\",\"colour\":\"{cumulus.GraphOptions.Colour.Sunshine}\"}},");
+				json.Append($"\"sunshine\":{{\"name\":\"{cumulus.Trans.DataCaptions["SunshineHrs"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.Sunshine}\"}},");
 			// aq
 			json.Append($"\"pm2p5\":{{\"name\":\"PM 2.5\",\"colour\":\"{cumulus.GraphOptions.Colour.Pm2p5}\"}},");
 			json.Append($"\"pm10\":{{\"name\":\"PM 10\",\"colour\":\"{cumulus.GraphOptions.Colour.Pm10}\"}},");
@@ -13004,49 +13004,49 @@ namespace CumulusMX
 
 			// chill hours
 			if (cumulus.GraphOptions.Visible.ChillHours.IsVisible(local))
-				json.Append($"\"chillhours\":{{\"name\":\"Chill Hours\"}},");
+				json.Append($"\"chillhours\":{{\"name\":\"{cumulus.Trans.DataCaptions["ChillHrs"]}\"}},");
 
 			// daily temps
 			if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
-				json.Append($"\"avgtemp\":{{\"name\":\"Average Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.AvgTemp}\"}},");
+				json.Append($"\"avgtemp\":{{\"name\":\"{cumulus.Trans.DataCaptions["AvgTemp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.AvgTemp}\"}},");
 			if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
-				json.Append($"\"maxtemp\":{{\"name\":\"Maximum Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxTemp}\"}},");
+				json.Append($"\"maxtemp\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiTemp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxTemp}\"}},");
 			if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
-				json.Append($"\"mintemp\":{{\"name\":\"Minimum Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.MinTemp}\"}},");
+				json.Append($"\"mintemp\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoTemp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinTemp}\"}},");
 
-			json.Append($"\"maxpress\":{{\"name\":\"High Pressure\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxPress}\"}},");
-			json.Append($"\"minpress\":{{\"name\":\"Low Pressure\",\"colour\":\"{cumulus.GraphOptions.Colour.MinPress}\"}},");
+			json.Append($"\"maxpress\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiPress"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxPress}\"}},");
+			json.Append($"\"minpress\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoPress"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinPress}\"}},");
 
-			json.Append($"\"maxhum\":{{\"name\":\"Maximum Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxOutHum}\"}},");
-			json.Append($"\"minhum\":{{\"name\":\"Minimum Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.MinOutHum}\"}},");
+			json.Append($"\"maxhum\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiHum"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxOutHum}\"}},");
+			json.Append($"\"minhum\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoHum"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinOutHum}\"}},");
 
 			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 			{
-				json.Append($"\"mindew\":{{\"name\":\"Minimum Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MinDew}\"}},");
-				json.Append($"\"maxdew\":{{\"name\":\"Maximum Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxDew}\"}},");
+				json.Append($"\"mindew\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoDewPnt"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinDew}\"}},");
+				json.Append($"\"maxdew\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiDewPnt"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxDew}\"}},");
 			}
 			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-				json.Append($"\"minwindchill\":{{\"name\":\"Wind Chill\",\"colour\":\"{cumulus.GraphOptions.Colour.MinWindChill}\"}},");
+				json.Append($"\"minwindchill\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoWindChill"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinWindChill}\"}},");
 			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 			{
-				json.Append($"\"minapp\":{{\"name\":\"Minimum Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MinApp}\"}},");
-				json.Append($"\"maxapp\":{{\"name\":\"Maximum Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxApp}\"}},");
+				json.Append($"\"minapp\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoAppTemp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinApp}\"}},");
+				json.Append($"\"maxapp\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiAppTemp"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxApp}\"}},");
 			}
 			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 			{
-				json.Append($"\"minfeels\":{{\"name\":\"Minimum Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MinFeels}\"}},");
-				json.Append($"\"maxfeels\":{{\"name\":\"Maximum Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxFeels}\"}},");
+				json.Append($"\"minfeels\":{{\"name\":\"{cumulus.Trans.DataCaptions["LoFeelsLike"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MinFeels}\"}},");
+				json.Append($"\"maxfeels\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiFeelsLike"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxFeels}\"}},");
 			}
 			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-				json.Append($"\"maxheatindex\":{{\"name\":\"Heat Index\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHeatIndex}\"}},");
+				json.Append($"\"maxheatindex\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiHeatInd"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHeatIndex}\"}},");
 			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-				json.Append($"\"maxhumidex\":{{\"name\":\"Humidex\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHumidex}\"}},");
+				json.Append($"\"maxhumidex\":{{\"name\":\"{cumulus.Trans.DataCaptions["HiHumidex"]}\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHumidex}\"}},");
 
 			// Snow
 			if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-				json.Append($"\"snowdepth\":{{\"name\":\"Snow Depth\",\"colour\":\"{cumulus.GraphOptions.Colour.SnowDepth}\"}},");
+				json.Append($"\"snowdepth\":{{\"name\":\"{cumulus.Trans.SnowDepth}\",\"colour\":\"{cumulus.GraphOptions.Colour.SnowDepth}\"}},");
 			if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
-				json.Append($"\"snow24h\":{{\"name\":\"Snowfall in 24h\",\"colour\":\"{cumulus.GraphOptions.Colour.Snow24h}\"}},");
+				json.Append($"\"snow24h\":{{\"name\":\"{cumulus.Trans.Snow24h}\",\"colour\":\"{cumulus.GraphOptions.Colour.Snow24h}\"}},");
 
 			#endregion daily
 

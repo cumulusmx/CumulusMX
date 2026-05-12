@@ -118,8 +118,10 @@ namespace CumulusMX
 				"Increasing winds."
 			];
 
-			HiLoCaptions = new Dictionary<string, string>
+			DataCaptions = new Dictionary<string, string>
 			{
+				{ "Temp", "Temperature" },
+				{ "TempIn", "Indoor Temp" },
 				{ "HiTemp", "High Temperature" },
 				{ "LoTemp", "Low Temperature" },
 				{ "HiTempRange", "High Daily Temp Range" },
@@ -128,18 +130,25 @@ namespace CumulusMX
 				{ "AvgTemp", "Average Temp" },
 				{ "HiMinTemp", "High Minimum Temp" },
 				{ "LoMaxTemp", "Low Maximum Temp" },
+				{ "WindChill", "WindChill" },
 				{ "LoWindChill", "Low Wind Chill" },
+				{ "AppTemp", "Apparent Temp" },
 				{ "HiAppTemp", "High Apparent Temp" },
 				{ "LoAppTemp", "Low Apparent Temp" },
+				{ "HeatInd", "Heat Index" },
 				{ "HiHeatInd", "High Heat Index" },
+				{ "DewPnt", "Dew Point" },
 				{ "HiDewPnt", "High Dew Point" },
 				{ "LoDewPnt", "Low Dew Point" },
+				{ "FeelsLike", "Feels Like" },
 				{ "HiFeelsLike", "High Feels Like" },
 				{ "LoFeelsLike", "Low Feels Like" },
+				{ "Humidex", "Humidex" },
 				{ "HiHumidex", "High Humidex" },
 				{ "HiHum", "High Humidity" },
 				{ "LoHum", "Low Humidity" },
 				{ "TotalRain", "Total Rain" },
+				{ "RainRate", "Rainfall Rate" },
 				{ "HiRainRate", "High Rain Rate" },
 				{ "HiHourlyRain", "High Hourly Rain" },
 				{ "HiMonthRain", "High Monthly Rainfall" },
@@ -147,18 +156,25 @@ namespace CumulusMX
 				{ "Hi24hRain", "High 24-Hour Rain" },
 				{ "LongDryPeriod", "Longest Dry Period" },
 				{ "LongWetPeriod", "Longest Wet Period" },
+				{ "Press", "Pressure" },
 				{ "LoPress", "Low Pressure" },
 				{ "HiPress", "High Pressure" },
+				{ "WindGust", "Wind Gust" },
 				{ "HiGust", "High Gust" },
+				{ "WindSpeed", "WindSpeed" },
 				{ "HiWindSpeed", "High Wind Speed" },
+				{ "LatestBearing", "Latest Bearing" },
+				{ "AvgBearing", "Average Bearing" },
 				{ "HiWindDailyRun", "High Daily Windrun" },
 				{ "WindRun", "Wind Run" },
 				{ "DomDir", "Dominant Direction" },
 				{ "HiBGT", "High BGT" },
 				{ "HiWBGT", "High WBGT" },
-				{ "HiSolar", "High Solar Radiation" },
-				{ "HrsSunshine", "Hours of Sunshine" },
-				{ "HiUV", "High UV-Index" }
+				{ "HiSolar", "High Solar Irradiation" },
+				{ "SolarIrrad", "Solar Irradiation" },
+				{ "SunshineHrs", "Sunshine Hours" },
+				{ "HiUV", "High UV-Index" },
+				{ "ChillHrs", "Chill Hours" }
 			};
 		}
 
@@ -256,6 +272,6 @@ namespace CumulusMX
 		// Laser
 		public string[] LaserCaptions { get; set; }
 		// Hi/Lo captions
-		public Dictionary<string, string> HiLoCaptions { get; set; }
+		public Dictionary<string, string> DataCaptions { get; set; }
 	}
 }
