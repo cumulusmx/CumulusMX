@@ -29,7 +29,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Main station not starting correctly when using Ecowitt Cloud station for Extra Sensors
 - Add missing rollover processing for BGT/WBGT high values
 - Add BGT/WBGT to all time record detection
-- Add new web tags for BGT/WBGT all-time record set<br>
+- Add new web tags for BGT/WBGT all-time record set
 `<#HighBgtRecordSet> <#HighWbgtRecordSet>`
 - Fix web tags `<#SoilEc6>` and `<#SoilEc15>` returning soil moisture values
 - Ecowitt Soil EC values not being read from SD card files during catch-up

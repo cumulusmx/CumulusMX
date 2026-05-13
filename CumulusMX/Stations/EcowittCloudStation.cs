@@ -233,7 +233,7 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					Task.Delay(1000, Program.ExitSystemToken);
+					_ = Program.ExitSystemToken.WaitHandle.WaitOne(1000);
 				}
 			}, Program.ExitSystemToken);
 		}
