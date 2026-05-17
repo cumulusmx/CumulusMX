@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Web;
 
 using CumulusMX.LogFiles;
@@ -6799,32 +6800,28 @@ namespace CumulusMX
 		{
 			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
 
-			var retVal = new StringBuilder(json ? "{" : string.Empty);
-
-
-			if (WeatherStation.SensorReception.Count > 0)
+			if (json)
 			{
-				foreach (var pair in WeatherStation.SensorReception)
-				{
-					if (json)
-					{
-						retVal.Append($"\"{pair.Key}\":{pair.Value},");
-					}
-					else
-					{
-						retVal.Append($"{pair.Key}={pair.Value},");
-					}
-				}
-
-				retVal.Length--;
-
-				retVal.Append(json ? '}' : "");
-
-				return retVal.ToString();
+				return JsonSerializer.Serialize(WeatherStation.SensorReception);
 			}
 			else
 			{
-				return json ? "{}" : tagParams.Get("nv") ?? "n/a";
+				var retVal = new StringBuilder();
+
+				if (WeatherStation.SensorReception.Count > 0)
+				{
+					foreach (var pair in WeatherStation.SensorReception)
+					{
+						retVal.Append($"{pair.Key}={pair.Value},");
+					}
+
+					retVal.Length--;
+					return retVal.ToString();
+				}
+				else
+				{
+					return tagParams.Get("nv") ?? "n/a";
+				}
 			}
 		}
 

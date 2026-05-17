@@ -1031,6 +1031,8 @@ namespace CumulusMX.Stations
 									cumulus.LogMessage($"Unknown sensor type in SensorIds. Model={sensor.img}, type={sensor.type}");
 									break;
 							}
+
+							SensorReception[name] = (byte) (sensor.signal ?? 0);
 						}
 					}
 					catch (Exception ex)

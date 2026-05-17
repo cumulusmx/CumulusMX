@@ -19,7 +19,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-- Nothing
+- Add Ecowitt HTTP API Station to `<#EcowittReception>` web tag
+
 
 ### Fixed
 
@@ -34,6 +35,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix web tags `<#SoilEc6>` and `<#SoilEc15>` returning soil moisture values
 - Ecowitt Soil EC values not being read from SD card files during catch-up
 - Fix web tags `<#AirQuality10Idx[1-4]>` returning the PM2.5 Index
+- Occasional - ERROR Minimum data set of pressure, temperature, and wind is not available - at startup of Ecowitt HTTP API station
 
 ---
 
