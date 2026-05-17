@@ -36,6 +36,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt Soil EC values not being read from SD card files during catch-up
 - Fix web tags `<#AirQuality10Idx[1-4]>` returning the PM2.5 Index
 - Occasional - ERROR Minimum data set of pressure, temperature, and wind is not available - at startup of Ecowitt HTTP API station
+- Fix the available languages detection picking up files in /locales/dashboard without a .json suffix
 
 ---
 
