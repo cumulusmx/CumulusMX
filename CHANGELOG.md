@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.1 \[b5007\]][32] - 2026-05-13
+## [5.1.1 \[b5008\]][32] - 2026-05-17
 
 ### New
 
@@ -29,11 +29,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Main station not starting correctly when using Ecowitt Cloud station for Extra Sensors
 - Add missing rollover processing for BGT/WBGT high values
 - Add BGT/WBGT to all time record detection
-- Add new web tags for BGT/WBGT all-time record set
-`<#HighBgtRecordSet> <#HighWbgtRecordSet>`
+- Add new web tags for BGT/WBGT all-time record set<br>
+	`<#HighBgtRecordSet> <#HighWbgtRecordSet>`
 - Fix web tags `<#SoilEc6>` and `<#SoilEc15>` returning soil moisture values
 - Ecowitt Soil EC values not being read from SD card files during catch-up
-- Fix web tags `<#AirQuality10Idx[1-4]`> returning the PM2.5 Index
+- Fix web tags `<#AirQuality10Idx[1-4]>` returning the PM2.5 Index
 
 ---
 
@@ -63,18 +63,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- File header files updated
 	- Dashboard and default web site Historic charts updated
 	- New web tags<br>
-	`<#BgtTH> <#TBgtTH>`
-	`<#BgtYH> <#TBgtYH>`
-	`<#BgtH> <#TBgtH>`
-	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`
-	`<#YearBgtH> <#YearBgtHT>`
-	`<#ByMonthBgtH> <#ByMonthBgtHT>`
+	`<#BgtTH> <#TBgtTH>`<br>
+	`<#BgtYH> <#TBgtYH>`<br>
+	`<#BgtH> <#TBgtH>`<br>
+	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`<br>
+	`<#YearBgtH> <#YearBgtHT>`<br>
+	`<#ByMonthBgtH> <#ByMonthBgtHT>`<br>
 	<br>
-	`<#WbgtTH> <#TWbgtTH>`
-	`<#WbgtYH> <#TWbgtYH>`
-	`<#WbgtH> <#TWbgtH>`
-	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`
-	`<#YearWbgtH> <#YearWbgtHT>`
+	`<#WbgtTH> <#TWbgtTH>`<br>
+	`<#WbgtYH> <#TWbgtYH>`<br>
+	`<#WbgtH> <#TWbgtH>`<br>
+	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`<br>
+	`<#YearWbgtH> <#YearWbgtHT>`<br>
 	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
 - Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station, and Ecowitt HTTP Station
 	- Also supported on the following Extra Sensor stations: Ecowitt Cloud and Ecowitt HTTP Station
@@ -1430,4 +1430,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
 [31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006
-[32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5007
+[32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5008

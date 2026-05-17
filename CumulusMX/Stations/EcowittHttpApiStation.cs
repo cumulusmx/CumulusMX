@@ -144,19 +144,17 @@ namespace CumulusMX.Stations
 
 			cumulus.LogMessage("Starting Ecowitt Local HTTP API");
 
-			cumulus.StartTimersAndSensors();
-
 			// Get the sensor list
 			GetSensorIds(false).Wait();
 
 			// Check station clock
-			GetSystemInfo(false,  false).Wait();
+			GetSystemInfo(false, false).Wait();
 
 			// Check firmware
 			try
 			{
 				_ = localApi.CheckForUpgrade(Program.ExitSystemToken).Result;
-				Thread.Sleep(1000);
+				_ = Program.ExitSystemToken.WaitHandle.WaitOne(1000);
 				GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 			}
 			catch (Exception ex)
@@ -178,6 +176,8 @@ namespace CumulusMX.Stations
 			{
 				cumulus.LogExceptionMessage(ex, "Error checking for default UV gain");
 			}
+
+			cumulus.StartTimersAndSensors();
 
 			while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
