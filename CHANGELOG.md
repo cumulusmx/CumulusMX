@@ -37,6 +37,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix web tags `<#AirQuality10Idx[1-4]>` returning the PM2.5 Index
 - Occasional - ERROR Minimum data set of pressure, temperature, and wind is not available - at startup of Ecowitt HTTP API station
 - Fix the available languages detection picking up files in /locales/dashboard without a .json suffix
+- Failed MySQL commands with embbeded control characters failing to display on the Purge MySQL page
 
 ---
 

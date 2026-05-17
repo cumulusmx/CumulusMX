@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -533,7 +534,7 @@ namespace CumulusMX
 						// track the number of lines we have to return so far
 						thisDraw++;
 
-						json.Append($"[{rec.key},\"{rec.statement}\"],");
+						json.Append($"[{rec.key},\"{JsonEncodedText.Encode(rec.statement)}\"],");
 					}
 					else if (string.IsNullOrEmpty(search))
 					{
