@@ -925,6 +925,7 @@ namespace CumulusMX.Stations
 							switch (sensor.type)
 							{
 								case 0: // wh69
+									name = "wh69";
 									break;
 								case 1: // wh68
 									name = "wh68";
@@ -939,7 +940,7 @@ namespace CumulusMX.Stations
 									}
 									goto case 1003;
 								case 3: // wh40 - rain gauge
-									name = "wh25";
+									name = "wh40";
 									if (sensor.batt > 0) // some send a voltage, some don't :(
 									{
 										goto case 1003;
@@ -949,7 +950,7 @@ namespace CumulusMX.Stations
 									name = "wh25";
 									goto case 1003;
 								case 5: // wh26
-									name = "wh326";
+									name = "wh26";
 									goto case 1001;
 								case int n when n > 5 && n < 14: // wh31 - T&H (8 chan)
 									name = "wh31ch" + (sensor.type - 5);
