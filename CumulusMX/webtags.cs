@@ -2179,7 +2179,7 @@ namespace CumulusMX
 
 		private string TagTBgtYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighBgtTime, cumulus.Trans.WebTagGenTime, tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighBgtTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagWbgtTh(Dictionary<string, string> tagParams)
@@ -6825,6 +6825,36 @@ namespace CumulusMX
 			}
 		}
 
+		private static string TagSensorRssi(Dictionary<string, string> tagParams)
+		{
+			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
+
+			if (json)
+			{
+				return JsonSerializer.Serialize(WeatherStation.SensorRssi);
+			}
+			else
+			{
+				var retVal = new StringBuilder();
+
+				if (WeatherStation.SensorRssi.Count > 0)
+				{
+					foreach (var pair in WeatherStation.SensorRssi)
+					{
+						retVal.Append($"{pair.Key}={pair.Value},");
+					}
+
+					retVal.Length--;
+					return retVal.ToString();
+				}
+				else
+				{
+					return tagParams.Get("nv") ?? "n/a";
+				}
+			}
+		}
+
+
 		private string TagStationFreeMemory(Dictionary<string, string> tagParams)
 		{
 			return station.StationFreeMemory.ToString();
@@ -7893,10 +7923,8 @@ namespace CumulusMX
 				{ "WetBulbGlobeTemp", TagWetBulbGlobeTemp },
 				{ "WbgtTH", TagWbgtTh },
 				{ "TWbgtTH", TagTWbgtTh },
-				{ "WbgtYH", TagWbgtTh },
-				{ "TWbgtYH", TagTWbgtTh },
-				{ "WbgtH", TagWbgtH },
-				{ "TWbgtH", TagTWbgtH },
+				{ "WbgtYH", TagWbgtYh },
+				{ "TWbgtYH", TagTWbgtYh },
 				{ "MonthWbgtH", TagMonthWbgtH },
 				{ "MonthWbgtHT", TagMonthWbgtHt },
 				{ "MonthWbgtHD", TagMonthWbgtHd },
@@ -8217,6 +8245,7 @@ namespace CumulusMX
 				{ "GW1000FirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittFirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittReception", TagGw1000Reception },
+				{ "EcowittRssi", TagSensorRssi },
 				{ "StationFreeMemory", TagStationFreeMemory },
 				{ "ExtraStationFreeMemory", TagExtraStationFreeMemory },
 				{ "StationRuntime", TagStationRuntime },

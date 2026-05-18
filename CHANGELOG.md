@@ -14,7 +14,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Nothing
+- Adds a new web tag `<#SensorRssi>` that currently supports the Ecowitt HTTP API station. It lists the RSSI value for each sensor - if available
+	- Like the `<#EcowittReception>` web tag it supports a `format=xxx` parameter which affects the output, valid values are "text" or "json". The default is a text string
 
 ### Changed
 
@@ -23,6 +24,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Ecowitt HTTP API station reception stats, WH40 was being reported as WH25
+- Fix BGT/WBGT today/yesterday web tags
+
 
 
 ---

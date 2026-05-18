@@ -1034,6 +1034,7 @@ namespace CumulusMX.Stations
 							}
 
 							SensorReception[name] = (byte) (sensor.signal ?? 0);
+							SensorRssi[name] = sensor.rssi ?? 0;
 						}
 					}
 					catch (Exception ex)
