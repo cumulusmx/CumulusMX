@@ -10,6 +10,23 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.1.2 \[b5009\]][33] - 2026-06-17
+
+### New
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Fixed
+
+- Ecowitt HTTP API station reception stats, WH40 was being reported as WH25
+
+
+---
+
 ## [5.1.1 \[b5008\]][32] - 2026-05-17
 
 ### New
@@ -1435,3 +1452,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
 [31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006
 [32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5008
+[33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5009
