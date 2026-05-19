@@ -25,7 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Ecowitt HTTP API station reception stats, WH40 was being reported as WH25
 - Fix BGT/WBGT today/yesterday web tags
-
+- Non-present WBGT values being written to the dayfile as -999
 
 
 ---
