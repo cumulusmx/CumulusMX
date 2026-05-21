@@ -9708,11 +9708,11 @@ namespace CumulusMX
 			LogMessage("Cumulus close requested");
 
 			LogMessage("Stopping timers");
-			try { RealtimeTimer.Stop(); } catch { /* do nothing */ }
-			try { Wund.IntTimer.Stop(); } catch { /* do nothing */ }
-			try { WebTimer.Stop(); } catch { /* do nothing */ }
-			try { AWEKAS.IntTimer.Stop(); } catch { /* do nothing */ }
-			try { CustomHttpSecondsTimer.Stop(); } catch { /* do nothing */ }
+			try { RealtimeTimer?.Stop(); } catch { /* do nothing */ }
+			try { Wund.IntTimer?.Stop(); } catch { /* do nothing */ }
+			try { WebTimer?.Stop(); } catch { /* do nothing */ }
+			try { AWEKAS.IntTimer?.Stop(); } catch { /* do nothing */ }
+			try { CustomHttpSecondsTimer?.Stop(); } catch { /* do nothing */ }
 
 			try
 			{

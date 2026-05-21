@@ -8056,14 +8056,19 @@ namespace CumulusMX
 				}
 			}
 			// average the values, if we have enough samples
-			if (numvalues > 5 || cumulus.StationOptions.UseSpeedForAvgCalc)
+			if (numvalues > 10 || cumulus.StationOptions.UseSpeedForAvgCalc)
 			{
 				avg = totalwind / numvalues;
 			}
 			else
 			{
-				// take a third of the gust values
-				avg = totalwind / 15;
+				// take a log scale third to whole of the gust values
+				var div = 3.0 + 7.0 * Math.Pow((Math.Log(numvalues) / Math.Log(10.0)), 1.3);
+				avg = totalwind / div;
+#if DEBUGWIND
+				cumulus.LogDebugMessage($"Wind Samples:{numvalues} Total:{totalwind:F1} Divisor:{div:F2} Avg:{avg:F1}");
+#endif
+
 			}
 
 			return avg;

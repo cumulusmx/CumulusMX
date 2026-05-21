@@ -27,6 +27,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix BGT/WBGT today/yesterday web tags
 - Non-present WBGT values being written to the dayfile as -999
 
+### Package Updates
+
+- Microsoft.Win32.SystemEvents
+- NLog
+- NLog.Extensions.Logging
+- SQLitePCLRaw.bundle_e_sqlite3
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
 
 ---
 
