@@ -177,7 +177,12 @@ namespace CumulusMX.Stations
 				DoTrendValues(DateTime.Now);
 
 				cumulus.LogMessage("Starting Davis WLL");
-				StartLoop();
+
+				_ = new Thread(() => {
+					Cumulus.SyncInit.Wait();
+					StartLoop();
+					Cumulus.SyncInit.Release();
+				});
 			}
 			else
 			{

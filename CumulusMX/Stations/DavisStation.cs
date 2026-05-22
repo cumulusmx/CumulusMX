@@ -206,11 +206,7 @@ namespace CumulusMX.Stations
 
 				_ = new Thread(() => {
 					Cumulus.SyncInit.Wait();
-
-					// Wait a short while for Cumulus initialisation to complete
-					Thread.Sleep(500);
 					StartLoop();
-
 					Cumulus.SyncInit.Release();
 				});
 			}
