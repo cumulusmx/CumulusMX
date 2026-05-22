@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Web;
 
 using CumulusMX.LogFiles;
@@ -695,18 +696,18 @@ namespace CumulusMX
 
 		private string Tagpresstrendval(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.PressTrendVal, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(MetData.PressTrendVal, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string Tagpresstrendsigned(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.PressTrendVal, tagParams), tagParams, cumulus.PressDPlaces, cumulus.PressTrendFormat);
+			return CheckRcDp(CheckPressUnit(MetData.PressTrendVal, tagParams), tagParams, cumulus.PressDPlaces, cumulus.PressTrendFormat);
 		}
 
 
 		private string TagPressChangeLast3Hours(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.PressTrendVal * 3, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(MetData.PressTrendVal * 3, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagTempChangeLastHour(Dictionary<string, string> tagParams)
@@ -940,22 +941,22 @@ namespace CumulusMX
 
 		private string Tagtemptrend(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.TempTrendVal, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(MetData.TempTrendVal, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagtemptrendsigned(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.TempTrendVal, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempTrendFormat);
+			return CheckRcDp(CheckTempUnitAbs(MetData.TempTrendVal, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempTrendFormat);
 		}
 
 		private string Tagtemptrendtext(Dictionary<string, string> tagParams)
 		{
 			string text;
-			if (Math.Abs(station.TempTrendVal) < 0.001)
+			if (Math.Abs(MetData.TempTrendVal) < 0.001)
 			{
 				text = cumulus.Trans.Steady;
 			}
-			else if (station.TempTrendVal > 0)
+			else if (MetData.TempTrendVal > 0)
 			{
 				text = cumulus.Trans.Rising;
 			}
@@ -968,12 +969,12 @@ namespace CumulusMX
 
 		private string Tagtemptrendenglish(Dictionary<string, string> tagParams)
 		{
-			if (Math.Abs(station.TempTrendVal) < 0.001)
+			if (Math.Abs(MetData.TempTrendVal) < 0.001)
 			{
 				return "Steady";
 			}
 
-			return station.TempTrendVal > 0 ? "Rising" : "Falling";
+			return MetData.TempTrendVal > 0 ? "Rising" : "Falling";
 		}
 
 		private string Tagheatindex(Dictionary<string, string> tagParams)
@@ -1014,12 +1015,12 @@ namespace CumulusMX
 
 		private string Tagpresstrendenglish(Dictionary<string, string> tagParams)
 		{
-			if (Math.Abs(station.PressTrendVal) < 0.0001)
+			if (Math.Abs(MetData.PressTrendVal) < 0.0001)
 			{
 				return "Steady";
 			}
 
-			return station.PressTrendVal > 0 ? "Rising" : "Falling";
+			return MetData.PressTrendVal > 0 ? "Rising" : "Falling";
 		}
 
 		private string Tagbearing(Dictionary<string, string> tagParams)
@@ -2178,7 +2179,7 @@ namespace CumulusMX
 
 		private string TagTBgtYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(DailyHighLow.Today.HighBgtTime, cumulus.Trans.WebTagGenTime, tagParams);
+			return GetFormattedDateTime(DailyHighLow.Yest.HighBgtTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagWbgtTh(Dictionary<string, string> tagParams)
@@ -6828,6 +6829,35 @@ namespace CumulusMX
 			}
 		}
 
+		private static string TagSensorRssi(Dictionary<string, string> tagParams)
+		{
+			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
+
+			if (json)
+			{
+				return JsonSerializer.Serialize(WeatherStation.SensorRssi);
+			}
+			else
+			{
+				var retVal = new StringBuilder();
+
+				if (WeatherStation.SensorRssi.Count > 0)
+				{
+					foreach (var pair in WeatherStation.SensorRssi)
+					{
+						retVal.Append($"{pair.Key}={pair.Value},");
+					}
+
+					retVal.Length--;
+					return retVal.ToString();
+				}
+				else
+				{
+					return tagParams.Get("nv") ?? "n/a";
+				}
+			}
+		}
+
 		private string TagStationFreeMemory(Dictionary<string, string> tagParams)
 		{
 			return station.StationFreeMemory.ToString();
@@ -7896,10 +7926,8 @@ namespace CumulusMX
 				{ "WetBulbGlobeTemp", TagWetBulbGlobeTemp },
 				{ "WbgtTH", TagWbgtTh },
 				{ "TWbgtTH", TagTWbgtTh },
-				{ "WbgtYH", TagWbgtTh },
-				{ "TWbgtYH", TagTWbgtTh },
-				{ "WbgtH", TagWbgtH },
-				{ "TWbgtH", TagTWbgtH },
+				{ "WbgtYH", TagWbgtYh },
+				{ "TWbgtYH", TagTWbgtYh },
 				{ "MonthWbgtH", TagMonthWbgtH },
 				{ "MonthWbgtHT", TagMonthWbgtHt },
 				{ "MonthWbgtHD", TagMonthWbgtHd },
@@ -8220,6 +8248,7 @@ namespace CumulusMX
 				{ "GW1000FirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittFirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittReception", TagGw1000Reception },
+				{ "EcowittRssi", TagSensorRssi },
 				{ "StationFreeMemory", TagStationFreeMemory },
 				{ "ExtraStationFreeMemory", TagExtraStationFreeMemory },
 				{ "StationRuntime", TagStationRuntime },

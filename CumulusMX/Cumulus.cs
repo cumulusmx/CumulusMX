@@ -7679,14 +7679,14 @@ namespace CumulusMX
 				sb.Append(Units.PressText + ' ');                                             // 16
 				sb.Append(Units.RainText + ' ');                                              // 17
 				sb.Append(MetData.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
-				sb.Append(station.PressTrendVal.ToFixed(PressTrendFormat) + ' ');             // 19
+				sb.Append(MetData.PressTrendVal.ToFixed(PressTrendFormat) + ' ');             // 19
 				sb.Append(MetData.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 				sb.Append(MetData.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 				sb.Append(MetData.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
 				sb.Append((MetData.TemperatureIn ?? 0).ToFixed(TempFormat) + ' ');        // 23
 				sb.Append((MetData.HumidityIn ?? 0).ToString() + ' ');                    // 24
 				sb.Append(MetData.WindChill.ToFixed(TempFormat) + ' ');                       // 25
-				sb.Append(station.TempTrendVal.ToFixed(TempTrendFormat) + ' ');               // 26
+				sb.Append(MetData.TempTrendVal.ToFixed(TempTrendFormat) + ' ');               // 26
 				sb.Append(DailyHighLow.Today.HighTemp.ToFixed(TempFormat) + ' ');              // 27
 				sb.Append(DailyHighLow.Today.HighTempTime.ToString("HH:mm "));                 // 28
 				sb.Append(DailyHighLow.Today.LowTemp.ToFixed(TempFormat) + ' ');               // 29
@@ -7766,14 +7766,14 @@ namespace CumulusMX
 			values.Append(sep + "'" + Units.PressText + "'");
 			values.Append(sep + "'" + Units.RainText + "'");
 			values.Append(sep + MetData.WindRunToday.ToString(WindRunFormat, InvC) );
-			values.Append(sep + "'" + (station.PressTrendVal > 0 ? '+' + station.PressTrendVal.ToFixed(PressFormat) : station.PressTrendVal.ToFixed(PressFormat)) + "'");
+			values.Append(sep + "'" + (MetData.PressTrendVal > 0 ? '+' + MetData.PressTrendVal.ToFixed(PressFormat) : MetData.PressTrendVal.ToFixed(PressFormat)) + "'");
 			values.Append(sep + MetData.RainMonth.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainYear.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainYesterday.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.TemperatureIn.ToFixed(TempFormat, "NULL"));
 			values.Append(sep + MetData.HumidityIn.ToText("NULL"));
 			values.Append(sep + MetData.WindChill.ToFixed(TempFormat));
-			values.Append(sep + "'" + station.TempTrendVal.ToFixed(TempTrendFormat) + "'");
+			values.Append(sep + "'" + MetData.TempTrendVal.ToFixed(TempTrendFormat) + "'");
 			values.Append(sep + DailyHighLow.Today.HighTemp.ToFixed(TempFormat));
 			values.Append(sep + DailyHighLow.Today.HighTempTime.ToString("\\'HH:mm\\'"));
 			values.Append(sep + DailyHighLow.Today.LowTemp.ToFixed(TempFormat));

@@ -230,6 +230,7 @@ namespace CumulusMX
 			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
 
 			SensorReception = [];
+			SensorRssi = [];
 
 			DayFileQuery = new QueryDayFile(RecentDataDb);
 		}
@@ -1833,6 +1834,7 @@ namespace CumulusMX
 		private bool dayfileReloading;
 
 		public static Dictionary<string, byte> SensorReception { get; set; }
+		public static Dictionary<string, int> SensorRssi { get; set; }
 
 		public void DayReset(DateTime timestamp)
 		{
