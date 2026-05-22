@@ -123,7 +123,9 @@ namespace CumulusMX
 			var files = Directory.GetFiles(Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard"));
 			foreach (var file in files)
 			{
-				retVal.Add(Path.GetFileName(file).Split('.')[0]);
+				var fileParts = Path.GetFileName(file).Split('.');
+				if (fileParts[1].Equals("json", StringComparison.CurrentCultureIgnoreCase))
+					retVal.Add(fileParts[0]);
 			}
 
 			return retVal;
