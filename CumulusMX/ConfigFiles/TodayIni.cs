@@ -221,7 +221,7 @@ namespace CumulusMX
 			DailyHighLow.Today.HighBgtTime = ini.GetValue("BGT", "HTime", meteoTodayDate);
 
 			// WBGT
-			DailyHighLow.Today.HighWbgt = ini.GetValue("WBGT", "High", -999.0);
+			DailyHighLow.Today.HighWbgt = ini.GetValue("WBGT", "High", Cumulus.DefaultHiVal);
 			DailyHighLow.Today.HighWbgtTime = ini.GetValue("WBGT", "HTime", meteoTodayDate);
 
 			// Records
