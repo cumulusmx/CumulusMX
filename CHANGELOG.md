@@ -19,7 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-- Nothing
+- Softer start to Cumulus calculates average wind speed when number of samples < 10
 
 ### Fixed
 

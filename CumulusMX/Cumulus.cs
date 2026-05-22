@@ -1496,6 +1496,8 @@ namespace CumulusMX
 				LogMessage("Opening station type " + StationType);
 			}
 
+			LogMessage("Datalogger is " + (StationOptions.UseDataLogger ? "Enabled" : "Disabled"));
+
 			Manufacturer = GetStationManufacturerFromType(StationType);
 			switch (StationType)
 			{
