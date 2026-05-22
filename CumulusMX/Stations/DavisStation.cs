@@ -202,15 +202,17 @@ namespace CumulusMX.Stations
 				DoDayResetIfNeeded();
 				DoTrendValues(DateTime.Now);
 
-				cumulus.LogMessage("Starting Davis ");
+				cumulus.LogMessage("Starting Davis Station");
 
-				Cumulus.SyncInit.Wait();
+				_ = new Thread(() => {
+					Cumulus.SyncInit.Wait();
 
-				// Wait a short while for Cumulus initialisation to complete
-				Thread.Sleep(500);
-				StartLoop();
+					// Wait a short while for Cumulus initialisation to complete
+					Thread.Sleep(500);
+					StartLoop();
 
-				Cumulus.SyncInit.Release();
+					Cumulus.SyncInit.Release();
+				});
 			}
 			else
 			{
