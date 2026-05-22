@@ -27,30 +27,30 @@ namespace CumulusMX
 
 				if (retVals.Count != 1)
 				{
-					temptrendval = 0;
-					presstrendval = 0;
+					MetData.TempTrendVal = 0;
+					MetData.PressTrendVal = 0;
 				}
 				else
 				{
 					if (TempReadyToPlot)
 					{
 						// calculate and display the temp trend
-						temptrendval = (MetData.Temperature - retVals[0].OutsideTemp) / 3.0F;
-						cumulus.TempChangeAlarm.CheckAlarm(temptrendval);
+						MetData.TempTrendVal = (MetData.Temperature - retVals[0].OutsideTemp) / 3.0F;
+						cumulus.TempChangeAlarm.CheckAlarm(MetData.TempTrendVal);
 					}
 
 					if (PressReadyToPlot)
 					{
 						// calculate and display the pressure trend
-						presstrendval = (MetData.Pressure - retVals[0].Pressure) / 3.0;
-						cumulus.PressChangeAlarm.CheckAlarm(presstrendval);
+						MetData.PressTrendVal = (MetData.Pressure - retVals[0].Pressure) / 3.0;
+						cumulus.PressChangeAlarm.CheckAlarm(MetData.PressTrendVal);
 					}
 				}
 			}
 			catch
 			{
-				temptrendval = 0;
-				presstrendval = 0;
+				MetData.TempTrendVal = 0;
+				MetData.PressTrendVal = 0;
 			}
 
 			try
@@ -60,13 +60,13 @@ namespace CumulusMX
 
 				if (retVals.Count != 1)
 				{
-					TempChangeLastHour = 0;
+					MetData.TempChangeLastHour = 0;
 					MetData.RainLastHour = 0;
 				}
 				else
 				{
 					// Calculate Temperature change in the last hour
-					TempChangeLastHour = MetData.Temperature - retVals[0].OutsideTemp;
+					MetData.TempChangeLastHour = MetData.Temperature - retVals[0].OutsideTemp;
 
 
 					// calculate and display rainfall in last hour
@@ -130,7 +130,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				TempChangeLastHour = 0;
+				MetData.TempChangeLastHour = 0;
 				MetData.RainLastHour = 0;
 			}
 
@@ -221,7 +221,7 @@ namespace CumulusMX
 
 				if (retVals.Count != 1 || MetData.RainCounter < retVals[0].raincounter)
 				{
-					RainLast24Hour = 0;
+					MetData.RainLast24Hour = 0;
 				}
 				else
 				{
@@ -232,32 +232,32 @@ namespace CumulusMX
 						trendval = 0;
 					}
 
-					RainLast24Hour = trendval * cumulus.Calib.Rain.Mult;
+					MetData.RainLast24Hour = trendval * cumulus.Calib.Rain.Mult;
 
-					if (RainLast24Hour > DailyHighLow.Today.HighRain24h)
+					if (MetData.RainLast24Hour > DailyHighLow.Today.HighRain24h)
 					{
-						DailyHighLow.Today.HighRain24h = RainLast24Hour;
+						DailyHighLow.Today.HighRain24h = MetData.RainLast24Hour;
 						DailyHighLow.Today.HighRain24hTime = recTs;
 						WriteTodayFile(recTs, false);
 					}
 
-					if (RainLast24Hour > Records.AllTime.HighRain24Hours.Val)
+					if (MetData.RainLast24Hour > Records.AllTime.HighRain24Hours.Val)
 					{
-						SetAlltime(Records.AllTime.HighRain24Hours, RainLast24Hour, recDtTm);
+						SetAlltime(Records.AllTime.HighRain24Hours, MetData.RainLast24Hour, recDtTm);
 					}
 
-					CheckMonthlyAlltime("HighRain24Hours", RainLast24Hour, true, recDtTm);
+					CheckMonthlyAlltime("HighRain24Hours", MetData.RainLast24Hour, true, recDtTm);
 
-					if (RainLast24Hour > Records.ThisMonth.HighRain24Hours.Val)
+					if (MetData.RainLast24Hour > Records.ThisMonth.HighRain24Hours.Val)
 					{
-						Records.ThisMonth.HighRain24Hours.Val = RainLast24Hour;
+						Records.ThisMonth.HighRain24Hours.Val = MetData.RainLast24Hour;
 						Records.ThisMonth.HighRain24Hours.Ts = recDtTm;
 						WriteMonthIniFile();
 					}
 
-					if (RainLast24Hour > Records.ThisYear.HighRain24Hours.Val)
+					if (MetData.RainLast24Hour > Records.ThisYear.HighRain24Hours.Val)
 					{
-						Records.ThisYear.HighRain24Hours.Val = RainLast24Hour;
+						Records.ThisYear.HighRain24Hours.Val = MetData.RainLast24Hour;
 						Records.ThisYear.HighRain24Hours.Ts = recDtTm;
 						WriteYearIniFile();
 					}
@@ -266,7 +266,7 @@ namespace CumulusMX
 			catch
 			{
 				// Unable to retrieve rain counter from 24 hours ago
-				RainLast24Hour = 0;
+				MetData.RainLast24Hour = 0;
 			}
 		}
 
@@ -278,27 +278,27 @@ namespace CumulusMX
 			{
 				// Start of day ET value not yet set
 				cumulus.LogMessage("*** First ET reading. Set startofdayET to total: " + value);
-				StartofdayET = value;
+				MetData.StartofdayET = value;
 				noET = false;
 			}
 
-			if (Math.Round(value, 3) < Math.Round(StartofdayET, 3)) // change b3046
+			if (Math.Round(value, 3) < Math.Round(MetData.StartofdayET, 3)) // change b3046
 			{
 				// ET reset
-				cumulus.LogMessage(string.Format("*** ET Reset *** AnnualET: {0:0.000}, StartofdayET: {1:0.000}, StationET: {2:0.000}, CurrentET: {3:0.000}", AnnualETTotal, StartofdayET, value, MetData.ET));
-				AnnualETTotal = value; // add b3046
-									   // set the start of day figure so it reflects the ET
-									   // so far today
-				StartofdayET = AnnualETTotal - MetData.ET;
+				cumulus.LogMessage(string.Format("*** ET Reset *** AnnualET: {0:0.000}, StartofdayET: {1:0.000}, StationET: {2:0.000}, CurrentET: {3:0.000}", MetData.AnnualETTotal, MetData.StartofdayET, value, MetData.ET));
+				MetData.AnnualETTotal = value; // add b3046
+											   // set the start of day figure so it reflects the ET
+											   // so far today
+				MetData.StartofdayET = MetData.AnnualETTotal - MetData.ET;
 				WriteTodayFile(timestamp, false);
-				cumulus.LogMessage(string.Format("New ET values. AnnualET: {0:0.000}, StartofdayET: {1:0.000}, StationET: {2:0.000}, CurrentET: {3:0.000}", AnnualETTotal, StartofdayET, value, MetData.ET));
+				cumulus.LogMessage(string.Format("New ET values. AnnualET: {0:0.000}, StartofdayET: {1:0.000}, StationET: {2:0.000}, CurrentET: {3:0.000}", MetData.AnnualETTotal, MetData.StartofdayET, value, MetData.ET));
 			}
 			else
 			{
-				AnnualETTotal = value;
+				MetData.AnnualETTotal = value;
 			}
 
-			MetData.ET = AnnualETTotal - StartofdayET;
+			MetData.ET = MetData.AnnualETTotal - MetData.StartofdayET;
 
 			HaveReadData = true;
 		}
@@ -351,7 +351,130 @@ namespace CumulusMX
 			cumulus.LogDebugMessage($"Calculated ET for the last hour = {newET:F3}");
 
 			// DoET expects the running annual total to be sent
-			DoET(AnnualETTotal + newET, date);
+			DoET(MetData.AnnualETTotal + newET, date);
+		}
+
+		public void DoCloudBaseHeatIndex(DateTime timestamp)
+		{
+			var tempinF = ConvertUnits.UserTempToF(MetData.Temperature);
+			var tempinC = ConvertUnits.UserTempToC(MetData.Temperature);
+
+			// Calculate cloud base
+			MetData.CloudBase = (int) Math.Floor((tempinF - ConvertUnits.UserTempToF(MetData.Dewpoint)) / 4.4 * 1000 / (cumulus.CloudBaseInFeet ? 1 : 3.2808399));
+			if (MetData.CloudBase < 0)
+				MetData.CloudBase = 0;
+
+			MetData.HeatIndex = ConvertUnits.TempCToUser(MeteoLib.HeatIndex(tempinC, MetData.Humidity));
+
+			if (MetData.HeatIndex > DailyHighLow.Today.HighHeatIndex)
+			{
+				DailyHighLow.Today.HighHeatIndex = MetData.HeatIndex;
+				DailyHighLow.Today.HighHeatIndexTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+
+			if (MetData.HeatIndex > Records.ThisMonth.HighHeatIndex.Val)
+			{
+				Records.ThisMonth.HighHeatIndex.Val = MetData.HeatIndex;
+				Records.ThisMonth.HighHeatIndex.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+
+			if (MetData.HeatIndex > Records.ThisYear.HighHeatIndex.Val)
+			{
+				Records.ThisYear.HighHeatIndex.Val = MetData.HeatIndex;
+				Records.ThisYear.HighHeatIndex.Ts = timestamp;
+				WriteYearIniFile();
+			}
+
+			if (MetData.HeatIndex > Records.AllTime.HighHeatIndex.Val)
+				SetAlltime(Records.AllTime.HighHeatIndex, MetData.HeatIndex, timestamp);
+
+			CheckMonthlyAlltime("HighHeatIndex", MetData.HeatIndex, true, timestamp);
+
+
+			// Find estimated wet bulb temp. First time this is called, required variables may not have been set up yet
+			try
+			{
+				MetData.WetBulb = ConvertUnits.TempCToUser(MeteoLib.CalculateWetBulbC(tempinC, ConvertUnits.UserTempToC(MetData.Dewpoint), ConvertUnits.UserPressToMB(MetData.Pressure)));
+			}
+			catch
+			{
+				MetData.WetBulb = MetData.Temperature;
+			}
+		}
+
+		public void DoForecast(string forecast, bool hourly)
+		{
+			// store weather station forecast if available
+			MetData.WsForecast = forecast;
+
+			if (cumulus.ForecastSource == 3)
+			{
+				MetData.ForecastStr = string.Empty;
+			}
+			else if (cumulus.ForecastSource == 2)
+			{
+				if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 10)
+				{
+					cumulus.GetForecastTextFromFile();
+					cumulus.LastForecastDotTxtReadTime = DateTime.UtcNow;
+				}
+			}
+			else if (cumulus.ForecastSource == 0)
+			{
+				// user wants to display station forecast
+				MetData.ForecastStr = MetData.WsForecast;
+			}
+
+			// 1 = cumulus forecast
+
+			// determine whether we need to update the Cumulus forecast; user may have chosen to only update once an hour, but
+			// we still need to do that once to get an initial forecast
+			if (!FirstForecastDone || !cumulus.HourlyForecast || hourly && cumulus.HourlyForecast)
+			{
+				int bartrend;
+				if (MetData.PressTrendVal >= -cumulus.FCPressureThreshold && MetData.PressTrendVal <= cumulus.FCPressureThreshold)
+					bartrend = 0;
+				else if (MetData.PressTrendVal < 0)
+					bartrend = 2;
+				else
+					bartrend = 1;
+
+				string windDir;
+				if (MetData.WindAverage < 0.1)
+				{
+					windDir = "calm";
+				}
+				else
+				{
+					windDir = MetData.AvgBearingText;
+				}
+
+				double lp;
+				double hp;
+				if (cumulus.FCpressinMB)
+				{
+					lp = cumulus.FClowpress;
+					hp = cumulus.FChighpress;
+				}
+				else
+				{
+					lp = cumulus.FClowpress / 0.0295333727;
+					hp = cumulus.FChighpress / 0.0295333727;
+				}
+
+				MetData.CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(MetData.Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+
+				// user wants to display Cumulus forecast
+				if (cumulus.ForecastSource == 1)
+				{
+					MetData.ForecastStr = MetData.CumulusForecast;
+				}
+			}
+
+			FirstForecastDone = true;
+			HaveReadData = true;
 		}
 	}
 }

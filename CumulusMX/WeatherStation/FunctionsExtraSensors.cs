@@ -6,7 +6,7 @@ namespace CumulusMX
 {
 	internal partial class WeatherStation
 	{
-		public void DoExtraTemp(double? temp, int channel)
+		public static void DoExtraTemp(double? temp, int channel)
 		{
 			if (channel > 0 && channel < MetData.ExtraTemp.Length)
 			{
@@ -14,7 +14,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoExtraHum(int? hum, int channel)
+		public static void DoExtraHum(int? hum, int channel)
 		{
 			if (channel > 0 && channel < MetData.ExtraHum.Length)
 			{
@@ -22,7 +22,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoExtraDP(double? dp, int channel)
+		public static void DoExtraDP(double? dp, int channel)
 		{
 			if (channel > 0 && channel < MetData.ExtraDewPoint.Length)
 			{
@@ -30,7 +30,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoUserTemp(double? temp, int channel)
+		public static void DoUserTemp(double? temp, int channel)
 		{
 			if (channel > 0 && channel < MetData.UserTemp.Length)
 			{
@@ -38,19 +38,19 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoSoilMoisture(double? value, int index)
+		public static void DoSoilMoisture(double? value, int index)
 		{
 			if (index > 0 && index < MetData.SoilMoisture.Length)
 				MetData.SoilMoisture[index] = (int?) value;
 		}
 
-		public void DoSoilTemp(double? value, int index)
+		public static void DoSoilTemp(double? value, int index)
 		{
 			if (index > 0 && index < MetData.SoilTemp.Length)
 				MetData.SoilTemp[index] = value;
 		}
 
-		public void DoSoilEc(int? value, int index)
+		public static void DoSoilEc(int? value, int index)
 		{
 			if (index > 0 && index < MetData.SoilEc.Length)
 				MetData.SoilEc[index] = value;
@@ -63,12 +63,12 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.LeafWetnessIsRainingIdx == index)
 			{
-				IsRaining = (value ?? 0) >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
-				cumulus.IsRainingAlarm.Triggered = IsRaining;
+				MetData.IsRaining = (value ?? 0) >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
+				cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 			}
 		}
 
-		public void DoLeakSensor(int? value, int index)
+		public static void DoLeakSensor(int? value, int index)
 		{
 			switch (index)
 			{

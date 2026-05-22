@@ -271,7 +271,7 @@ namespace CumulusMX
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append(sepStr);
-			json.Append(YesterdayWindRun.ToString(cumulus.WindRunFormat));
+			json.Append(MetData.YesterdayWindRun.ToString(cumulus.WindRunFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindRunText);
 			json.Append(sepStr);
 			json.Append("&nbsp;");

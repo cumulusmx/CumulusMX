@@ -339,9 +339,9 @@ namespace CumulusMX.Stations
 				if (sensor > 0 && json.current_temp_f.HasValue && json.current_humidity.HasValue)
 				{
 					cumulus.LogDebugMessage($"DecodePaLive: Extra T/H  #{sensor}, using values, T={json.current_temp_f}, H={json.current_humidity}, DP={json.current_dewpoint_f}");
-					station.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f.Value), sensor);
-					station.DoExtraHum(json.current_humidity.Value, sensor);
-					station.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f.Value), sensor);
+					WeatherStation.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f.Value), sensor);
+					WeatherStation.DoExtraHum(json.current_humidity.Value, sensor);
+					WeatherStation.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f.Value), sensor);
 				}
 				else
 				{

@@ -508,8 +508,8 @@ namespace CumulusMX
 		protected void DoWetBulb(double temp, DateTime timestamp) // Supplied in CELSIUS
 
 		{
-			WetBulb = ConvertUnits.TempCToUser(temp);
-			WetBulb = cumulus.Calib.WetBulb.Calibrate(WetBulb);
+			MetData.WetBulb = ConvertUnits.TempCToUser(temp);
+			MetData.WetBulb = cumulus.Calib.WetBulb.Calibrate(MetData.WetBulb);
 
 			// calculate RH
 			var TempDry = ConvertUnits.UserTempToC(MetData.Temperature);
@@ -569,6 +569,112 @@ namespace CumulusMX
 			}
 		}
 
+		public void DoIndoorHumidity(int hum)
+		{
+			// Spike check
+			if (previousInHum != 999 && Math.Abs(hum - previousInHum) > cumulus.Spike.InHumDiff)
+			{
+				cumulus.LogSpikeRemoval("Indoor humidity difference greater than specified; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={hum} OldVal={previousInHum} SpikeDiff={cumulus.Spike.InHumDiff:F1}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = $"Indoor humidity difference greater than spike value - NewVal={hum} OldVal={previousInHum} SpikeDiff={cumulus.Spike.InHumDiff:F1}";
+				cumulus.SpikeAlarm.Triggered = true;
+				return;
+			}
 
+			previousInHum = hum;
+			MetData.HumidityIn = (int) cumulus.Calib.InHum.Calibrate(hum);
+
+			if (MetData.HumidityIn < 0)
+			{
+				MetData.HumidityIn = 0;
+			}
+			if (MetData.HumidityIn > 100)
+			{
+				MetData.HumidityIn = 100;
+			}
+			HaveReadData = true;
+		}
+
+		public void DoOutdoorHumidity(int humpar, DateTime timestamp)
+		{
+			// Spike check
+			if (previousHum < 998 && Math.Abs(humpar - previousHum) > cumulus.Spike.HumidityDiff)
+			{
+				cumulus.LogSpikeRemoval("Humidity difference greater than specified; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={humpar} OldVal={previousHum} SpikeHumidityDiff={cumulus.Spike.HumidityDiff:F1}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = $"Humidity difference greater than spike value - NewVal={humpar} OldVal={previousHum} SpikeHumidityDiff={cumulus.Spike.HumidityDiff:F1}";
+				cumulus.SpikeAlarm.Triggered = true;
+				return;
+			}
+			previousHum = humpar;
+
+			if (humpar >= 98 && cumulus.StationOptions.Humidity98Fix)
+			{
+				MetData.Humidity = 100;
+			}
+			else
+			{
+				MetData.Humidity = (int) cumulus.Calib.Hum.Calibrate(humpar);
+			}
+
+			if (MetData.Humidity < 0)
+			{
+				MetData.Humidity = 0;
+			}
+			if (MetData.Humidity > 100)
+			{
+				MetData.Humidity = 100;
+			}
+
+			if (MetData.Humidity > DailyHighLow.Today.HighHumidity)
+			{
+				DailyHighLow.Today.HighHumidity = MetData.Humidity;
+				DailyHighLow.Today.HighHumidityTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+			if (MetData.Humidity < DailyHighLow.Today.LowHumidity)
+			{
+				DailyHighLow.Today.LowHumidity = MetData.Humidity;
+				DailyHighLow.Today.LowHumidityTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+			if (MetData.Humidity > Records.ThisMonth.HighHumidity.Val)
+			{
+				Records.ThisMonth.HighHumidity.Val = MetData.Humidity;
+				Records.ThisMonth.HighHumidity.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+			if (MetData.Humidity < Records.ThisMonth.LowHumidity.Val)
+			{
+				Records.ThisMonth.LowHumidity.Val = MetData.Humidity;
+				Records.ThisMonth.LowHumidity.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+			if (MetData.Humidity > Records.ThisYear.HighHumidity.Val)
+			{
+				Records.ThisYear.HighHumidity.Val = MetData.Humidity;
+				Records.ThisYear.HighHumidity.Ts = timestamp;
+				WriteYearIniFile();
+			}
+			if (MetData.Humidity < Records.ThisYear.LowHumidity.Val)
+			{
+				Records.ThisYear.LowHumidity.Val = MetData.Humidity;
+				Records.ThisYear.LowHumidity.Ts = timestamp;
+				WriteYearIniFile();
+			}
+			if (MetData.Humidity > Records.AllTime.HighHumidity.Val)
+			{
+				SetAlltime(Records.AllTime.HighHumidity, MetData.Humidity, timestamp);
+			}
+			CheckMonthlyAlltime("HighHumidity", MetData.Humidity, true, timestamp);
+			if (MetData.Humidity < Records.AllTime.LowHumidity.Val)
+			{
+				SetAlltime(Records.AllTime.LowHumidity, MetData.Humidity, timestamp);
+			}
+			CheckMonthlyAlltime("LowHumidity", MetData.Humidity, false, timestamp);
+			HaveReadData = true;
+		}
 	}
 }

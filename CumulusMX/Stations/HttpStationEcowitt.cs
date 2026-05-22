@@ -719,8 +719,8 @@ namespace CumulusMX.Stations
 
 						if (!cumulus.EcowittIsRainingUsePiezo)
 						{
-							IsRaining = (cumulus.StationOptions.UseRainForIsRaining == 0 ? Convert.ToDouble(rRate, invNum): Convert.ToDouble(data["rrain_piezo"], invNum)) > 0;
-							cumulus.IsRainingAlarm.Triggered = IsRaining;
+							MetData.IsRaining = (cumulus.StationOptions.UseRainForIsRaining == 0 ? Convert.ToDouble(rRate, invNum): Convert.ToDouble(data["rrain_piezo"], invNum)) > 0;
+							cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 						}
 
 
@@ -749,8 +749,8 @@ namespace CumulusMX.Stations
 
 						if (cumulus.EcowittIsRainingUsePiezo && data["srain_piezo"] != null)
 						{
-							IsRaining = data["srain_piezo"] == "1";
-							cumulus.IsRainingAlarm.Triggered = IsRaining;
+							MetData.IsRaining = data["srain_piezo"] == "1";
+							cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 						}
 					}
 					catch (Exception ex)
@@ -1231,7 +1231,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					double? val = data["temp" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum));
-					station.DoExtraTemp(val, i);
+					WeatherStation.DoExtraTemp(val, i);
 
 					if (val.HasValue)
 					{
@@ -1262,7 +1262,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.ExtraTempHum[i-1])
 				{
 					int? val = data["humidity" + i] == null ? null : (int) Convert.ToDouble(data["humidity" + i], invNum);
-					station.DoExtraHum(val, i);
+					WeatherStation.DoExtraHum(val, i);
 
 					if (val.HasValue)
 					{
@@ -1324,7 +1324,7 @@ namespace CumulusMX.Stations
 			if (stationIndex == cumulus.SensorMaps.SoilTemp[0])
 			{
 				double? val = data["soiltempf"] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltempf"], invNum));
-				station.DoSoilTemp(val, 1);
+				WeatherStation.DoSoilTemp(val, 1);
 			}
 
 			for (var i = 2; i <= 16; i++)
@@ -1332,7 +1332,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilTemp[i-1])
 				{
 					double? val = data["soiltemp" + i + "f"] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltemp" + i + "f"], invNum));
-					station.DoSoilTemp(val, i - 1);
+					WeatherStation.DoSoilTemp(val, i - 1);
 				}
 			}
 		}
@@ -1344,7 +1344,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilMoist[i-1])
 				{
 					double? val = data["soilmoisture" + i] == null ? null : Convert.ToDouble(data["soilmoisture" + i], invNum);
-					station.DoSoilMoisture(val, i);
+					WeatherStation.DoSoilMoisture(val, i);
 				}
 			}
 		}
@@ -1356,7 +1356,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilMoist[i - 1])
 				{
 					double? val = data["soil_ec_hum" + i] == null ? null : Convert.ToDouble(data["soil_ec_hum" + i], invNum);
-					station.DoSoilMoisture(val, i);
+					WeatherStation.DoSoilMoisture(val, i);
 				}
 			}
 		}
@@ -1368,7 +1368,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilTemp[i - 1])
 				{
 					double? val = data["soil_ec_temp" + i] == null ? null : Convert.ToDouble(data["soil_ec_temp" + i], invNum);
-					station.DoSoilTemp(val, i);
+					WeatherStation.DoSoilTemp(val, i);
 				}
 			}
 		}
@@ -1379,7 +1379,7 @@ namespace CumulusMX.Stations
 			{
 				if (stationIndex == cumulus.SensorMaps.SoilEc[i - 1])
 				{
-					station.DoSoilEc(data["soil_ec_ec" + i] == null ? null : Convert.ToInt16(data["soil_ec_ec" + i], invNum), i);
+					WeatherStation.DoSoilEc(data["soil_ec_ec" + i] == null ? null : Convert.ToInt16(data["soil_ec_ec" + i], invNum), i);
 				}
 			}
 		}
@@ -1424,11 +1424,11 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.EcowittMapWN34[i] == 0)
 					{
-						station.DoUserTemp(data["tf_ch" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
+						WeatherStation.DoUserTemp(data["tf_ch" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
 					}
 					else
 					{
-						station.DoSoilTemp(data["tf_ch" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), cumulus.EcowittMapWN34[i]);
+						WeatherStation.DoSoilTemp(data["tf_ch" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), cumulus.EcowittMapWN34[i]);
 					}
 				}
 			}
@@ -1556,7 +1556,7 @@ namespace CumulusMX.Stations
 			{
 				if (stationIndex == cumulus.SensorMaps.Leak[i - 1])
 				{
-					station.DoLeakSensor(data["leak" + i] == null ? null : Convert.ToInt32(data["leak" + i], invNum), i);
+					WeatherStation.DoLeakSensor(data["leak" + i] == null ? null : Convert.ToInt32(data["leak" + i], invNum), i);
 				}
 			}
 		}

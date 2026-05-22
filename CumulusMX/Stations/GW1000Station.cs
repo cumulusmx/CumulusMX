@@ -1044,7 +1044,7 @@ namespace CumulusMX.Stations
 							case 0x0D: //Rain Event (mm)
 								if (cumulus.Gw1000PrimaryRainSensor == 0)
 								{
-									StormRain = ConvertUnits.RainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0);
+									MetData.StormRain = ConvertUnits.RainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0);
 								}
 								idx += 2;
 								break;
@@ -1357,7 +1357,7 @@ namespace CumulusMX.Stations
 							case 0x81: // Piezo Rain Event
 								if (cumulus.Gw1000PrimaryRainSensor == 1)
 								{
-									StormRain = ConvertUnits.RainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0);
+									MetData.StormRain = ConvertUnits.RainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0);
 								}
 								idx += 2;
 								break;
@@ -1641,8 +1641,8 @@ namespace CumulusMX.Stations
 						case 0x80: // piezo rain rate
 							if (cumulus.StationOptions.UseRainForIsRaining == 2 && cumulus.Gw1000PrimaryRainSensor != 1)
 							{
-								IsRaining = GW1000Api.ConvertBigEndianUInt16(data, idx) > 0;
-								cumulus.IsRainingAlarm.Triggered = IsRaining;
+								MetData.IsRaining = GW1000Api.ConvertBigEndianUInt16(data, idx) > 0;
+								cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 							}
 							else
 							{

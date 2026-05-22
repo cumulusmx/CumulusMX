@@ -1182,8 +1182,8 @@ namespace CumulusMX.Stations
 
 			if (!synchronising || readCounter % 20 == 0)
 			{
-				LatestFOReading = addr.ToString("X4") + " Data: " + BitConverter.ToString(data, 0, 16);
-				cumulus.LogDataMessage("Latest Block: " + LatestFOReading);
+				var last = addr.ToString("X4") + " Data: " + BitConverter.ToString(data, 0, 16);
+				cumulus.LogDataMessage("Latest Block: " + last);
 
 				// Indoor Humidity ====================================================
 				int inhum = data[1];

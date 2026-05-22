@@ -417,33 +417,6 @@ namespace CumulusMX
 			}
 		}
 
-		public void CalculateDominantWindBearing(int averageBearing, double averageSpeed, int minutes)
-		{
-			MetData.DominantWindBearingX += minutes * averageSpeed * Math.Sin(Trig.DegToRad(averageBearing));
-			MetData.DominantWindBearingY += minutes * averageSpeed * Math.Cos(Trig.DegToRad(averageBearing));
-			MetData.DominantWindBearingMinutes += minutes;
-
-			if (Math.Abs(MetData.DominantWindBearingX) < 0.001 && Math.Abs(MetData.DominantWindBearingY) < 0.001)
-			{
-				MetData.DominantWindBearing = 0;
-			}
-			else
-			{
-				try
-				{
-					MetData.DominantWindBearing = calcavgbear(MetData.DominantWindBearingX, MetData.DominantWindBearingY);
-					if (MetData.DominantWindBearing == 0)
-					{
-						MetData.DominantWindBearing = 360;
-					}
-				}
-				catch
-				{
-					cumulus.LogErrorMessage("Error in dominant wind direction calculation");
-				}
-			}
-		}
-
 		/// <summary>
 		/// Adds a new entry to the list of wind readings from the last 10 minutes
 		/// </summary>
@@ -538,6 +511,112 @@ namespace CumulusMX
 			}
 
 			return dayfile;
+		}
+
+		public void CalculateDominantWindBearing(int averageBearing, double averageSpeed, int minutes)
+		{
+			MetData.DominantWindBearingX += minutes * averageSpeed * Math.Sin(Trig.DegToRad(averageBearing));
+			MetData.DominantWindBearingY += minutes * averageSpeed * Math.Cos(Trig.DegToRad(averageBearing));
+			MetData.DominantWindBearingMinutes += minutes;
+
+			if (Math.Abs(MetData.DominantWindBearingX) < 0.001 && Math.Abs(MetData.DominantWindBearingY) < 0.001)
+			{
+				MetData.DominantWindBearing = 0;
+			}
+			else
+			{
+				try
+				{
+					MetData.DominantWindBearing = calcavgbear(MetData.DominantWindBearingX, MetData.DominantWindBearingY);
+					if (MetData.DominantWindBearing == 0)
+					{
+						MetData.DominantWindBearing = 360;
+					}
+				}
+				catch
+				{
+					cumulus.LogErrorMessage("Error in dominant wind direction calculation");
+				}
+			}
+		}
+
+		// Returns true if the gust value exceeds current RecentMaxGust, false if it fails
+		public bool CheckHighGust(double gust, int gustdir, DateTime timestamp)
+		{
+			if (gust >= cumulus.Limit.WindHigh)
+			{
+				cumulus.LogSpikeRemoval("Wind Gust greater than the limit; reading ignored");
+				cumulus.LogSpikeRemoval($"Gust: NewVal={gust.ToString(cumulus.WindFormat)} HighLimit={cumulus.Limit.WindHigh.ToString(cumulus.WindFormat)}");
+				lastSpikeRemoval = timestamp;
+				cumulus.SpikeAlarm.LastMessage = $"Wind Gust greater than limit - NewVal={gust.ToString(cumulus.WindFormat)}, OldVal={cumulus.Limit.WindHigh.ToString(cumulus.WindFormat)}";
+				cumulus.SpikeAlarm.Triggered = true;
+				return false;
+			}
+
+			if (gust > DailyHighLow.Today.HighGust)
+			{
+				DailyHighLow.Today.HighGust = gust;
+				DailyHighLow.Today.HighGustTime = timestamp;
+				DailyHighLow.Today.HighGustBearing = gustdir;
+				WriteTodayFile(timestamp, false);
+			}
+			if (gust > Records.ThisMonth.HighGust.Val)
+			{
+				Records.ThisMonth.HighGust.Val = gust;
+				Records.ThisMonth.HighGust.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+			if (gust > Records.ThisYear.HighGust.Val)
+			{
+				Records.ThisYear.HighGust.Val = gust;
+				Records.ThisYear.HighGust.Ts = timestamp;
+				WriteYearIniFile();
+			}
+			// All time high gust?
+			if (gust > Records.AllTime.HighGust.Val)
+			{
+				SetAlltime(Records.AllTime.HighGust, gust, timestamp);
+			}
+
+			// check for monthly all time records (and set)
+			CheckMonthlyAlltime("HighGust", gust, true, timestamp);
+
+			cumulus.HighGustAlarm.CheckAlarm(gust);
+
+			return gust > MetData.RecentMaxGust;
+		}
+
+		public void CheckHighAvgSpeed(DateTime timestamp)
+		{
+			if (MetData.WindAverage > DailyHighLow.Today.HighWind)
+			{
+				DailyHighLow.Today.HighWind = MetData.WindAverage;
+				DailyHighLow.Today.HighWindTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+			if (MetData.WindAverage > Records.ThisMonth.HighWind.Val)
+			{
+				Records.ThisMonth.HighWind.Val = MetData.WindAverage;
+				Records.ThisMonth.HighWind.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+			if (MetData.WindAverage > Records.ThisYear.HighWind.Val)
+			{
+				Records.ThisYear.HighWind.Val = MetData.WindAverage;
+				Records.ThisYear.HighWind.Ts = timestamp;
+				WriteYearIniFile();
+			}
+
+			// All time high wind speed?
+			if (MetData.WindAverage > Records.AllTime.HighWind.Val)
+			{
+				SetAlltime(Records.AllTime.HighWind, MetData.WindAverage, timestamp);
+			}
+
+			// check for monthly all time records (and set)
+			CheckMonthlyAlltime("HighWind", MetData.WindAverage, true, timestamp);
+
+			cumulus.HighWindAlarm.CheckAlarm(MetData.WindAverage);
 		}
 	}
 }

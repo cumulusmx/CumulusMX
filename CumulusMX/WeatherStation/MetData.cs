@@ -36,6 +36,10 @@ namespace CumulusMX
 
 		public static double? BlackGlobeTemp { get; set; }
 
+		public static double TempChangeLastHour { get; set; }
+
+		public static double TempTrendVal { get; set; }
+
 		#endregion
 
 		#region derived temps
@@ -80,6 +84,10 @@ namespace CumulusMX
 
 		public static double CoolingDegreeDays { get; set; }
 
+		public static double YestHeatingDegreeDays { get; set; }
+
+		public static double YestCoolingDegreeDays { get; set; }
+
 		public static double GrowingDegreeDaysThisYear1 { get; set; }
 
 		public static double GrowingDegreeDaysThisYear2 { get; set; }
@@ -89,6 +97,8 @@ namespace CumulusMX
 		public static double ChillHours { get; set; }
 
 		public static double YestChillHours { get; set; }
+
+		public static double WetBulb { get; set; }
 
 		#endregion
 
@@ -104,6 +114,8 @@ namespace CumulusMX
 		public static double StationPressure { get; set; } = 0;
 
 		public static double AltimeterPressure { get; set; }
+
+		public static double PressTrendVal { get; set; }
 
 		#endregion
 
@@ -174,6 +186,8 @@ namespace CumulusMX
 		/// </summary>
 		public static double WindRunToday { get; set; } = 0;
 
+		public static double YesterdayWindRun { get; set; }
+
 		#endregion
 
 		#region rainfall
@@ -208,6 +222,8 @@ namespace CumulusMX
 
 		public static double RainLastHour { get; set; }
 
+		public static double RainLast24Hour { get; set; }
+
 		public static double RainRate { get; set; } = 0;
 
 		public static double MidnightRainCount { get; set; }
@@ -217,6 +233,15 @@ namespace CumulusMX
 		public static double RainCounterDayStart { get; set; } = 0.0;
 
 		public static double RainCounter { get; set; } = 0.0;
+
+		public static double StormRain { get; set; }
+
+		public static DateTime StartOfStorm { get; set; }
+
+		public static int ConsecutiveRainDays { get; set; }
+		public static int ConsecutiveDryDays { get; set; }
+
+		public static bool IsRaining { get; set; }
 
 		public static double RG11RainToday { get; set; }
 		public static double RG11RainYesterday { get; set; }
@@ -250,8 +275,6 @@ namespace CumulusMX
 		public static bool IsSunny { get; set; }
 
 		public static int CurrentSolarMax { get; set; }
-
-		public static double ET { get; set; }
 
 		#endregion
 
@@ -372,6 +395,17 @@ namespace CumulusMX
 		public static string WsForecast { get; set; } = string.Empty;
 
 		public static int Forecastnumber { get; set; }
+
+		#endregion
+
+		#region misc
+
+		public static int CloudBase { get; set; }
+
+		public static double ET { get; set; }
+
+		public static double AnnualETTotal { get; set; }
+		public static double StartofdayET { get; set; }
 
 		#endregion
 	}

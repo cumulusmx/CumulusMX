@@ -149,8 +149,8 @@ namespace CumulusMX
 
 				if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
 				{
-					IsRaining = MetData.RainRate > 0;
-					cumulus.IsRainingAlarm.Triggered = IsRaining;
+					MetData.IsRaining = MetData.RainRate > 0;
+					cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 				}
 
 				if (MetData.RainRate > Records.AllTime.HighRainRate.Val)
@@ -192,13 +192,13 @@ namespace CumulusMX
 
 					if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
 					{
-						IsRaining = true;
+						MetData.IsRaining = true;
 						cumulus.IsRainingAlarm.Triggered = true;
 					}
 				}
 				else if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo && MetData.RainRate <= 0)
 				{
-					IsRaining = false;
+					MetData.IsRaining = false;
 					cumulus.IsRainingAlarm.Triggered = false;
 				}
 

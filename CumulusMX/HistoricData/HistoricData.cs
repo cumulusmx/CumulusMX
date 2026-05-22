@@ -315,7 +315,7 @@ namespace CumulusMX
 					{
 						if (rec.StationIndex == SensorMaps.ExtraTempHum[i])
 						{
-							station.DoExtraHum(rec.ExtraHum[i], chan);
+							WeatherStation.DoExtraHum(rec.ExtraHum[i], chan);
 
 							if (rec.ExtraHum[i].HasValue)
 							{
@@ -351,7 +351,7 @@ namespace CumulusMX
 						{
 							var tempVal = rec.ExtraTemp[i];
 
-							station.DoExtraTemp(tempVal, chan);
+							WeatherStation.DoExtraTemp(tempVal, chan);
 
 							if (tempVal.HasValue)
 							{
@@ -383,11 +383,11 @@ namespace CumulusMX
 					// === Extra Dewpoint ===
 					if (rec.ExtraTemp[i].HasValue && rec.ExtraHum[i].HasValue)
 					{
-						station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(rec.ExtraTemp[i].Value), rec.ExtraHum[i].Value)), chan);
+						WeatherStation.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(rec.ExtraTemp[i].Value), rec.ExtraHum[i].Value)), chan);
 					}
 					else
 					{
-						station.DoExtraDP(null, chan);
+						WeatherStation.DoExtraDP(null, chan);
 					}
 				}
 
@@ -401,11 +401,11 @@ namespace CumulusMX
 							var chan = i + 1;
 							if (EcowittMapWN34[i] == 0)
 							{
-								station.DoUserTemp(rec.UserTemp[i], chan);
+								WeatherStation.DoUserTemp(rec.UserTemp[i], chan);
 							}
 							else
 							{
-								station.DoSoilTemp(rec.UserTemp[i], EcowittMapWN34[i]);
+								WeatherStation.DoSoilTemp(rec.UserTemp[i], EcowittMapWN34[i]);
 							}
 						}
 					}
@@ -440,7 +440,7 @@ namespace CumulusMX
 						if (rec.StationIndex == SensorMaps.SoilMoist[i])
 						{
 							var chan = i + 1;
-							station.DoSoilMoisture((double) rec.SoilMoist[i], chan);
+							WeatherStation.DoSoilMoisture((double) rec.SoilMoist[i], chan);
 						}
 					}
 					catch (Exception ex)
@@ -457,7 +457,7 @@ namespace CumulusMX
 						if (rec.StationIndex == SensorMaps.SoilMoist[i])
 						{
 							var chan = i + 1;
-							station.DoSoilTemp((double) rec.SoilTemp[i], chan);
+							WeatherStation.DoSoilTemp((double) rec.SoilTemp[i], chan);
 						}
 					}
 					catch (Exception ex)
@@ -474,7 +474,7 @@ namespace CumulusMX
 						if (rec.StationIndex == SensorMaps.SoilMoist[i])
 						{
 							var chan = i + 1;
-							station.DoSoilEc(rec.SoilEc[i], chan);
+							WeatherStation.DoSoilEc(rec.SoilEc[i], chan);
 						}
 					}
 					catch (Exception ex)

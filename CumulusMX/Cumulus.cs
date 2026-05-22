@@ -2274,7 +2274,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					station.IsRaining = isOn;
+					MetData.IsRaining = isOn;
 					IsRainingAlarm.Triggered = isOn;
 				}
 			}
@@ -2290,7 +2290,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					station.IsRaining = isOn;
+					MetData.IsRaining = isOn;
 					IsRainingAlarm.Triggered = isOn;
 				}
 			}
@@ -4268,8 +4268,6 @@ namespace CumulusMX
 
 		public int StationType { get; set; }
 
-		public string LatestImetReading { get; set; }
-
 		public bool FineOffsetStation { get; set; }
 
 		public bool DavisStation { get; set; }
@@ -4481,7 +4479,9 @@ namespace CumulusMX
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp.ToCmxLogFormat());
 			LogDebugMessage("DoLogFile: max gust: " + MetData.RecentMaxGust.ToString(WindFormat));
+
 			MetData.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
+
 			var filename = GetLogFileName(timestamp);
 
 			var line = LogFileRec.CurrentToCsv(timestamp, this, station);
@@ -4554,7 +4554,7 @@ namespace CumulusMX
 					values.Append(sep + MetData.UV.ToFixed(UVFormat, "NULL"));
 					values.Append(sep + MetData.SolarRad.ToText("NULL"));
 					values.Append(sep + MetData.ET.ToFixed(ETFormat));
-					values.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
+					values.Append(sep + MetData.AnnualETTotal.ToString(ETFormat, inv));
 					values.Append(sep + MetData.ApparentTemperature.ToFixed(TempFormat));
 					values.Append(sep + MetData.CurrentSolarMax.ToString());
 					values.Append(sep + MetData.SunshineHours.ToString(SunFormat, inv));
@@ -7677,14 +7677,14 @@ namespace CumulusMX
 				sb.Append(Units.PressText + ' ');                                             // 16
 				sb.Append(Units.RainText + ' ');                                              // 17
 				sb.Append(MetData.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
-				sb.Append(station.presstrendval.ToFixed(PressTrendFormat) + ' ');             // 19
+				sb.Append(station.PressTrendVal.ToFixed(PressTrendFormat) + ' ');             // 19
 				sb.Append(MetData.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 				sb.Append(MetData.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 				sb.Append(MetData.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
 				sb.Append((MetData.TemperatureIn ?? 0).ToFixed(TempFormat) + ' ');        // 23
 				sb.Append((MetData.HumidityIn ?? 0).ToString() + ' ');                    // 24
 				sb.Append(MetData.WindChill.ToFixed(TempFormat) + ' ');                       // 25
-				sb.Append(station.temptrendval.ToFixed(TempTrendFormat) + ' ');               // 26
+				sb.Append(station.TempTrendVal.ToFixed(TempTrendFormat) + ' ');               // 26
 				sb.Append(DailyHighLow.Today.HighTemp.ToFixed(TempFormat) + ' ');              // 27
 				sb.Append(DailyHighLow.Today.HighTempTime.ToString("HH:mm "));                 // 28
 				sb.Append(DailyHighLow.Today.LowTemp.ToFixed(TempFormat) + ' ');               // 29
@@ -7711,7 +7711,7 @@ namespace CumulusMX
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
 				sb.Append(station.SensorContactLost ? "1 " : "0 ");                           // 51
 				sb.Append(station.CompassPoint(MetData.WindAvgBearing) + ' ');                    // 52
-				sb.Append(station.CloudBase.ToString() + ' ');                                // 53
+				sb.Append(MetData.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
 				sb.Append(MetData.ApparentTemperature.ToFixed(TempFormat) + ' ');             // 55
 				sb.Append(MetData.SunshineHours.ToString(SunFormat, InvC) + ' ');             // 56
@@ -7764,14 +7764,14 @@ namespace CumulusMX
 			values.Append(sep + "'" + Units.PressText + "'");
 			values.Append(sep + "'" + Units.RainText + "'");
 			values.Append(sep + MetData.WindRunToday.ToString(WindRunFormat, InvC) );
-			values.Append(sep + "'" + (station.presstrendval > 0 ? '+' + station.presstrendval.ToFixed(PressFormat) : station.presstrendval.ToFixed(PressFormat)) + "'");
+			values.Append(sep + "'" + (station.PressTrendVal > 0 ? '+' + station.PressTrendVal.ToFixed(PressFormat) : station.PressTrendVal.ToFixed(PressFormat)) + "'");
 			values.Append(sep + MetData.RainMonth.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainYear.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainYesterday.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.TemperatureIn.ToFixed(TempFormat, "NULL"));
 			values.Append(sep + MetData.HumidityIn.ToText("NULL"));
 			values.Append(sep + MetData.WindChill.ToFixed(TempFormat));
-			values.Append(sep + "'" + station.temptrendval.ToFixed(TempTrendFormat) + "'");
+			values.Append(sep + "'" + station.TempTrendVal.ToFixed(TempTrendFormat) + "'");
 			values.Append(sep + DailyHighLow.Today.HighTemp.ToFixed(TempFormat));
 			values.Append(sep + DailyHighLow.Today.HighTempTime.ToString("\\'HH:mm\\'"));
 			values.Append(sep + DailyHighLow.Today.LowTemp.ToFixed(TempFormat));
@@ -7798,7 +7798,7 @@ namespace CumulusMX
 			values.Append(sep + (IsDaylight() ? "'1'" : "'0'"));
 			values.Append(sep + (station.SensorContactLost ? "'1'" : "'0'"));
 			values.Append(sep + "'" + station.CompassPoint(MetData.WindAvgBearing) + "'");
-			values.Append(sep + (station.CloudBase).ToString() );
+			values.Append(sep + (MetData.CloudBase).ToString() );
 			values.Append(sep + (CloudBaseInFeet ? "'ft'" : "'m'") );
 			values.Append(sep + MetData.ApparentTemperature.ToFixed(TempFormat));
 			values.Append(sep + MetData.SunshineHours.ToString(SunFormat, InvC));

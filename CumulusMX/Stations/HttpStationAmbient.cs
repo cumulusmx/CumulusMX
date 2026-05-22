@@ -613,7 +613,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					double? val = data["temp" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i], CultureInfo.InvariantCulture));
-					station.DoExtraTemp(val, i);
+					WeatherStation.DoExtraTemp(val, i);
 				}
 			}
 		}
@@ -625,7 +625,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					int? val = data["humidity" + i] == null ? null : (int) Convert.ToDouble(data["humidity" + i], CultureInfo.InvariantCulture);
-					station.DoExtraHum(val, i);
+					WeatherStation.DoExtraHum(val, i);
 				}
 			}
 		}
@@ -653,7 +653,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilTemp[i - 1])
 				{
 					double? val = data["soiltemp" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltemp" + i], CultureInfo.InvariantCulture));
-					station.DoSoilTemp(val, i - 1);
+					WeatherStation.DoSoilTemp(val, i - 1);
 				}
 			}
 		}
@@ -665,7 +665,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilMoist[i-1])
 				{
 					int? val = data["soilhum" + i] == null ? null : (int) Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture);
-					station.DoSoilMoisture(val, i);
+					WeatherStation.DoSoilMoisture(val, i);
 				}
 			}
 		}
@@ -799,7 +799,7 @@ namespace CumulusMX.Stations
 			{
 				if (stationIndex == cumulus.SensorMaps.Leak[i-1])
 				{
-					station.DoLeakSensor(data["leak" + i] == null ? null : Convert.ToInt32(data["leak" + i], CultureInfo.InvariantCulture), i);
+					WeatherStation.DoLeakSensor(data["leak" + i] == null ? null : Convert.ToInt32(data["leak" + i], CultureInfo.InvariantCulture), i);
 				}
 			}
 		}

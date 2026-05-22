@@ -464,7 +464,7 @@ namespace CumulusMX.Stations
 							try
 							{
 								DoRain(data.rainfall.yearly.value, data.rainfall.rain_rate.value, data.rainfall.yearly.time.LocalFromUnixTime());
-								StormRain = data.rainfall.Event.value;
+								MetData.StormRain = data.rainfall.Event.value;
 							}
 							catch (Exception ex)
 							{
@@ -483,7 +483,7 @@ namespace CumulusMX.Stations
 							try
 							{
 								DoRain(data.rainfall_piezo.yearly.value, data.rainfall_piezo.rain_rate.value, data.rainfall_piezo.yearly.time.LocalFromUnixTime());
-								StormRain = data.rainfall_piezo.Event.value;
+								MetData.StormRain = data.rainfall_piezo.Event.value;
 							}
 							catch (Exception ex)
 							{
@@ -701,12 +701,12 @@ namespace CumulusMX.Stations
 		{
 			if (temp.HasValue)
 			{
-				station.DoExtraTemp(temp, chan);
+				WeatherStation.DoExtraTemp(temp, chan);
 
 				// Not all sensor types have humidity
 				if (hum != null)
 				{
-					station.DoExtraHum(hum.value, chan);
+					WeatherStation.DoExtraHum(hum.value, chan);
 
 					if (cumulus.SensorMaps.PrimaryTempHum == chan)
 					{
@@ -749,11 +749,11 @@ namespace CumulusMX.Stations
 		{
 			if (cumulus.EcowittMapWN34[chan] == 0)
 			{
-				station.DoUserTemp(temp, chan);
+				WeatherStation.DoUserTemp(temp, chan);
 			}
 			else
 			{
-				station.DoSoilTemp(temp, cumulus.EcowittMapWN34[chan]);
+				WeatherStation.DoSoilTemp(temp, cumulus.EcowittMapWN34[chan]);
 			}
 		}
 
@@ -765,7 +765,7 @@ namespace CumulusMX.Stations
 				if (stationIndex == cumulus.SensorMaps.SoilMoist[i - 1])
 				{
 					var sensor = (EcowittApi.CurrentSoil) data["soil_ch" + i];
-					station.DoSoilMoisture(sensor == null ? null : sensor.soilmoisture.value, i);
+					WeatherStation.DoSoilMoisture(sensor == null ? null : sensor.soilmoisture.value, i);
 				}
 			}
 		}
@@ -778,9 +778,9 @@ namespace CumulusMX.Stations
 				{
 					var sensor = (EcowittApi.CurrentSoilEc) data["ch_soil_ec_temp_hum" + i];
 
-					station.DoSoilMoisture(sensor == null ? null : sensor.soilmoisture.value, i);
-					station.DoSoilTemp(sensor == null ? null : sensor.temperature.value, i);
-					station.DoSoilEc(sensor == null ? null : sensor.ec.value, i);
+					WeatherStation.DoSoilMoisture(sensor == null ? null : sensor.soilmoisture.value, i);
+					WeatherStation.DoSoilTemp(sensor == null ? null : sensor.temperature.value, i);
+					WeatherStation.DoSoilEc(sensor == null ? null : sensor.ec.value, i);
 				}
 			}
 		}
@@ -918,7 +918,7 @@ namespace CumulusMX.Stations
 				for (var i = 1; i <= 4; i++)
 				{
 					var sensor = (EcowittApi.CurrentSensorValInt) data.water_leak["water_leak.leak_ch" + i];
-					station.DoLeakSensor(sensor == null ? null : sensor.value, i);
+					WeatherStation.DoLeakSensor(sensor == null ? null : sensor.value, i);
 				}
 			}
 			else
@@ -926,7 +926,7 @@ namespace CumulusMX.Stations
 				for (var i = 0; i < 4; i++)
 				{
 					if (stationIndex == cumulus.SensorMaps.Leak[i])
-						station.DoLeakSensor(null, i + 1);
+						WeatherStation.DoLeakSensor(null, i + 1);
 				}
 			}
 		}

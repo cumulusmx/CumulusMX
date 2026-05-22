@@ -1801,8 +1801,8 @@ namespace CumulusMX.Stations
 
 				DoRain(rain, rainrate, now);
 
-				StormRain = ConvertRainClicksToUser(loopData.StormRain);
-				StartOfStorm = loopData.StormRainStart;
+				MetData.StormRain = ConvertRainClicksToUser(loopData.StormRain);
+				MetData.StartOfStorm = loopData.StormRainStart;
 
 				if (cumulus.SensorMaps.UV == 0)
 				{
@@ -2534,7 +2534,7 @@ namespace CumulusMX.Stations
 
 									if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 									{
-										DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, preDayTS);
+										DoET(ConvertUnits.RainINToUser(archiveData.ET) + MetData.AnnualETTotal, preDayTS);
 									}
 
 
@@ -2768,7 +2768,7 @@ namespace CumulusMX.Stations
 									// we don't want to do the this for the first instant of the day
 									if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 									{
-										DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+										DoET(ConvertUnits.RainINToUser(archiveData.ET) + MetData.AnnualETTotal, timestamp);
 									}
 								}
 

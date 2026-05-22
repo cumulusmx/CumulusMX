@@ -55,7 +55,7 @@ namespace CumulusMX
 			var mphgust = Convert.ToInt32(ConvertUnits.UserWindToMPH(MetData.RecentMaxGust));
 			var ftempstr = APRStemp(MetData.Temperature);
 			var in100rainlasthour = Convert.ToInt32(ConvertUnits.UserRainToIN(MetData.RainLastHour) * 100);
-			var in100rainlast24hours = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLast24Hour) * 100);
+			var in100rainlast24hours = Convert.ToInt32(ConvertUnits.UserRainToIN(MetData.RainLast24Hour) * 100);
 			int in100raintoday;
 			// use today's rain for safety
 			// 0900 day, use midnight calculation

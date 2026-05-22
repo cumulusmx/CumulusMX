@@ -237,7 +237,7 @@ namespace CumulusMX.LogFiles
 				MetData.UV.ToFixed(cumulus.UVFormat),
 				MetData.SolarRad.ToText(),
 				MetData.ET.ToString(cumulus.ETFormat, inv),
-				station.AnnualETTotal.ToString(cumulus.ETFormat, inv),
+				MetData.AnnualETTotal.ToString(cumulus.ETFormat, inv),
 				MetData.ApparentTemperature.ToFixed(cumulus.TempFormat),
 				MetData.CurrentSolarMax.ToString(),
 				MetData.SunshineHours.ToFixed(cumulus.SunFormat),

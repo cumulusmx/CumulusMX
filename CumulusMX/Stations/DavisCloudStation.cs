@@ -1989,8 +1989,8 @@ namespace CumulusMX.Stations
 													{
 														try
 														{
-															StormRain = ConvertRainClicksToUser(rec.rain_storm_clicks.Value, rec.rain_size.Value) * cumulus.Calib.Rain.Mult;
-															StartOfStorm = rec.rain_storm_start_at.Value.LocalFromUnixTime();
+															MetData.StormRain = ConvertRainClicksToUser(rec.rain_storm_clicks.Value, rec.rain_size.Value) * cumulus.Calib.Rain.Mult;
+															MetData.StartOfStorm = rec.rain_storm_start_at.Value.LocalFromUnixTime();
 														}
 														catch (Exception ex)
 														{
@@ -2518,7 +2518,7 @@ namespace CumulusMX.Stations
 										// The number is the total for the one hour period.
 										// This is unlike the existing VP2 when the ET is an annual running total
 										// So we try and mimic the VP behaviour
-										var newET = AnnualETTotal + ConvertUnits.RainINToUser(data.et.Value);
+										var newET = MetData.AnnualETTotal + ConvertUnits.RainINToUser(data.et.Value);
 										cumulus.LogDebugMessage($"DecodeHistoric: Adding {ConvertUnits.RainINToUser(data.et.Value):F3} to ET");
 										DoET(newET, lastRecordTime);
 									}
@@ -3064,7 +3064,7 @@ namespace CumulusMX.Stations
 										// The number is the total for the one hour period.
 										// This is unlike the existing VP2 when the ET is an annual running total
 										// So we try and mimic the VP behaviour
-										var newET = AnnualETTotal + ConvertUnits.RainINToUser((double) data.et);
+										var newET = MetData.AnnualETTotal + ConvertUnits.RainINToUser((double) data.et);
 										cumulus.LogDebugMessage($"DecodeHistoric: Adding {ConvertUnits.RainINToUser((double) data.et):F3} to ET");
 										DoET(newET, lastRecordTime);
 									}

@@ -48,19 +48,19 @@ namespace CumulusMX
 				cumulus.LogMessage("ReadTodayFile: Sensor clock  " + FOSensorClockTime.ToLongTimeString());
 				cumulus.LogMessage("ReadTodayFile: Station clock " + FOStationClockTime.ToLongTimeString());
 			}
-			ConsecutiveRainDays = ini.GetValue("Rain", "ConsecutiveRainDays", 0);
-			ConsecutiveDryDays = ini.GetValue("Rain", "ConsecutiveDryDays", 0);
+			MetData.ConsecutiveRainDays = ini.GetValue("Rain", "ConsecutiveRainDays", 0);
+			MetData.ConsecutiveDryDays = ini.GetValue("Rain", "ConsecutiveDryDays", 0);
 
-			AnnualETTotal = ini.GetValue("ET", "Annual", 0.0);
-			StartofdayET = ini.GetValue("ET", "Startofday", -1.0);
-			if (StartofdayET < 0)
+			MetData.AnnualETTotal = ini.GetValue("ET", "Annual", 0.0);
+			MetData.StartofdayET = ini.GetValue("ET", "Startofday", -1.0);
+			if (MetData.StartofdayET < 0)
 			{
 				cumulus.LogMessage("ReadTodayFile: ET not initialised");
 				noET = true;
 			}
 			else
 			{
-				MetData.ET = AnnualETTotal - StartofdayET;
+				MetData.ET = MetData.AnnualETTotal - MetData.StartofdayET;
 				cumulus.LogMessage("ReadTodayFile: ET today = " + MetData.ET.ToString(cumulus.ETFormat));
 			}
 			MetData.ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
@@ -311,12 +311,12 @@ namespace CumulusMX
 				ini.SetValue("Rain", "Midnight", MetData.MidnightRainCount);
 				ini.SetValue("Rain", "Last", MetData.RainCounter);
 				ini.SetValue("Rain", "LastTip", LastRainTip);
-				ini.SetValue("Rain", "ConsecutiveRainDays", ConsecutiveRainDays);
-				ini.SetValue("Rain", "ConsecutiveDryDays", ConsecutiveDryDays);
+				ini.SetValue("Rain", "ConsecutiveRainDays", MetData.ConsecutiveRainDays);
+				ini.SetValue("Rain", "ConsecutiveDryDays", MetData.ConsecutiveDryDays);
 				ini.SetValue("Rain", "RG11Today", MetData.RG11RainToday);
 				// ET
-				ini.SetValue("ET", "Annual", AnnualETTotal);
-				ini.SetValue("ET", "Startofday", StartofdayET);
+				ini.SetValue("ET", "Annual", MetData.AnnualETTotal);
+				ini.SetValue("ET", "Startofday", MetData.StartofdayET);
 				// humidity
 				ini.SetValue("Humidity", "Low", DailyHighLow.Today.LowHumidity);
 				ini.SetValue("Humidity", "High", DailyHighLow.Today.HighHumidity);
@@ -395,15 +395,6 @@ namespace CumulusMX
 				if (Log)
 				{
 					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + MetData.RainCounterDayStart.ToString("F2") + " rain counter = " + MetData.RainCounter.ToString("F2"));
-
-					if (cumulus.FineOffsetStation)
-					{
-						cumulus.LogMessage("WriteTodayFile: Latest FO reading: " + LatestFOReading);
-					}
-					else if (cumulus.StationType == StationTypes.Instromet)
-					{
-						cumulus.LogMessage("WriteTodayFile: Latest Instromet reading: " + cumulus.LatestImetReading);
-					}
 				}
 
 				ini.Flush();

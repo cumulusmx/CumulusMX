@@ -61,7 +61,7 @@ namespace CumulusMX.ThirdParty
 					// rain last hour 0.01 inches rnnn
 					message.Append($"r{APRSrain(MetData.RainLastHour)}");
 					// rain last 24 hours 0.01 inches pnnn
-					message.Append($"p{APRSrain(station.RainLast24Hour)}");
+					message.Append($"p{APRSrain(MetData.RainLast24Hour)}");
 					message.Append('P');
 					// use today"s rain for safety
 					// 0900 day, use midnight calculation
@@ -98,7 +98,6 @@ namespace CumulusMX.ThirdParty
 			{
 				cumulus.LogExceptionMessage(ex, "CWOP error");
 			}
-
 		}
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)

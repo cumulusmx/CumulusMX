@@ -1452,7 +1452,7 @@ namespace CumulusMX.Stations
 
 									if (evnt >= 0)
 									{
-										StormRain = evnt;
+										MetData.StormRain = evnt;
 									}
 								}
 							}
@@ -1485,8 +1485,8 @@ namespace CumulusMX.Stations
 
 									if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
 									{
-										IsRaining = rate > 0;
-										cumulus.IsRainingAlarm.Triggered = IsRaining;
+										MetData.IsRaining = rate > 0;
+										cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 									}
 								}
 							}
@@ -1532,8 +1532,8 @@ namespace CumulusMX.Stations
 						case "srain_piezo":
 							if (cumulus.EcowittIsRainingUsePiezo)
 							{
-								IsRaining = sensor.val == "1";
-								cumulus.IsRainingAlarm.Triggered = IsRaining;
+								MetData.IsRaining = sensor.val == "1";
+								cumulus.IsRainingAlarm.Triggered = MetData.IsRaining;
 							}
 							break;
 

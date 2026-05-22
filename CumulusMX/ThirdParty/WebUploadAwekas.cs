@@ -251,13 +251,13 @@ namespace CumulusMX.ThirdParty
 			{
 				case 0:
 				case 1:
-					threeHourlyPressureChangeMb = station.presstrendval * 3;
+					threeHourlyPressureChangeMb = MetData.PressTrendVal * 3;
 					break;
 				case 2:
-					threeHourlyPressureChangeMb = station.presstrendval * 3 / 0.0295333727;
+					threeHourlyPressureChangeMb = MetData.PressTrendVal * 3 / 0.0295333727;
 					break;
 				case 3:
-					threeHourlyPressureChangeMb = station.presstrendval * 30;
+					threeHourlyPressureChangeMb = MetData.PressTrendVal * 30;
 					break;
 			}
 
@@ -507,7 +507,7 @@ namespace CumulusMX.ThirdParty
 			sb.Append(sep + sep);                                                           // 68/69 min/avg gust this year
 			sb.Append(ConvertUnits.UserWindToKPH(Records.ThisYear.HighGust.Val).ToString("F1", InvC) + sep); // 70
 			sb.Append(sep + sep + sep);                                                     // 71/72/73 avg wind bearing today/month/year
-			sb.Append(ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", InvC) + sep);      // 74
+			sb.Append(ConvertUnits.UserRainToMM(MetData.RainLast24Hour).ToString("F1", InvC) + sep);      // 74
 			sb.Append(ConvertUnits.UserRainToMM(MetData.RainMonth).ToString("F1", InvC) + sep);           // 75
 			sb.Append(ConvertUnits.UserRainToMM(MetData.RainYear).ToString("F1", InvC) + sep);            // 76
 			sb.Append(sep);                                                                 // 77 avg rain rate today

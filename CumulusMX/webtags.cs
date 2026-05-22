@@ -640,20 +640,20 @@ namespace CumulusMX
 
 		private string TagStormRain(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.StormRain, tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(MetData.StormRain, tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagStormRainStart(Dictionary<string, string> tagParams)
 		{
 
-			if (station.StartOfStorm == DateTime.MinValue)
+			if (MetData.StartOfStorm == DateTime.MinValue)
 			{
 				return tagParams.Get("nv") ?? "-----";
 			}
 
 			string dtformat = tagParams.Get("format") ?? "d";
 
-			return station.StartOfStorm.ToString(dtformat);
+			return MetData.StartOfStorm.ToString(dtformat);
 		}
 
 		private string Tagtomorrowdaylength(Dictionary<string, string> tagParams)
@@ -663,13 +663,13 @@ namespace CumulusMX
 
 		private string TagwindrunY(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindRunUnit(station.YesterdayWindRun, tagParams), tagParams, cumulus.WindRunDPlaces);
+			return CheckRcDp(CheckWindRunUnit(MetData.YesterdayWindRun, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagwindAvgY(Dictionary<string, string> tagParams)
 		{
 			var timeYest = station.WindRunHourMult[cumulus.Units.Wind] * 24;
-			return CheckRcDp(CheckWindUnit(station.YesterdayWindRun / timeYest, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(MetData.YesterdayWindRun / timeYest, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 
@@ -685,33 +685,33 @@ namespace CumulusMX
 
 		private string TagheatdegdaysY(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.YestHeatingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(MetData.YestHeatingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagcooldegdaysY(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.YestCoolingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(MetData.YestCoolingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagpresstrendval(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.presstrendval, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(station.PressTrendVal, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string Tagpresstrendsigned(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.presstrendval, tagParams), tagParams, cumulus.PressDPlaces, cumulus.PressTrendFormat);
+			return CheckRcDp(CheckPressUnit(station.PressTrendVal, tagParams), tagParams, cumulus.PressDPlaces, cumulus.PressTrendFormat);
 		}
 
 
 		private string TagPressChangeLast3Hours(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.presstrendval * 3, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(station.PressTrendVal * 3, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagTempChangeLastHour(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(CheckTempUnitAbs(station.TempChangeLastHour, tagParams).ToString("+##0.0;-##0.0;0"), tagParams);
+			return CheckRc(CheckTempUnitAbs(MetData.TempChangeLastHour, tagParams).ToString("+##0.0;-##0.0;0"), tagParams);
 		}
 
 
@@ -722,12 +722,12 @@ namespace CumulusMX
 
 		private string Tagwetbulb(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.WetBulb, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(MetData.WetBulb, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagcloudbase(Dictionary<string, string> tagParams)
 		{
-			return station.CloudBase + (cumulus.CloudBaseInFeet ? " ft" : " m");
+			return MetData.CloudBase + (cumulus.CloudBaseInFeet ? " ft" : " m");
 		}
 
 		private string Tagcloudbaseunit(Dictionary<string, string> tagParams)
@@ -737,7 +737,7 @@ namespace CumulusMX
 
 		private string Tagcloudbasevalue(Dictionary<string, string> tagParams)
 		{
-			return station.CloudBase.ToString();
+			return MetData.CloudBase.ToString();
 		}
 
 		private string TagTime(Dictionary<string, string> tagParams)
@@ -940,22 +940,22 @@ namespace CumulusMX
 
 		private string Tagtemptrend(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.temptrendval, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(station.TempTrendVal, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagtemptrendsigned(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.temptrendval, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempTrendFormat);
+			return CheckRcDp(CheckTempUnitAbs(station.TempTrendVal, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempTrendFormat);
 		}
 
 		private string Tagtemptrendtext(Dictionary<string, string> tagParams)
 		{
 			string text;
-			if (Math.Abs(station.temptrendval) < 0.001)
+			if (Math.Abs(station.TempTrendVal) < 0.001)
 			{
 				text = cumulus.Trans.Steady;
 			}
-			else if (station.temptrendval > 0)
+			else if (station.TempTrendVal > 0)
 			{
 				text = cumulus.Trans.Rising;
 			}
@@ -968,12 +968,12 @@ namespace CumulusMX
 
 		private string Tagtemptrendenglish(Dictionary<string, string> tagParams)
 		{
-			if (Math.Abs(station.temptrendval) < 0.001)
+			if (Math.Abs(station.TempTrendVal) < 0.001)
 			{
 				return "Steady";
 			}
 
-			return station.temptrendval > 0 ? "Rising" : "Falling";
+			return station.TempTrendVal > 0 ? "Rising" : "Falling";
 		}
 
 		private string Tagheatindex(Dictionary<string, string> tagParams)
@@ -1014,12 +1014,12 @@ namespace CumulusMX
 
 		private string Tagpresstrendenglish(Dictionary<string, string> tagParams)
 		{
-			if (Math.Abs(station.presstrendval) < 0.0001)
+			if (Math.Abs(station.PressTrendVal) < 0.0001)
 			{
 				return "Steady";
 			}
 
-			return station.presstrendval > 0 ? "Rising" : "Falling";
+			return station.PressTrendVal > 0 ? "Rising" : "Falling";
 		}
 
 		private string Tagbearing(Dictionary<string, string> tagParams)
@@ -1165,7 +1165,7 @@ namespace CumulusMX
 
 		private string Tagr24Hour(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RainLast24Hour, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(MetData.RainLast24Hour, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string Tagryear(Dictionary<string, string> tagParams)
@@ -4083,7 +4083,7 @@ namespace CumulusMX
 
 		private string TagAnnualEt(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.AnnualETTotal, tagParams), tagParams, cumulus.RainDPlaces + 1);
+			return CheckRcDp(CheckRainUnit(MetData.AnnualETTotal, tagParams), tagParams, cumulus.RainDPlaces + 1);
 		}
 
 		private string TagLight(Dictionary<string, string> tagParams)
@@ -4452,17 +4452,17 @@ namespace CumulusMX
 
 		private string TagIsRaining(Dictionary<string, string> tagParams)
 		{
-			return station.IsRaining ? "1" : "0";
+			return MetData.IsRaining ? "1" : "0";
 		}
 
 		private string TagConsecutiveRainDays(Dictionary<string, string> tagParams)
 		{
-			return station.ConsecutiveRainDays.ToString();
+			return MetData.ConsecutiveRainDays.ToString();
 		}
 
 		private string TagConsecutiveDryDays(Dictionary<string, string> tagParams)
 		{
-			return station.ConsecutiveDryDays.ToString();
+			return MetData.ConsecutiveDryDays.ToString();
 		}
 
 		// Extra sensors
