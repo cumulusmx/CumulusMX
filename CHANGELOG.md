@@ -5,12 +5,12 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=24075)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
-Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b5001/CHANGELOG.md)
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
 
 ---
 ---
 
-## [5.1.2 \[b5009\]][33] - 2026-06-17
+## [5.1.2 \[b5009\]][33] - 2026-05-25
 
 ### New
 
