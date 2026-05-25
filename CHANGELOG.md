@@ -27,6 +27,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix BGT/WBGT today/yesterday web tags
 - Non-present WBGT values being written to the dayfile as -999
 - Race condition in RealTimeFtpWatchDog and a System.ObjectDisposed Exception after the first disconnect/reconnect
+- Fixes Davis VP2/Vue stations not starting and hanging MX if either: Use data logger = disabled, or Today.ini missing (e.g. first clean run of MX)
 
 ### Package Updates
 
