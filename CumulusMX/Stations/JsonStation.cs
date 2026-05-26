@@ -734,6 +734,7 @@ namespace CumulusMX.Stations
 						if (stationIndex == cumulus.SensorMaps.SoilMoist[rec.index])
 						{
 							WeatherStation.DoSoilMoisture(rec.value, rec.index);
+							cumulus.Units.SoilMoistureUnitText[rec.index - 1] = data.units.soilmoisture ?? "%";
 						}
 					}
 					catch (Exception ex)
