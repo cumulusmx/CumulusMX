@@ -20,7 +20,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath></OutputPath>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DefineConstants>$(DefineConstants);DEBUGWIND;USE_SQLITEPCL_RAW</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_SQLITEPCL_RAW</DefineConstants>
     <NoWarn>1701;1702</NoWarn>
     <WarningsAsErrors>NU1605</WarningsAsErrors>
     <WarningLevel>4</WarningLevel>
@@ -29,7 +29,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <OutputPath />
     <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants);DEBUGWIND;USE_SQLITEPCL_RAW</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_SQLITEPCL_RAW</DefineConstants>
     <NoWarn>1701;1702</NoWarn>
     <WarningsAsErrors>NU1605</WarningsAsErrors>
     <WarningLevel>4</WarningLevel>

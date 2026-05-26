@@ -650,5 +650,35 @@ namespace CumulusMX
 			return ET;
 		}
 		*/
+
+		/// <summary>
+		/// Approximates the Wet Bulb Globe Temperature by calculating the wet bulb temperature with a correction for solar overestimation
+		/// </summary>
+		/// <param name="globeTempC">Current Black Globe temperature (Celsius)</param>
+		/// <param name="tempC">Current outdoor temperature (Celsius)</param>
+		/// <param name="dewPointC">Current outdoor dew point (Celsius)</param>
+		/// <param name="pressHpa">Current atmospheric pressure (hPha)</param>
+		/// <returns>The Wet Bulb Globe Temperature (Celsius)</returns>
+		private static double WBGTwithSolar(double globeTempC, double tempC, double dewPointC, double pressHpa)
+		{
+			var wetBulbC = CalculateWetBulbC(tempC, dewPointC, pressHpa);
+
+			return 0.7 * wetBulbC + 0.2 * globeTempC + 0.1 * tempC;
+		}
+
+		/// <summary>
+		/// Approximates the Wet Bulb Globe Temperature by calculating the wet bulb temperature WITHOUT a correction for solar overestimation
+		/// </summary>
+		/// <param name="globeTempC">Current Black Globe temperature (Celsius)</param>
+		/// <param name="tempC">Current outdoor temperature (Celsius)</param>
+		/// <param name="dewPointC">Current outdoor dew point (Celsius)</param>
+		/// <param name="pressHpa">Current atmospheric pressure (hPha)</param>
+		/// <returns>The Wet Bulb Globe Temperature (Celsius)</returns>
+		private static double WBGTnoSolar(double globeTempC, double tempC, double dewPointC, double pressHpa)
+		{
+			var wetBulbC = CalculateWetBulbC(tempC, dewPointC, pressHpa);
+
+			return 0.7 * wetBulbC + 0.3 * globeTempC;
+		}
 	}
 }
