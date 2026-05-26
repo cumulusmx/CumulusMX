@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.2 \[b5009\]][33] - 2026-05-25
+## [5.1.3 \[b5010\]][33] - 2026-05-26
+
+Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 release
+
+- Davis stations not starting correctly if "Use data logger" was disabled
+
 
 ### New
 
@@ -38,6 +43,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - System.CodeDom
 - System.IO.Ports
 - System.ServiceProcess.ServiceController
+
+---
+
+## 5.1.1 [b5008] - 2026-05-25
+
+Withdrawn
 
 ---
 
@@ -1466,4 +1477,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
 [31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006
 [32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5008
-[33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5009
+[33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010

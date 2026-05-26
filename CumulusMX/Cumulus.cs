@@ -2486,7 +2486,7 @@ namespace CumulusMX
 			}
 			finally
 			{
-				realtimeCopySemaphore.Release();
+				try { realtimeCopySemaphore.Release(); } catch { }
 			}
 
 			if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
