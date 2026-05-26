@@ -703,6 +703,7 @@ namespace CumulusMX.Stations
 						if (rec.value.HasValue)
 						{
 							station.DoSoilMoisture(rec.value.Value, rec.index);
+							cumulus.Units.SoilMoistureUnitText[rec.index - 1] = data.units.soilmoisture ?? "%";
 						}
 					}
 					catch (Exception ex)

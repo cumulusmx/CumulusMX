@@ -33,6 +33,7 @@ Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 relea
 - Non-present WBGT values being written to the dayfile as -999
 - Race condition in RealTimeFtpWatchDog and a System.ObjectDisposed Exception after the first disconnect/reconnect
 - Fixes Davis VP2/Vue stations not starting and hanging MX if either: Use data logger = disabled, or Today.ini missing (e.g. first clean run of MX)
+- JSON station set soil moisture units per sensor as received units
 
 ### Package Updates
 
