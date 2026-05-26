@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 release
 
-- Davis stations not starting correctly if "Use data logger" was disabled
+- Davis stations not starting correctly if "Use data logger" is disabled, or WeatherLink.com credentials missing
 
 
 ### New
