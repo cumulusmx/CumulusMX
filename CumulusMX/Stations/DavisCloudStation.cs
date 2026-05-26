@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -168,11 +167,13 @@ namespace CumulusMX.Stations
 
 				cumulus.LogMessage("Starting Davis Cloud Station");
 
-				_ = new Thread(() => {
+				bw = new BackgroundWorker();
+				bw.DoWork += ((object sender, DoWorkEventArgs e) => {
 					Cumulus.SyncInit.Wait();
 					StartLoop();
 					Cumulus.SyncInit.Release();
 				});
+				bw.RunWorkerAsync();
 			}
 			else
 			{
