@@ -4905,7 +4905,7 @@ namespace CumulusMX
 			return GetSoilMoisture(16, tagParams);
 		}
 
-		private string GetSoilMoisture(int index, Dictionary<string, string> tagParams)
+		private static string GetSoilMoisture(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.SoilMoisture[index].HasValue ? MetData.SoilMoisture[index].ToString() : tagParams.Get("nv") ?? "-";
 		}
@@ -4990,7 +4990,7 @@ namespace CumulusMX
 			return GetSoilEc(16, tagParams);
 		}
 
-		private string GetSoilEc(int index, Dictionary<string, string> tagParams)
+		private static string GetSoilEc(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.SoilEc[index].HasValue ? MetData.SoilEc[index].ToString() : tagParams.Get("nv") ?? "-";
 		}
@@ -5060,7 +5060,7 @@ namespace CumulusMX
 			return GetLaserDist(4, tagParams);
 		}
 
-		private string GetLaserDist(int index, Dictionary<string, string> tagParams)
+		private static string GetLaserDist(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.LaserDist[index].HasValue ? CheckRcDp(MetData.LaserDist[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
@@ -5086,7 +5086,7 @@ namespace CumulusMX
 			return GetLaserDepth(4, tagParams);
 		}
 
-		private string GetLaserDepth(int index, Dictionary<string, string> tagParams)
+		private static string GetLaserDepth(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.LaserDepth[index].HasValue ? CheckRcDp(MetData.LaserDepth[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
@@ -5111,7 +5111,7 @@ namespace CumulusMX
 			return GetSnowAcc24h(4, tagParams);
 		}
 
-		private string GetSnowAcc24h(int index,  Dictionary<string, string> tagParams)
+		private static string GetSnowAcc24h(int index,  Dictionary<string, string> tagParams)
 		{
 			return MetData.Snow24h[index].HasValue ? CheckRcDp(MetData.Snow24h[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
@@ -5180,7 +5180,7 @@ namespace CumulusMX
 			return GetSnowAccSeason(4, tagParams);
 		}
 
-		private string GetSnowAccSeason(int index, Dictionary<string, string> tagParams)
+		private static string GetSnowAccSeason(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.SnowSeason[index].HasValue ? CheckRcDp(MetData.SnowSeason[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
@@ -5205,7 +5205,7 @@ namespace CumulusMX
 			return GetLaserSnowLatest(4, tagParams);
 		}
 
-		private string GetLaserSnowLatest(int index, Dictionary<string, string> tagParams)
+		private static string GetLaserSnowLatest(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.LastLaserSnowDepth[index].HasValue ? CheckRcDp(ConvertUnits.LaserToSnow(MetData.LastLaserSnowDepth[index].Value), tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
@@ -5566,7 +5566,7 @@ namespace CumulusMX
 			return GetLeafWetness(8, tagParams);
 		}
 
-		private string GetLeafWetness(int index, Dictionary<string, string> tagParams)
+		private static string GetLeafWetness(int index, Dictionary<string, string> tagParams)
 		{
 			return MetData.LeafWetness[index].HasValue ? CheckRcDp(MetData.LeafWetness[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
