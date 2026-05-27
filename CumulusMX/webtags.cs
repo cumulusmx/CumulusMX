@@ -2999,7 +2999,7 @@ namespace CumulusMX
 			var month = GetMonthParam(tagParams);
 			try
 			{
-				var avg = station.DayFile.Where(rec => rec.Date.Month == month).Average(rec => (double?) rec.AvgTemp);
+				var avg = MetData.DayFile.Where(rec => rec.Date.Month == month).Average(rec => (double?) rec.AvgTemp);
 
 				if (avg.HasValue)
 					return CheckRcDp(CheckTempUnit(avg.Value, tagParams), tagParams, cumulus.TempDPlaces);
@@ -4140,7 +4140,7 @@ namespace CumulusMX
 					return TagSunshineHours(tagParams);
 				}
 
-				var total = station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => (double?) rec.SunShineHours < 0 ? 0 : (double?) rec.SunShineHours);
+				var total = MetData.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => (double?) rec.SunShineHours < 0 ? 0 : (double?) rec.SunShineHours);
 
 				// if current month add todays sunshine to total
 				if (start.Year == now.Year && start.Month == now.Month)
@@ -4183,7 +4183,7 @@ namespace CumulusMX
 					return tagParams.Get("nv") ?? "-";
 				}
 
-				var total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => (double?) x.SunShineHours < 0 ? 0 : (double?) x.SunShineHours);
+				var total = MetData.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => (double?) x.SunShineHours < 0 ? 0 : (double?) x.SunShineHours);
 
 				// if current year, add todays sunshine
 				if (start.Year == now.Year)
@@ -4228,7 +4228,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => (double?) rec.AvgTemp);
+					avg = MetData.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => (double?) rec.AvgTemp);
 				}
 
 				if (avg.HasValue)
@@ -4265,7 +4265,7 @@ namespace CumulusMX
 					return Tagavgtemp(tagParams);
 				}
 
-				var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => (double?) rec.AvgTemp);
+				var avg = MetData.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => (double?) rec.AvgTemp);
 
 				if (avg.HasValue)
 					return CheckRcDp(CheckTempUnit(avg.Value, tagParams), tagParams, cumulus.TempDPlaces);
@@ -4304,7 +4304,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => (double?) rec.TotalRain);
+					total = MetData.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => (double?) rec.TotalRain);
 
 					// if current month add todays rainfall
 					if (start.Year == now.Year && start.Month == now.Month)
@@ -4370,7 +4370,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => (double?) x.TotalRain);
+					total = MetData.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => (double?) x.TotalRain);
 				}
 
 				if (total.HasValue)
@@ -4416,7 +4416,7 @@ namespace CumulusMX
 			DayFileRec rec;
 			try
 			{
-				rec = station.DayFile.Single(r => r.Date == dayb4yest);
+				rec = MetData.DayFile.Single(r => r.Date == dayb4yest);
 			}
 			catch
 			{

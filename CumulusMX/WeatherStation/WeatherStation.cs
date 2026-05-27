@@ -56,11 +56,6 @@ namespace CumulusMX
 		private readonly int[] steadyOptions = [25, 25, 25, 25, 25, 25, 23, 23, 22, 18, 15, 13, 10, 4, 1, 1, 0, 0, 0, 0, 0, 0];
 		private readonly int[] fallOptions = [25, 25, 25, 25, 25, 25, 25, 25, 23, 23, 21, 20, 17, 14, 7, 3, 1, 1, 1, 0, 0, 0];
 
-
-
-		public List<DayFileRec> DayFile = [];
-
-
 		public Cumulus cumulus;
 
 		private int lastMinute;
@@ -582,7 +577,7 @@ namespace CumulusMX
 
 			try
 			{
-				foreach (var rec in DayFile)
+				foreach (var rec in MetData.DayFile)
 				{
 					var offsetLoggedYear = rec.Date.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 					// This year?
@@ -730,7 +725,7 @@ namespace CumulusMX
 			var diff = (7 + ((int) CurrentDate.DayOfWeek - cumulus.RainWeekStart)) % 7;
 			var offsetWeek = CurrentDate.AddDays(-1 * diff).Date;
 			// recalculate rain this week - we may have gone over a week boundary
-			RainThisWeek = DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
+			RainThisWeek = MetData.DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
 			MetData.RainWeek = RainThisWeek + MetData.RainToday;
 			cumulus.LogMessage($"UpdateWeekRainfall: Updated RainWeek from {_rainWeek.ToString(cumulus.RainFormat)} to {MetData.RainWeek.ToString(cumulus.RainFormat)}");
 		}
@@ -3015,24 +3010,24 @@ namespace CumulusMX
 			var annualGrowingDegDays2 = 0.0;
 
 			// Read the day file list and extract the data from there
-			if (DayFile.Count > 0 && (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) || cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local)))
+			if (MetData.DayFile.Count > 0 && (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) || cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local)))
 			{
 				// we have to detect a new growing deg day year is starting
-				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
+				nextYear = new DateTime(MetData.DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
 
-				if (DayFile[0].Date >= nextYear)
+				if (MetData.DayFile[0].Date >= nextYear)
 				{
 					nextYear = nextYear.AddYears(1);
 				}
 
 				// are we starting part way through a year that does not start in January?
-				if (DayFile[0].Date.Year == nextYear.Year)
+				if (MetData.DayFile[0].Date.Year == nextYear.Year)
 				{
-					startYear = DayFile[0].Date.Year - 1;
+					startYear = MetData.DayFile[0].Date.Year - 1;
 				}
 				else
 				{
-					startYear = DayFile[0].Date.Year;
+					startYear = MetData.DayFile[0].Date.Year;
 				}
 
 				if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
@@ -3045,10 +3040,10 @@ namespace CumulusMX
 				}
 
 
-				for (var i = 0; i < DayFile.Count; i++)
+				for (var i = 0; i < MetData.DayFile.Count; i++)
 				{
 					// we have rolled over into a new GDD year, write out what we have and reset
-					if (DayFile[i].Date >= nextYear)
+					if (MetData.DayFile[i].Date >= nextYear)
 					{
 						if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) && growYear1.Length > 10)
 						{
@@ -3059,7 +3054,7 @@ namespace CumulusMX
 							// append to years array
 							growdegdaysYears1.Append(growYear1);
 
-							growYear1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+							growYear1.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
 						}
 						if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local) && growYear2.Length > 10)
 						{
@@ -3070,7 +3065,7 @@ namespace CumulusMX
 							// append to years array
 							growdegdaysYears2.Append(growYear2);
 
-							growYear2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+							growYear2.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
 						}
 
 						// reset the plot year for Southern hemisphere
@@ -3082,24 +3077,24 @@ namespace CumulusMX
 						{
 							nextYear = nextYear.AddYears(1);
 						}
-						while (DayFile[i].Date >= nextYear);
+						while (MetData.DayFile[i].Date >= nextYear);
 					}
 
 					// make all series the same year so they plot together
 					// 2000 was a leap year, so make sure February falls in 2000
 					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.GrowingYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month < cumulus.GrowingYearStarts)
+					if (cumulus.GrowingYearStarts > 2 && plotYear == 1999 && MetData.DayFile[i].Date.Month < cumulus.GrowingYearStarts)
 					{
 						plotYear++;
 					}
 
 					// make all series the same year so they plot together
-					var recDate = new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
+					var recDate = new DateTime(plotYear, MetData.DayFile[i].Date.Month, MetData.DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
 
 					if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 					{
 						// growing degree days
-						var gdd = MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DayFile[i].HighTemp), ConvertUnits.UserTempToC(DayFile[i].LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
+						var gdd = MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(MetData.DayFile[i].HighTemp), ConvertUnits.UserTempToC(MetData.DayFile[i].LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
 
 						// annual accumulation
 						annualGrowingDegDays1 += gdd;
@@ -3110,7 +3105,7 @@ namespace CumulusMX
 					if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 					{
 						// growing degree days
-						var gdd = MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DayFile[i].HighTemp), ConvertUnits.UserTempToC(DayFile[i].LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
+						var gdd = MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(MetData.DayFile[i].HighTemp), ConvertUnits.UserTempToC(MetData.DayFile[i].LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
 
 						// annual accumulation
 						annualGrowingDegDays2 += gdd;
@@ -3191,24 +3186,24 @@ namespace CumulusMX
 			var options = $"\"options\":{{\"sumBase1\":{cumulus.TempSumBase1},\"sumBase2\":{cumulus.TempSumBase2},\"startMon\":{cumulus.TempSumYearStarts}}}";
 
 			// Read the day file list and extract the data from there
-			if (DayFile.Count > 0 && (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local)))
+			if (MetData.DayFile.Count > 0 && (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local)))
 			{
 				// we have to detect a new year is starting
-				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
+				nextYear = new DateTime(MetData.DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
 
-				if (DayFile[0].Date >= nextYear)
+				if (MetData.DayFile[0].Date >= nextYear)
 				{
 					nextYear = nextYear.AddYears(1);
 				}
 
 				// are we starting part way through a year that does not start in January?
-				if (DayFile[0].Date.Year == nextYear.Year)
+				if (MetData.DayFile[0].Date.Year == nextYear.Year)
 				{
-					startYear = DayFile[0].Date.Year - 1;
+					startYear = MetData.DayFile[0].Date.Year - 1;
 				}
 				else
 				{
-					startYear = DayFile[0].Date.Year;
+					startYear = MetData.DayFile[0].Date.Year;
 				}
 
 				if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
@@ -3224,10 +3219,10 @@ namespace CumulusMX
 					tempSumYears2.Append($"\"{startYear}\":");
 				}
 
-				for (var i = 0; i < DayFile.Count; i++)
+				for (var i = 0; i < MetData.DayFile.Count; i++)
 				{
 					// we have rolled over into a new GDD year, write out what we have and reset
-					if (DayFile[i].Date >= nextYear)
+					if (MetData.DayFile[i].Date >= nextYear)
 					{
 						if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) && tempSum0.Length > 10)
 						{
@@ -3238,7 +3233,7 @@ namespace CumulusMX
 							// append to years array
 							tempSumYears0.Append(tempSum0);
 
-							tempSum0.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+							tempSum0.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
 						}
 						if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) && tempSum1.Length > 10)
 						{
@@ -3249,7 +3244,7 @@ namespace CumulusMX
 							// append to years array
 							tempSumYears1.Append(tempSum1);
 
-							tempSum1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+							tempSum1.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
 						}
 						if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local) && tempSum2.Length > 10)
 						{
@@ -3260,7 +3255,7 @@ namespace CumulusMX
 							// append to years array
 							tempSumYears2.Append(tempSum2);
 
-							tempSum2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+							tempSum2.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
 						}
 
 						// reset the plot year for Southern hemisphere
@@ -3274,34 +3269,34 @@ namespace CumulusMX
 						{
 							nextYear = nextYear.AddYears(1);
 						}
-						while (DayFile[i].Date >= nextYear);
+						while (MetData.DayFile[i].Date >= nextYear);
 					}
 					// make all series the same year so they plot together
 					// 2000 was a leap year, so make sure February falls in 2000
 					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month < cumulus.TempSumYearStarts)
+					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && MetData.DayFile[i].Date.Month < cumulus.TempSumYearStarts)
 					{
 						plotYear++;
 					}
 
-					var recDate = new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
+					var recDate = new DateTime(plotYear, MetData.DayFile[i].Date.Month, MetData.DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
 
 					if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
 					{
 						// annual accumulation
-						annualTempSum0 += DayFile[i].AvgTemp;
+						annualTempSum0 += MetData.DayFile[i].AvgTemp;
 						tempSum0.Append($"[{recDate},{annualTempSum0.ToString("F0", InvC)}],");
 					}
 					if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 					{
 						// annual accumulation
-						annualTempSum1 += DayFile[i].AvgTemp - cumulus.TempSumBase1;
+						annualTempSum1 += MetData.DayFile[i].AvgTemp - cumulus.TempSumBase1;
 						tempSum1.Append($"[{recDate},{annualTempSum1.ToString("F0", InvC)}],");
 					}
 					if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 					{
 						// annual accumulation
-						annualTempSum2 += DayFile[i].AvgTemp - cumulus.TempSumBase2;
+						annualTempSum2 += MetData.DayFile[i].AvgTemp - cumulus.TempSumBase2;
 						tempSum2.Append($"[{recDate},{annualTempSum2.ToString("F0", InvC)}],");
 					}
 				}
@@ -3395,32 +3390,32 @@ namespace CumulusMX
 			var options = $"\"options\":{{\"threshold\":{cumulus.ChillHourThreshold},\"basetemp\":{cumulus.ChillHourBase},\"startMon\":{cumulus.ChillHourSeasonStart}}}";
 
 			// Read the day file list and extract the data from there
-			if (DayFile.Count > 0)
+			if (MetData.DayFile.Count > 0)
 			{
 				// we have to detect a new year is starting
-				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.ChillHourSeasonStart, 1, 0, 0, 0, DateTimeKind.Local);
+				nextYear = new DateTime(MetData.DayFile[0].Date.Year, cumulus.ChillHourSeasonStart, 1, 0, 0, 0, DateTimeKind.Local);
 
-				if (DayFile[0].Date >= nextYear)
+				if (MetData.DayFile[0].Date >= nextYear)
 				{
 					nextYear = nextYear.AddYears(1);
 				}
 
 				// are we starting part way through a year that does not start in January?
-				if (DayFile[0].Date.Year == nextYear.Year)
+				if (MetData.DayFile[0].Date.Year == nextYear.Year)
 				{
-					startYear = DayFile[0].Date.Year - 1;
+					startYear = MetData.DayFile[0].Date.Year - 1;
 				}
 				else
 				{
-					startYear = DayFile[0].Date.Year;
+					startYear = MetData.DayFile[0].Date.Year;
 				}
 
 				chillHrsYears.Append($"\"{startYear}\":");
 
-				for (var i = 0; i < DayFile.Count; i++)
+				for (var i = 0; i < MetData.DayFile.Count; i++)
 				{
 					// we have rolled over into a new GDD year, write out what we have and reset
-					if (DayFile[i].Date >= nextYear)
+					if (MetData.DayFile[i].Date >= nextYear)
 					{
 						if (chillhrs.Length > 10)
 						{
@@ -3431,7 +3426,7 @@ namespace CumulusMX
 							// append to years array
 							chillHrsYears.Append(chillhrs);
 
-							chillhrs.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+							chillhrs.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
 						}
 
 						// reset the plot year for Southern hemisphere
@@ -3441,20 +3436,20 @@ namespace CumulusMX
 						{
 							nextYear = nextYear.AddYears(1);
 						}
-						while (DayFile[i].Date >= nextYear);
+						while (MetData.DayFile[i].Date >= nextYear);
 					}
 					// make all series the same year so they plot together
 					// 2000 was a leap year, so make sure February falls in 2000
 					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.ChillHourSeasonStart > 2 && plotYear == 1999 && DayFile[i].Date.Month < cumulus.ChillHourSeasonStart)
+					if (cumulus.ChillHourSeasonStart > 2 && plotYear == 1999 && MetData.DayFile[i].Date.Month < cumulus.ChillHourSeasonStart)
 					{
 						plotYear++;
 					}
 
-					var recDate = new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
+					var recDate = new DateTime(plotYear, MetData.DayFile[i].Date.Month, MetData.DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
 
 					// annual accumulation
-					chillhrs.Append($"[{recDate},{DayFile[i].ChillHours.ToString("F0", InvC)}],");
+					chillhrs.Append($"[{recDate},{MetData.DayFile[i].ChillHours.ToString("F0", InvC)}],");
 				}
 			}
 
@@ -3565,15 +3560,15 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			try
 			{
 				// Determine the first and last full months
-				var firstDate = DayFile[0].Date;
-				var lastDate = DayFile[^1].Date;
+				var firstDate = MetData.DayFile[0].Date;
+				var lastDate = MetData.DayFile[^1].Date;
 				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
 				var lastFullMonth = new DateTime(lastDate.Year, lastDate.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 
 				if (lastFullMonth > firstFullMonth)
 				{
 					// Filter data to include only complete months and calculate the average
-					var avg = DayFile
+					var avg = MetData.DayFile
 						.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
 						.Average(d => Convert.ToDouble(selector(d))); // Convert property to double
 
@@ -3595,15 +3590,15 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			try
 			{
 				// Determine the first and last full months
-				var firstDate = DayFile[0].Date;
-				var lastDate = DayFile[^1].Date;
+				var firstDate = MetData.DayFile[0].Date;
+				var lastDate = MetData.DayFile[^1].Date;
 				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
 				var lastFullMonth = new DateTime(lastDate.Year, lastDate.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 
 				if (lastFullMonth > firstFullMonth)
 				{
 					// Filter data to include only complete months
-					var avgPerMonth = DayFile
+					var avgPerMonth = MetData.DayFile
 						.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
 						.GroupBy(d => new { d.Date.Year, d.Date.Month })
 						.Select(g => g.Sum(d => Convert.ToDouble(selector(d))))
@@ -3628,13 +3623,13 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			try
 			{
 				// Determine the first and last full months
-				var firstDate = DayFile[0].Date;
-				var lastDate = DayFile[^1].Date;
+				var firstDate = MetData.DayFile[0].Date;
+				var lastDate = MetData.DayFile[^1].Date;
 				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
 				var lastFullMonth = new DateTime(lastDate.Year, lastDate.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 				if (lastFullMonth > firstFullMonth)
 				{
-					var monthlyDiffs = DayFile
+					var monthlyDiffs = MetData.DayFile
 						.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
 						.GroupBy(d => new { d.Date.Year, d.Date.Month })
 						.Select(g =>
@@ -3650,7 +3645,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 							else
 							{
 								var firstDayOfMonth = new DateTime(g.Key.Year, g.Key.Month, 1, 0, 0, 0, 0, DateTimeKind.Local);
-								var previousMonthData = DayFile.Where(d => d.Date < firstDayOfMonth);
+								var previousMonthData = MetData.DayFile.Where(d => d.Date < firstDayOfMonth);
 								lastDayVal = previousMonthData.OrderByDescending(d => d.Date).FirstOrDefault()?.ChillHours ?? 0;
 							}
 
@@ -3695,11 +3690,11 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			int days;
 			if (dry)
 			{
-				days = DayFile.Count(d => d.Date >= start && d.Date < end && d.TotalRain < thresh);
+				days = MetData.DayFile.Count(d => d.Date >= start && d.Date < end && d.TotalRain < thresh);
 			}
 			else
 			{
-				days = DayFile.Count(d => d.Date >= start && d.Date < end && d.TotalRain >= thresh);
+				days = MetData.DayFile.Count(d => d.Date >= start && d.Date < end && d.TotalRain >= thresh);
 			}
 
 			return days;
@@ -3725,7 +3720,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				}
 			}
 
-			var rainDays = DayFile
+			var rainDays = MetData.DayFile
 				.Where(d => d.Date.Month == month && d.TotalRain >= thresh)
 				.GroupBy(d => new DateTime(d.Date.Year, d.Date.Month, 1, 0, 0, 0, DateTimeKind.Local))
 				.Select(g => new
@@ -3759,7 +3754,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				}
 			}
 
-			var dryDays = DayFile
+			var dryDays = MetData.DayFile
 				.Where(d => d.Date.Month == month && d.TotalRain < thresh)
 				.GroupBy(d => new DateTime(d.Date.Year, d.Date.Month, 1, 0, 0, 0, DateTimeKind.Local))
 				.Select(g => new

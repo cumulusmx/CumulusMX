@@ -8,7 +8,7 @@ using static CumulusMX.WeatherStation;
 
 namespace CumulusMX.LogFiles
 {
-	internal class DayFileRec
+	public class DayFileRec
 	{
 		[PrimaryKey]
 		public DateTime Date { get; set; }

@@ -407,6 +407,8 @@ namespace CumulusMX
 		public static double AnnualETTotal { get; set; }
 		public static double StartofdayET { get; set; }
 
+		public static List<CumulusMX.LogFiles.DayFileRec> DayFile = [];
+
 		#endregion
 	}
 }
