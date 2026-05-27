@@ -13,7 +13,7 @@ namespace CumulusMX.Stations
 		private double rainCount = 0;
 		private readonly int stationIndex = 0;
 
-		public HttpStationWund(Cumulus cumulus) : base(cumulus)
+		public HttpStationWund(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.LogMessage("Starting HTTP Station (Wunderground)");
 

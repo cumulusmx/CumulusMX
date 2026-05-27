@@ -35,7 +35,7 @@ namespace CumulusMX.Stations
 		private readonly byte[] usbbuffer = new byte[9];
 
 		private bool stop;
-		public WMR100Station(Cumulus cumulus) : base(cumulus)
+		public WMR100Station(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGONUSB;
 			var devicelist = DeviceList.Local;

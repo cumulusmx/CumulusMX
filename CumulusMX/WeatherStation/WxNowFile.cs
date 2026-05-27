@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CumulusMX
 {
-	internal partial class WeatherStation
+	public partial class Cumulus
 	{
 		public void CreateWxnowFile()
 		{
@@ -49,7 +49,7 @@ namespace CumulusMX
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
 			// CommentString - free format information text
 
-			var timestamp = cumulus.APRS.UseUtcInWxNowFile ? DateTime.UtcNow.ToUniversalTime().ToString(@"MMM dd yyyy HH\:mm") : DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
+			var timestamp = APRS.UseUtcInWxNowFile ? DateTime.UtcNow.ToUniversalTime().ToString(@"MMM dd yyyy HH\:mm") : DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
 
 			var mphwind = Convert.ToInt32(ConvertUnits.UserWindToMPH(MetData.WindAverage));
 			var mphgust = Convert.ToInt32(ConvertUnits.UserWindToMPH(MetData.RecentMaxGust));
@@ -59,7 +59,7 @@ namespace CumulusMX
 			int in100raintoday;
 			// use today's rain for safety
 			// 0900 day, use midnight calculation
-			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight) * 100);
+			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight) * 100);
 			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(MetData.AltimeterPressure) * 10);
 			// For 100% humidity, send zero. For zero humidity, send 1
 			int hum;
@@ -73,14 +73,14 @@ namespace CumulusMX
 			var data = string.Format("{0}\n{1:000}/{2:000}g{3:000}t{4}r{5:000}p{6:000}P{7:000}h{8:00}b{9:00000}", timestamp, MetData.WindAvgBearing, mphwind, mphgust, ftempstr, in100rainlasthour,
 				in100rainlast24hours, in100raintoday, hum, mb10press);
 
-			if (cumulus.APRS.SendSolar && MetData.SolarRad.HasValue)
+			if (APRS.SendSolar && MetData.SolarRad.HasValue)
 			{
 				data += APRSsolarradStr(MetData.SolarRad.Value);
 			}
 
-			if (!string.IsNullOrWhiteSpace(cumulus.WxnowComment))
+			if (!string.IsNullOrWhiteSpace(WxnowComment))
 			{
-				var tokenParser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.WxnowComment };
+				var tokenParser = new TokenParser(TokenParserOnToken) { InputText = WxnowComment };
 
 				// process the webtags in the content string
 				data += tokenParser.ToStringFromString();
@@ -107,7 +107,7 @@ namespace CumulusMX
 			// and return three digits
 			int num;
 
-			if (cumulus.Units.Temp == 0)
+			if (Units.Temp == 0)
 			{
 				num = Convert.ToInt32(temp * 1.8 + 32);
 			}

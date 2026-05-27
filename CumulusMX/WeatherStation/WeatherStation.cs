@@ -27,10 +27,12 @@ namespace CumulusMX
 {
 	internal abstract partial class WeatherStation
 	{
+		public int StationId { get; }
+
 		public struct TWindRecent
 		{
-			public double GustUncal; // uncalibrated "gust" as read from station
-			public double SpeedUncal; // uncalibrated "speed" as read from station
+			public double GustUncal; // uncalibrated "gust" as read from Stations
+			public double SpeedUncal; // uncalibrated "speed" as read from Stations
 			public DateTime Timestamp;
 		}
 
@@ -140,13 +142,14 @@ namespace CumulusMX
 
 		private Logger SnowLog;
 
-		protected WeatherStation(Cumulus cumulus, bool extraStation = false)
+		protected WeatherStation(Cumulus cumulus, int stationId)
 		{
 			// save the reference to the owner
 			this.cumulus = cumulus;
+			StationId = stationId;
 
-			// if we are an extra station, then don't do any of the "normal" intialisation
-			if (extraStation)
+			// if we are an extra Stations, then don't do any of the "normal" intialisation
+			if (stationId > 0)
 			{
 				return;
 			}
@@ -224,8 +227,8 @@ namespace CumulusMX
 
 			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
 
-			SensorReception = [];
-			SensorRssi = [];
+			StationData.SensorReception = [];
+			StationData.SensorRssi = [];
 
 			DayFileQuery = new QueryDayFile(RecentDataDb);
 		}
@@ -1287,7 +1290,7 @@ namespace CumulusMX
 					var wxfile = cumulus.StdWebFiles.SingleOrDefault(item => item.FileName == "wxnow.txt");
 					if (wxfile.Create)
 					{
-						CreateWxnowFile();
+						cumulus.CreateWxnowFile();
 					}
 
 					cumulus.DoHttpFiles(now);
@@ -1426,157 +1429,6 @@ namespace CumulusMX
 		}
 
 
-		public void CreateGraphDataFiles()
-		{
-			// Chart data for Highcharts graphs
-			string json;
-			// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-			GraphFileIdx[] createReqOnce = [GraphFileIdx.CONFIG, GraphFileIdx.AVAILABLE, GraphFileIdx.DAILYRAIN, GraphFileIdx.DAILYTEMP, GraphFileIdx.SUNHOURS];
-
-			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
-			{
-				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
-				{
-#if DEBUG
-					cumulus.LogDebugMessage("CreateGraphDataFiles: Creating " + cumulus.GraphDataFiles[i].FileName);
-#endif
-					try
-					{
-						json = CreateGraphDataJson(cumulus.GraphDataFiles[i].FileName, false);
-
-						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].FileName);
-						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].FileName);
-						using (var file = new StreamWriter(dest, false))
-						{
-							file.WriteLine(json);
-							file.Close();
-						}
-
-						// The config and daily files only need creating once per change
-						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-						if (createReqOnce.Contains((GraphFileIdx) i))
-						{
-							cumulus.GraphDataFiles[i].CreateRequired = false;
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"Error creating/writing {cumulus.GraphDataFiles[i].FileName}: {ex}");
-					}
-#if DEBUG
-					cumulus.LogDebugMessage("CreateGraphDataFiles: Completed " + cumulus.GraphDataFiles[i].FileName);
-#endif
-				}
-			}
-		}
-
-		public string CreateGraphDataJson(string filename, bool incremental)
-		{
-			// Chart data for Highcharts graphs
-
-			return filename switch
-			{
-				"graphconfig.json" => GetGraphConfig(false),
-				"availabledata.json" => GetAvailGraphData(false),
-				"tempdata.json" => GetTempGraphData(incremental, false),
-				"pressdata.json" => GetPressGraphData(incremental),
-				"winddata.json" => GetWindGraphData(incremental),
-				"wdirdata.json" => GetWindDirGraphData(incremental),
-				"humdata.json" => GetHumGraphData(incremental, false),
-				"raindata.json" => GetRainGraphData(incremental),
-				"dailyrain.json" => GetDailyRainGraphData(),
-				"dailytemp.json" => GetDailyTempGraphData(false),
-				"solardata.json" => GetSolarGraphData(incremental, false),
-				"sunhours.json" => GetSunHoursGraphData(false),
-				"airquality.json" => GetAqGraphData(incremental),
-				"extratempdata.json" => GetExtraTempGraphData(incremental, false),
-				"extrahumdata.json" => GetExtraHumGraphData(incremental, false),
-				"extradewdata.json" => GetExtraDewPointGraphData(incremental, false),
-				"soiltempdata.json" => GetSoilTempGraphData(incremental, false),
-				"soilmoistdata.json" => GetSoilMoistGraphData(incremental, false),
-				"soilecdata.json" => GetSoilEcGraphData(incremental, false),
-				"leafwetdata.json" => GetLeafWetnessGraphData(incremental, false),
-				"usertempdata.json" => GetUserTempGraphData(incremental, false),
-				"co2sensordata.json" => GetCo2SensorGraphData(incremental, false),
-				"laserdepthdata.json" => GetLaserDepthGraphData(incremental, false),
-				"snow24data.json" => GetSnow24hGraphData(incremental, false),
-				_ => "{}",
-			};
-		}
-
-
-		public void CreateEodGraphDataFiles()
-		{
-			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
-			{
-				if (cumulus.GraphDataEodFiles[i].Create)
-				{
-					var json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].FileName);
-
-					try
-					{
-						var dest = Path.Combine(cumulus.GraphDataEodFiles[i].LocalPath, cumulus.GraphDataEodFiles[i].FileName);
-						File.WriteAllTextAsync(dest, json);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataEodFiles[i].FileName}: {ex}");
-					}
-				}
-
-				// Now set the flag that upload is required (if enabled)
-				cumulus.GraphDataEodFiles[i].FtpRequired = true;
-				cumulus.GraphDataEodFiles[i].CopyRequired = true;
-			}
-		}
-
-		public void CreateDailyGraphDataFiles()
-		{
-			// skip 0 & 1 = config files
-			// daily rain = 8
-			// daily temp = 9
-			// sun hours = 11
-			var eod = new int[] { (int) GraphFileIdx.DAILYRAIN, (int) GraphFileIdx.DAILYTEMP, (int) GraphFileIdx.SUNHOURS };
-
-			foreach (var i in eod)
-			{
-				if (cumulus.GraphDataFiles[i].Create)
-				{
-					var json = CreateGraphDataJson(cumulus.GraphDataFiles[i].FileName, false);
-
-					try
-					{
-						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].FileName);
-						File.WriteAllTextAsync(dest, json);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataFiles[i].FileName}: {ex}");
-					}
-				}
-
-				cumulus.GraphDataFiles[i].CopyRequired = true;
-				cumulus.GraphDataFiles[i].FtpRequired = true;
-			}
-		}
-
-		public string CreateEodGraphDataJson(string filename)
-		{
-			return filename switch
-			{
-				"alldailytempdata.json" => GetAllDailyTempGraphData(false),
-				"alldailypressdata.json" => GetAllDailyPressGraphData(),
-				"alldailywinddata.json" => GetAllDailyWindGraphData(),
-				"alldailyhumdata.json" => GetAllDailyHumGraphData(),
-				"alldailyraindata.json" => GetAllDailyRainGraphData(),
-				"alldailysolardata.json" => GetAllDailySolarGraphData(false),
-				"alldailydegdaydata.json" => GetAllDegreeDaysGraphData(false),
-				"alltempsumdata.json" => GetAllTempSumGraphData(false),
-				"allchillhrsdata.json" => GetAllChillHrsGraphData(false),
-				"alldailysnowdata.json" => GetAllSnowGraphData(false),
-				_ => "{}",
-			};
-		}
 
 
 		public static string GetIncrementalLogFileData(string fileName, int prevLastLine, out int newLines)
@@ -1828,9 +1680,6 @@ namespace CumulusMX
 
 		private bool dayfileReloading;
 
-		public static Dictionary<string, byte> SensorReception { get; set; }
-		public static Dictionary<string, int> SensorRssi { get; set; }
-
 		public void DayReset(DateTime timestamp)
 		{
 			var drday = timestamp.Day;
@@ -1865,7 +1714,7 @@ namespace CumulusMX
 				// First save today's extremes, do not wait for this
 				_ = DoDayfile(timestamp);
 
-				// and the log file, but only if the station is initialised - do wait for this
+				// and the log file, but only if the Stations is initialised - do wait for this
 				if (cumulus.Station != null)
 				{
 					cumulus.DoLogFile(timestamp, cumulus.NormalRunning).Wait();
@@ -2557,8 +2406,8 @@ namespace CumulusMX
 				}
 
 				// Do the Daily graph data files
-				CreateEodGraphDataFiles();
-				CreateDailyGraphDataFiles();
+				cumulus.CreateEodGraphDataFiles();
+				cumulus.CreateDailyGraphDataFiles();
 				cumulus.LogMessage("If required the daily graph data files will be uploaded at next web update");
 
 				// Do the End of day Extra files
@@ -2826,7 +2675,7 @@ namespace CumulusMX
 		}
 
 
-		// This overridden in each station implementation
+		// This overridden in each Stations implementation
 		public abstract void Stop();
 
 		public void SetDefaultMonthlyHighsAndLows()
@@ -2984,578 +2833,7 @@ namespace CumulusMX
 		}
 
 
-
-		public string GetAllDegreeDaysGraphData(bool local)
-		{
-			var InvC = CultureInfo.InvariantCulture;
-
-			var sb = new StringBuilder("{");
-			var growdegdaysYears1 = new StringBuilder("{", 32768);
-			var growdegdaysYears2 = new StringBuilder("{", 32768);
-
-			var growYear1 = new StringBuilder("[", 8600);
-			var growYear2 = new StringBuilder("[", 8600);
-
-			var options = $"\"options\":{{\"gddBase1\":{cumulus.GrowingBase1},\"gddBase2\":{cumulus.GrowingBase2},\"startMon\":{cumulus.GrowingYearStarts}}}";
-
-			DateTime nextYear;
-
-			// 2000 was a leap year, so make sure February falls in 2000
-			// for Southern hemisphere this means the start year must be 1999
-			var plotYear = cumulus.GrowingYearStarts < 3 ? 2000 : 1999;
-
-			int startYear;
-
-			var annualGrowingDegDays1 = 0.0;
-			var annualGrowingDegDays2 = 0.0;
-
-			// Read the day file list and extract the data from there
-			if (MetData.DayFile.Count > 0 && (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) || cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local)))
-			{
-				// we have to detect a new growing deg day year is starting
-				nextYear = new DateTime(MetData.DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
-
-				if (MetData.DayFile[0].Date >= nextYear)
-				{
-					nextYear = nextYear.AddYears(1);
-				}
-
-				// are we starting part way through a year that does not start in January?
-				if (MetData.DayFile[0].Date.Year == nextYear.Year)
-				{
-					startYear = MetData.DayFile[0].Date.Year - 1;
-				}
-				else
-				{
-					startYear = MetData.DayFile[0].Date.Year;
-				}
-
-				if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
-				{
-					growdegdaysYears1.Append($"\"{startYear}\":");
-				}
-				if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
-				{
-					growdegdaysYears2.Append($"\"{startYear}\":");
-				}
-
-
-				for (var i = 0; i < MetData.DayFile.Count; i++)
-				{
-					// we have rolled over into a new GDD year, write out what we have and reset
-					if (MetData.DayFile[i].Date >= nextYear)
-					{
-						if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) && growYear1.Length > 10)
-						{
-							// remove last comma
-							growYear1.Length--;
-							// close the year data
-							growYear1.Append("],");
-							// append to years array
-							growdegdaysYears1.Append(growYear1);
-
-							growYear1.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
-						}
-						if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local) && growYear2.Length > 10)
-						{
-							// remove last comma
-							growYear2.Length--;
-							// close the year data
-							growYear2.Append("],");
-							// append to years array
-							growdegdaysYears2.Append(growYear2);
-
-							growYear2.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
-						}
-
-						// reset the plot year for Southern hemisphere
-						plotYear = cumulus.GrowingYearStarts < 3 ? 2000 : 1999;
-
-						annualGrowingDegDays1 = 0;
-						annualGrowingDegDays2 = 0;
-						do
-						{
-							nextYear = nextYear.AddYears(1);
-						}
-						while (MetData.DayFile[i].Date >= nextYear);
-					}
-
-					// make all series the same year so they plot together
-					// 2000 was a leap year, so make sure February falls in 2000
-					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.GrowingYearStarts > 2 && plotYear == 1999 && MetData.DayFile[i].Date.Month < cumulus.GrowingYearStarts)
-					{
-						plotYear++;
-					}
-
-					// make all series the same year so they plot together
-					var recDate = new DateTime(plotYear, MetData.DayFile[i].Date.Month, MetData.DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
-
-					if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
-					{
-						// growing degree days
-						var gdd = MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(MetData.DayFile[i].HighTemp), ConvertUnits.UserTempToC(MetData.DayFile[i].LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
-
-						// annual accumulation
-						annualGrowingDegDays1 += gdd;
-
-						growYear1.Append($"[{recDate},{annualGrowingDegDays1.ToString("F1", InvC)}],");
-					}
-
-					if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
-					{
-						// growing degree days
-						var gdd = MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(MetData.DayFile[i].HighTemp), ConvertUnits.UserTempToC(MetData.DayFile[i].LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
-
-						// annual accumulation
-						annualGrowingDegDays2 += gdd;
-
-						growYear2.Append($"[{recDate},{annualGrowingDegDays2.ToString("F1", InvC)}],");
-					}
-				}
-			}
-
-			// remove last commas from the years arrays and close them off
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
-			{
-				if (growYear1[^1] == ',')
-				{
-					growYear1.Length--;
-				}
-
-				// have previous years been appended?
-				if (growdegdaysYears1[^1] == ']')
-				{
-					growdegdaysYears1.Append(',');
-				}
-
-				growdegdaysYears1.Append(growYear1 + "]");
-
-				// add to main json
-				sb.Append("\"GDD1\":" + growdegdaysYears1 + "},");
-			}
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
-			{
-				if (growYear2[^1] == ',')
-				{
-					growYear2.Length--;
-				}
-
-				// have previous years been appended?
-				if (growdegdaysYears2[^1] == ']')
-				{
-					growdegdaysYears2.Append(',');
-				}
-				growdegdaysYears2.Append(growYear2 + "]");
-
-				// add to main json
-				sb.Append("\"GDD2\":" + growdegdaysYears2 + "},");
-			}
-
-			sb.Append(options);
-
-			sb.Append('}');
-
-			return sb.ToString();
-		}
-
-		public string GetAllTempSumGraphData(bool local)
-		{
-			var InvC = CultureInfo.InvariantCulture;
-
-			var sb = new StringBuilder("{");
-			var tempSumYears0 = new StringBuilder("{", 32768);
-			var tempSumYears1 = new StringBuilder("{", 32768);
-			var tempSumYears2 = new StringBuilder("{", 32768);
-
-			var tempSum0 = new StringBuilder("[", 8600);
-			var tempSum1 = new StringBuilder("[", 8600);
-			var tempSum2 = new StringBuilder("[", 8600);
-
-			DateTime nextYear;
-
-			// 2000 was a leap year, so make sure February falls in 2000
-			// for Southern hemisphere this means the start year must be 1999
-			var plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
-
-			int startYear;
-			var annualTempSum0 = 0.0;
-			var annualTempSum1 = 0.0;
-			var annualTempSum2 = 0.0;
-
-			var options = $"\"options\":{{\"sumBase1\":{cumulus.TempSumBase1},\"sumBase2\":{cumulus.TempSumBase2},\"startMon\":{cumulus.TempSumYearStarts}}}";
-
-			// Read the day file list and extract the data from there
-			if (MetData.DayFile.Count > 0 && (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local)))
-			{
-				// we have to detect a new year is starting
-				nextYear = new DateTime(MetData.DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
-
-				if (MetData.DayFile[0].Date >= nextYear)
-				{
-					nextYear = nextYear.AddYears(1);
-				}
-
-				// are we starting part way through a year that does not start in January?
-				if (MetData.DayFile[0].Date.Year == nextYear.Year)
-				{
-					startYear = MetData.DayFile[0].Date.Year - 1;
-				}
-				else
-				{
-					startYear = MetData.DayFile[0].Date.Year;
-				}
-
-				if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
-				{
-					tempSumYears0.Append($"\"{startYear}\":");
-				}
-				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
-				{
-					tempSumYears1.Append($"\"{startYear}\":");
-				}
-				if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
-				{
-					tempSumYears2.Append($"\"{startYear}\":");
-				}
-
-				for (var i = 0; i < MetData.DayFile.Count; i++)
-				{
-					// we have rolled over into a new GDD year, write out what we have and reset
-					if (MetData.DayFile[i].Date >= nextYear)
-					{
-						if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) && tempSum0.Length > 10)
-						{
-							// remove last comma
-							tempSum0.Length--;
-							// close the year data
-							tempSum0.Append("],");
-							// append to years array
-							tempSumYears0.Append(tempSum0);
-
-							tempSum0.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
-						}
-						if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) && tempSum1.Length > 10)
-						{
-							// remove last comma
-							tempSum1.Length--;
-							// close the year data
-							tempSum1.Append("],");
-							// append to years array
-							tempSumYears1.Append(tempSum1);
-
-							tempSum1.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
-						}
-						if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local) && tempSum2.Length > 10)
-						{
-							// remove last comma
-							tempSum2.Length--;
-							// close the year data
-							tempSum2.Append("],");
-							// append to years array
-							tempSumYears2.Append(tempSum2);
-
-							tempSum2.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
-						}
-
-						// reset the plot year for Southern hemisphere
-						plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
-
-						annualTempSum0 = 0;
-						annualTempSum1 = 0;
-						annualTempSum2 = 0;
-
-						do
-						{
-							nextYear = nextYear.AddYears(1);
-						}
-						while (MetData.DayFile[i].Date >= nextYear);
-					}
-					// make all series the same year so they plot together
-					// 2000 was a leap year, so make sure February falls in 2000
-					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && MetData.DayFile[i].Date.Month < cumulus.TempSumYearStarts)
-					{
-						plotYear++;
-					}
-
-					var recDate = new DateTime(plotYear, MetData.DayFile[i].Date.Month, MetData.DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
-
-					if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
-					{
-						// annual accumulation
-						annualTempSum0 += MetData.DayFile[i].AvgTemp;
-						tempSum0.Append($"[{recDate},{annualTempSum0.ToString("F0", InvC)}],");
-					}
-					if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
-					{
-						// annual accumulation
-						annualTempSum1 += MetData.DayFile[i].AvgTemp - cumulus.TempSumBase1;
-						tempSum1.Append($"[{recDate},{annualTempSum1.ToString("F0", InvC)}],");
-					}
-					if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
-					{
-						// annual accumulation
-						annualTempSum2 += MetData.DayFile[i].AvgTemp - cumulus.TempSumBase2;
-						tempSum2.Append($"[{recDate},{annualTempSum2.ToString("F0", InvC)}],");
-					}
-				}
-			}
-
-			// remove last commas from the years arrays and close them off
-			if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
-			{
-				if (tempSum0[^1] == ',')
-				{
-					tempSum0.Length--;
-				}
-
-				// have previous years been appended?
-				if (tempSumYears0[^1] == ']')
-				{
-					tempSumYears0.Append(',');
-				}
-
-				tempSumYears0.Append(tempSum0 + "]");
-
-				// add to main json
-				sb.Append("\"Sum0\":" + tempSumYears0 + "},");
-			}
-			if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
-			{
-				if (tempSum1[^1] == ',')
-				{
-					tempSum1.Length--;
-				}
-
-				// have previous years been appended?
-				if (tempSumYears1[^1] == ']')
-				{
-					tempSumYears1.Append(',');
-				}
-
-				tempSumYears1.Append(tempSum1 + "]");
-
-				// add to main json
-				sb.Append("\"Sum1\":" + tempSumYears1 + "},");
-			}
-			if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
-			{
-				if (tempSum2[^1] == ',')
-				{
-					tempSum2.Length--;
-				}
-
-				// have previous years been appended?
-				if (tempSumYears2[^1] == ']')
-				{
-					tempSumYears2.Append(',');
-				}
-
-				tempSumYears2.Append(tempSum2 + "]");
-
-				// add to main json
-				sb.Append("\"Sum2\":" + tempSumYears2 + "},");
-			}
-
-			sb.Append(options);
-
-			sb.Append('}');
-
-			return sb.ToString();
-		}
-
-		public string GetAllChillHrsGraphData(bool local)
-		{
-			var InvC = CultureInfo.InvariantCulture;
-
-			if (!cumulus.GraphOptions.Visible.ChillHours.IsVisible(local))
-			{
-				return "{}";
-			}
-
-			var sb = new StringBuilder("{");
-			var chillHrsYears = new StringBuilder("{", 32768);
-
-			var chillhrs = new StringBuilder("[", 8600);
-
-			DateTime nextYear;
-
-			// 2000 was a leap year, so make sure February falls in 2000
-			// for Southern hemisphere this means the start year must be 1999
-			var plotYear = cumulus.ChillHourSeasonStart < 3 ? 2000 : 1999;
-
-			int startYear;
-
-			var options = $"\"options\":{{\"threshold\":{cumulus.ChillHourThreshold},\"basetemp\":{cumulus.ChillHourBase},\"startMon\":{cumulus.ChillHourSeasonStart}}}";
-
-			// Read the day file list and extract the data from there
-			if (MetData.DayFile.Count > 0)
-			{
-				// we have to detect a new year is starting
-				nextYear = new DateTime(MetData.DayFile[0].Date.Year, cumulus.ChillHourSeasonStart, 1, 0, 0, 0, DateTimeKind.Local);
-
-				if (MetData.DayFile[0].Date >= nextYear)
-				{
-					nextYear = nextYear.AddYears(1);
-				}
-
-				// are we starting part way through a year that does not start in January?
-				if (MetData.DayFile[0].Date.Year == nextYear.Year)
-				{
-					startYear = MetData.DayFile[0].Date.Year - 1;
-				}
-				else
-				{
-					startYear = MetData.DayFile[0].Date.Year;
-				}
-
-				chillHrsYears.Append($"\"{startYear}\":");
-
-				for (var i = 0; i < MetData.DayFile.Count; i++)
-				{
-					// we have rolled over into a new GDD year, write out what we have and reset
-					if (MetData.DayFile[i].Date >= nextYear)
-					{
-						if (chillhrs.Length > 10)
-						{
-							// remove last comma
-							chillhrs.Length--;
-							// close the year data
-							chillhrs.Append("],");
-							// append to years array
-							chillHrsYears.Append(chillhrs);
-
-							chillhrs.Clear().Append($"\"{MetData.DayFile[i].Date.Year}\":[");
-						}
-
-						// reset the plot year for Southern hemisphere
-						plotYear = cumulus.ChillHourSeasonStart < 3 ? 2000 : 1999;
-
-						do
-						{
-							nextYear = nextYear.AddYears(1);
-						}
-						while (MetData.DayFile[i].Date >= nextYear);
-					}
-					// make all series the same year so they plot together
-					// 2000 was a leap year, so make sure February falls in 2000
-					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.ChillHourSeasonStart > 2 && plotYear == 1999 && MetData.DayFile[i].Date.Month < cumulus.ChillHourSeasonStart)
-					{
-						plotYear++;
-					}
-
-					var recDate = new DateTime(plotYear, MetData.DayFile[i].Date.Month, MetData.DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Local).ToUnixTimeMs();
-
-					// annual accumulation
-					chillhrs.Append($"[{recDate},{MetData.DayFile[i].ChillHours.ToString("F0", InvC)}],");
-				}
-			}
-
-			// remove last commas from the years arrays and close them off
-			if (chillhrs[^1] == ',')
-			{
-				chillhrs.Length--;
-			}
-
-			// have previous years been appended?
-			if (chillHrsYears[^1] == ']')
-			{
-				chillHrsYears.Append(',');
-			}
-
-			chillHrsYears.Append(chillhrs + "]");
-
-			// add to main json
-			sb.Append("\"data\":" + chillHrsYears + "},");
-
-			sb.Append(options);
-
-			sb.Append('}');
-
-			return sb.ToString();
-		}
-
-		public string GetAllSnowGraphData(bool local)
-		{
-			/* returns:
-			 *	snowdepth:[[date1,val1],[date2,val2]...],
-			 *	snow24h:[[date1,val1],[date2,val2]...]
-			 */
-
-			var InvC = CultureInfo.InvariantCulture;
-
-			var sb = new StringBuilder("{");
-			var snowdepth = new StringBuilder("[", 32768);
-			var snow24h = new StringBuilder("[", 32768);
-
-			// Read the diary database
-			// get the earlist record date
-			var earliest = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData order by Date limit 1");
-
-			if (earliest.Count == 1)
-			{
-				var query = string.Format(
-@"WITH RECURSIVE dates(date) AS (
-  VALUES('{0}')
-  UNION ALL
-  SELECT date(date, '+1 day')
-  FROM dates
-  WHERE date < DATE('now')
-)
-SELECT rd.date, dd.snowDepth, dd.snow24h FROM dates rd
-LEFT JOIN DiaryData dd ON date(dd.Date) = rd.date
-ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
-
-				var data = cumulus.DiaryDB.Query<DiaryData>(query);
-
-				if (data.Count > 0)
-				{
-					for (var i = 0; i < data.Count; i++)
-					{
-						var recDate = data[i].Date.ToUnixTimeMs();
-
-						if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-						{
-							// snow depth
-							snowdepth.Append($"[{recDate},{(data[i].SnowDepth.HasValue ? data[i].SnowDepth.Value.ToString("F1", InvC) : "null")}],");
-						}
-
-						if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
-						{
-							// snowfall 24h
-							snow24h.Append($"[{recDate},{(data[i].Snow24h.HasValue ? data[i].Snow24h.Value.ToString("F1", InvC) : "null")}],");
-						}
-					}
-				}
-			}
-
-			if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-			{
-				if (snowdepth[^1] == ',')
-					snowdepth.Length--;
-				sb.Append("\"SnowDepth\":" + snowdepth.ToString() + "]");
-			}
-
-			if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
-			{
-				if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-					sb.Append(',');
-
-				if (snow24h[^1] == ',')
-					snow24h.Length--;
-				sb.Append("\"Snow24h\":" + snow24h.ToString() + "]");
-
-			}
-
-			sb.Append('}');
-
-			return sb.ToString();
-		}
-
-
-		public double GetAverageByMonth<T>(int mon, Func<DayFileRec, T> selector) where T : struct
+		public static double GetAverageByMonth<T>(int mon, Func<DayFileRec, T> selector) where T : struct
 		{
 			try
 			{
@@ -3585,7 +2863,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 		}
 
-		public double GetAverageTotalByMonth<T>(int mon, Func<DayFileRec, T> selector) where T : struct
+		public static double GetAverageTotalByMonth<T>(int mon, Func<DayFileRec, T> selector) where T : struct
 		{
 			try
 			{
@@ -3782,8 +3060,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			get => Timestamp.LocalFromUnixTime();
 			set => Timestamp = value.ToUnixTime();
 		}
-		public double Gust { get; set; }  // calibrated "gust" as read from station
-		public double Speed { get; set; } // calibrated "speed" as read from station
+		public double Gust { get; set; }  // calibrated "gust" as read from Stations
+		public double Speed { get; set; } // calibrated "speed" as read from Stations
 	}
 
 	public class Last10MinWind(DateTime ts, double windgust, double windspeed, double Xgust, double Ygust)

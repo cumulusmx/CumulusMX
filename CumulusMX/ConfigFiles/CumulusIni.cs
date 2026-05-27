@@ -219,7 +219,7 @@ namespace CumulusMX
 			StationOptions.CalcuateAverageWindSpeed = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
-			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", 1, 0, 2);  // 0=station, 1=rain sensor, 2=haptic sensor
+			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", 1, 0, 2);  // 0=Stations, 1=rain sensor, 2=haptic sensor
 			StationOptions.LeafWetnessIsRainingIdx = ini.GetValue("Station", "LeafWetnessIsRainingIdx", -1);
 			StationOptions.LeafWetnessIsRainingThrsh = ini.GetValue("Station", "LeafWetnessIsRainingVal", 0.0, 0);
 
@@ -533,7 +533,7 @@ namespace CumulusMX
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000MacAddress = (ini.GetValue("GW1000", "MACAddress", string.Empty) ?? string.Empty).ToUpper();
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
-			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0, 0, 1); //0=main station (tipping bucket) 1=piezo
+			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0, 0, 1); //0=main Stations (tipping bucket) 1=piezo
 			EcowittIsRainingUsePiezo = ini.GetValue("GW1000", "UsePiezoIsRaining", false);
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
@@ -598,7 +598,7 @@ namespace CumulusMX
 			#endregion
 
 			#region JSON Station Settings
-			// JSON station options
+			// JSON Stations options
 			JsonStationOptions.Connectiontype = ini.GetValue("JsonStation", "ConnectionType", 1, 0, 2);
 			JsonStationOptions.SourceFile = ini.GetValue("JsonStation", "SourceFile", string.Empty);
 			JsonStationOptions.FileReadDelay = ini.GetValue("JsonStation", "FileDelay", 200, 0);
@@ -609,7 +609,7 @@ namespace CumulusMX
 			JsonStationOptions.MqttPassword = ini.GetValue("JsonStation", "MqttPassword", string.Empty);
 			JsonStationOptions.MqttUseTls = ini.GetValue("JsonStation", "MqttUseTls", false);
 			JsonStationOptions.MqttTopic = ini.GetValue("JsonStation", "MqttTopic", string.Empty);
-			// JSON station Extra Sensors
+			// JSON Stations Extra Sensors
 			JsonExtraStationOptions.ExtraSensorsEnabled = ini.GetValue("JsonExtraStation", "ExtraSensorDataEnabled", false);
 			JsonExtraStationOptions.Connectiontype = ini.GetValue("JsonExtraStation", "ConnectionType", 1, 0, 2);
 			JsonExtraStationOptions.SourceFile = ini.GetValue("JsonExtraStation", "SourceFile", string.Empty);
@@ -975,7 +975,7 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 
-			// Disable all the extra sensors if no extra station enabled (because the previous default was to enable all)
+			// Disable all the extra sensors if no extra Stations enabled (because the previous default was to enable all)
 			if (!AmbientExtraEnabled && !JsonExtraStationOptions.ExtraSensorsEnabled && !EcowittExtraEnabled && !EcowittCloudExtraEnabled)
 			{
 				SensorMaps.Temperature = SensorMaps.Humidity = SensorMaps.DewPoint = SensorMaps.IndoorTemp = SensorMaps.IndoorHum = SensorMaps.Solar = SensorMaps.UV = SensorMaps.CO2 = SensorMaps.Lightning = SensorMaps.Camera = SensorMaps.BlackGlobe = 0;
@@ -2988,7 +2988,7 @@ namespace CumulusMX
 			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
 
 			#region JSON Station Settings
-			// JSON station options
+			// JSON Stations options
 			ini.SetValue("JsonStation", "ConnectionType", JsonStationOptions.Connectiontype);
 			ini.SetValue("JsonStation", "SourceFile", JsonStationOptions.SourceFile);
 			ini.SetValue("JsonStation", "FileDelay", JsonStationOptions.FileReadDelay);
@@ -2999,7 +2999,7 @@ namespace CumulusMX
 			ini.SetValue("JsonStation", "MqttPassword", Crypto.EncryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword"));
 			ini.SetValue("JsonStation", "MqttUseTls", JsonStationOptions.MqttUseTls);
 			ini.SetValue("JsonStation", "MqttTopic", JsonStationOptions.MqttTopic);
-			// JSON station Extra Sensors
+			// JSON Stations Extra Sensors
 			ini.SetValue("JsonExtraStation", "ExtraSensorDataEnabled", JsonExtraStationOptions.ExtraSensorsEnabled);
 			ini.SetValue("JsonExtraStation", "ConnectionType", JsonExtraStationOptions.Connectiontype);
 			ini.SetValue("JsonExtraStation", "SourceFile", JsonExtraStationOptions.SourceFile);

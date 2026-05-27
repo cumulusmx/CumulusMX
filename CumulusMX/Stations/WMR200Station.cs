@@ -49,7 +49,7 @@ namespace CumulusMX.Stations
 
 		private bool stop;
 
-		public WMR200Station(Cumulus cumulus) : base(cumulus)
+		public WMR200Station(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGONUSB;
 			var devicelist = DeviceList.Local;

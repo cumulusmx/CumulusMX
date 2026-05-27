@@ -39,7 +39,7 @@ namespace CumulusMX
 
 			previousPress = sl;
 
-			// If we calculate SLP, then the calibration is applied to the station pressure
+			// If we calculate SLP, then the calibration is applied to the Stations pressure
 			MetData.Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
 
 			first_press = false;

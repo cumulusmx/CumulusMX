@@ -8,10 +8,8 @@ namespace CumulusMX
 	{
 		internal void ApplyHistoricData(List<HistoricDataRecord> history, WeatherStation station)
 		{
-			int rollHour = Math.Abs(GetHourInc(station.LastDataReadTime));
 			station.LastDataReadTime = LastUpdateTime;
 			var luhour = station.LastDataReadTime.Hour;
-			var rolloverdone = luhour == rollHour;
 			var snowhourdone = luhour == SnowDepthHour;
 
 
@@ -39,13 +37,6 @@ namespace CumulusMX
 				LogMessage("ApplyHistoricData: Processing archive record for " + rec.Timestamp);
 
 				station.DataDateTime = rec.Timestamp;
-
-				rollHour = Math.Abs(GetHourInc(rec.Timestamp));
-
-				if (rec.Timestamp.Hour != rollHour)
-				{
-					rolloverdone = false;
-				}
 
 				// Not in snow hour, snow yet to be done
 				if (rec.Timestamp.Hour != SnowDepthHour)

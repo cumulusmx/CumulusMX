@@ -3271,7 +3271,7 @@ namespace CumulusMX.Stations
 						}
 						else if (stn.type == 1 && stn.mac.Equals(macAddress, StringComparison.CurrentCultureIgnoreCase))
 						{
-							// weather station - check the version
+							// weather Stations - check the version
 							vers = stn.stationtype.Split('V')[^1];
 							model = stn.stationtype.Replace("_", string.Empty).Split('V')[0];
 							cumulus.LogDebugMessage($"API.GetStationList: Found Station model={model}, vers={vers}");

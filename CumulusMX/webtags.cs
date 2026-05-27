@@ -3392,7 +3392,7 @@ namespace CumulusMX
 		private string TagMonthAvgTemp(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageByMonth(month, d => d.AvgTemp);
+			var val = WeatherStation.GetAverageByMonth(month, d => d.AvgTemp);
 
 			if (val < -998)
 			{
@@ -3405,7 +3405,7 @@ namespace CumulusMX
 		private string TagMonthAvgTempHigh(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageByMonth(month, d => d.HighTemp);
+			var val = WeatherStation.GetAverageByMonth(month, d => d.HighTemp);
 
 			if (val < -998)
 			{
@@ -3418,7 +3418,7 @@ namespace CumulusMX
 		private string TagMonthAvgTempLow(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageByMonth(month, d => d.LowTemp);
+			var val = WeatherStation.GetAverageByMonth(month, d => d.LowTemp);
 
 			if (val < -998)
 			{
@@ -3431,7 +3431,7 @@ namespace CumulusMX
 		private string TagMonthAvgTotalRainfall(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageTotalByMonth(month, d => d.TotalRain);
+			var val = WeatherStation.GetAverageTotalByMonth(month, d => d.TotalRain);
 
 			if (val < -998)
 			{
@@ -3444,7 +3444,7 @@ namespace CumulusMX
 		private string TagMonthAvgTotalWindRun(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageTotalByMonth(month, d => d.WindRun);
+			var val = WeatherStation.GetAverageTotalByMonth(month, d => d.WindRun);
 
 			if (val < -998)
 			{
@@ -3457,7 +3457,7 @@ namespace CumulusMX
 		private string TagMonthAvgTotalSunHours(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageTotalByMonth(month, d => d.SunShineHours);
+			var val = WeatherStation.GetAverageTotalByMonth(month, d => d.SunShineHours);
 
 			if (val < -998)
 			{
@@ -3470,7 +3470,7 @@ namespace CumulusMX
 		private string TagMonthAvgTotalET(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageTotalByMonth(month, d => d.ET);
+			var val = WeatherStation.GetAverageTotalByMonth(month, d => d.ET);
 
 			if (val < -998)
 			{
@@ -6807,15 +6807,15 @@ namespace CumulusMX
 
 			if (json)
 			{
-				return JsonSerializer.Serialize(WeatherStation.SensorReception);
+				return JsonSerializer.Serialize(StationData.SensorReception);
 			}
 			else
 			{
 				var retVal = new StringBuilder();
 
-				if (WeatherStation.SensorReception.Count > 0)
+				if (StationData.SensorReception.Count > 0)
 				{
-					foreach (var pair in WeatherStation.SensorReception)
+					foreach (var pair in StationData.SensorReception)
 					{
 						retVal.Append($"{pair.Key}={pair.Value},");
 					}
@@ -6836,15 +6836,15 @@ namespace CumulusMX
 
 			if (json)
 			{
-				return JsonSerializer.Serialize(WeatherStation.SensorRssi);
+				return JsonSerializer.Serialize(StationData.SensorRssi);
 			}
 			else
 			{
 				var retVal = new StringBuilder();
 
-				if (WeatherStation.SensorRssi.Count > 0)
+				if (StationData.SensorRssi.Count > 0)
 				{
-					foreach (var pair in WeatherStation.SensorRssi)
+					foreach (var pair in StationData.SensorRssi)
 					{
 						retVal.Append($"{pair.Key}={pair.Value},");
 					}

@@ -204,7 +204,7 @@ namespace CumulusMX
 
 								if (StdWebFiles[i].FileName == "wxnow.txt")
 								{
-									data = station.CreateWxnowFileString();
+									data = CreateWxnowFileString();
 								}
 								else
 								{
@@ -235,7 +235,7 @@ namespace CumulusMX
 							{
 								LogDebugMessage($"{msgPrefix} Uploading graph data file: {uploadfile}");
 
-								var json = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
+								var json = CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 
 								using var dataStream = GenerateStreamFromString(json);
 								if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -267,7 +267,7 @@ namespace CumulusMX
 							{
 								LogDebugMessage($"{msgPrefix} Uploading daily graph data file: {uploadfile}");
 
-								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
+								var json = CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 								using var dataStream = GenerateStreamFromString(json);
 								if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -503,7 +503,7 @@ namespace CumulusMX
 
 							if (StdWebFiles[i].FileName == "wxnow.txt")
 							{
-								data = station.CreateWxnowFileString();
+								data = CreateWxnowFileString();
 							}
 							else
 							{
@@ -537,7 +537,7 @@ namespace CumulusMX
 							var remotefile = remotePath + GraphDataFiles[i].FileName;
 							LogFtpDebugMessage($"{msgPrefix} Uploading graph data file: {localfile}", false);
 
-							var json = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
+							var json = CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 
 							using (var dataStream = GenerateStreamFromString(json))
 							{
@@ -570,7 +570,7 @@ namespace CumulusMX
 						{
 							LogFtpMessage($"{msgPrefix} Uploading daily graph data file: {localfile}", false);
 
-							var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
+							var json = CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 							using var dataStream = GenerateStreamFromString(json);
 							if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -931,7 +931,7 @@ namespace CumulusMX
 
 						if (item.FileName == "wxnow.txt")
 						{
-							data = station.CreateWxnowFileString();
+							data = CreateWxnowFileString();
 						}
 						else
 						{
@@ -1005,7 +1005,7 @@ namespace CumulusMX
 							return false;
 
 						// we want incremental data for PHP
-						var json = station.CreateGraphDataJson(item.FileName, item.Incremental);
+						var json = CreateGraphDataJson(item.FileName, item.Incremental);
 						var remotefile = item.FileName;
 						LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full file")}): {item.FileName}");
 
@@ -1089,7 +1089,7 @@ namespace CumulusMX
 
 						var remotefile = item.FileName;
 						LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.FileName);
-						var json = station.CreateEodGraphDataJson(item.FileName);
+						var json = CreateEodGraphDataJson(item.FileName);
 
 						if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, cycle1k, false, true))
 						{

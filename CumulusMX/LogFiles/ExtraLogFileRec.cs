@@ -293,7 +293,7 @@ namespace CumulusMX.LogFiles
 				);
 		}
 
-		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus, WeatherStation station)
+		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus)
 		{
 			var inv = CultureInfo.InvariantCulture;
 			var line = string.Join(",",

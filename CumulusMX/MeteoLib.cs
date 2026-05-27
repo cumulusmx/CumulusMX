@@ -416,7 +416,7 @@ namespace CumulusMX
 		/// <param name="altitudeM">Station altitude in metres</param>
 		/// <param name="pressureHpa">Station pressure in inHg</param>
 		/// <param name="tempC">MetData temperature</param>
-		/// <param name="latitude">Latitude of the station</param>
+		/// <param name="latitude">Latitude of the Stations</param>
 		/// <returns>Returns the sea level pressure in hPa</returns>
 		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC, decimal latitude)
 		{
@@ -473,11 +473,11 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Simplified calculation of station pressure from sea level pressure
+		/// Simplified calculation of Stations pressure from sea level pressure
 		/// </summary>
 		/// <param name="seaLevelPressureHpa">Station pressure in hPag</param>
 		/// <param name="altitudeM">Station altitude in metres</param>
-		/// <returns>Returns the station pressure in hPa</returns>
+		/// <returns>Returns the Stations pressure in hPa</returns>
 		public static double SeaLevelToStation(double pressureHPa, double elevationM)
 		{
 			const double k1 = 2.25577e-5;
@@ -554,7 +554,7 @@ namespace CumulusMX
 			double radMean, double maxRadMean, double windAvgMs,
 			double pressKpa)
 		{
-			var windHeightM = 2.0; // height of wind sensor in metres, we assume 2m for a typical amateur station
+			var windHeightM = 2.0; // height of wind sensor in metres, we assume 2m for a typical amateur Stations
 
 			// Use grass as the reference crop
 			var albedo = 0.23;

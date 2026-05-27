@@ -37,7 +37,7 @@ namespace CumulusMX.Stations
 		internal static readonly string[] underscoreV = ["_V"];
 		internal readonly int stationIndex = 0;
 
-		public GW1000Station(Cumulus cumulus) : base(cumulus)
+		public GW1000Station(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			SetSoilMoistUnits(stationIndex, "%");
 			SetAirQualUnits(stationIndex, "µg/m³");
@@ -301,7 +301,7 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				}
 
-				// get the station list
+				// get the Stations list
 				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 			}
 
@@ -881,7 +881,7 @@ namespace CumulusMX.Stations
 					LowBatteryDevices.Add(type + "-" + batt);
 				}
 
-				SensorReception[type] = data[sigPos];
+				StationData.SensorReception[type] = data[sigPos];
 
 				cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {batt}");
 			}
@@ -1665,7 +1665,7 @@ namespace CumulusMX.Stations
 							idx += 3;
 #endif
 							break;
-						case 0x7A: // Preferred rain sensor on station
+						case 0x7A: // Preferred rain sensor on Stations
 							var sensor = data[idx++];
 #if DEBUG
 							if (sensor == 0)

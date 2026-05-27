@@ -873,7 +873,7 @@ namespace CumulusMX
 				HighWbgtTime = DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? null : DailyHighLow.Today.HighWbgtTime
 			};
 
-			DayFile.Add(newRec);
+			MetData.DayFile.Add(newRec);
 
 			// add to SQLite
 			RecentDataDb.Insert(newRec);
@@ -987,7 +987,7 @@ namespace CumulusMX
 					var watch = Stopwatch.StartNew();
 
 					// Clear the existing list
-					DayFile.Clear();
+					MetData.DayFile.Clear();
 					RecentDataDb.Execute("DELETE FROM DayFileRec");
 
 					var lines = File.ReadAllLines(cumulus.DayFileName);
@@ -1000,14 +1000,14 @@ namespace CumulusMX
 							linenum++;
 							var newRec = new DayFileRec(line);
 
-							if (DayFile.Exists(x => x.Date == newRec.Date))
+							if (MetData.DayFile.Exists(x => x.Date == newRec.Date))
 							{
 								cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
 								msg.Append($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>");
 								duplicateCount++;
 							}
 
-							DayFile.Add(newRec);
+							MetData.DayFile.Add(newRec);
 
 							addedToList++;
 						}
@@ -1028,7 +1028,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							addedToDb = RecentDataDb.InsertAll(DayFile, true);
+							addedToDb = RecentDataDb.InsertAll(MetData.DayFile, true);
 						}
 						catch (Exception ex)
 						{

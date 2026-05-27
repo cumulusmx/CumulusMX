@@ -28,7 +28,7 @@ namespace CumulusMX.Stations
 
 		private bool stop;
 
-		public WS2300Station(Cumulus cumulus) : base(cumulus)
+		public WS2300Station(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.Manufacturer = Cumulus.StationManufacturer.LACROSSE;
 			calculaterainrate = true;
@@ -146,7 +146,7 @@ namespace CumulusMX.Stations
 				}
 				else
 				{
-					// use time from station
+					// use time from Stations
 					recordtime = ws2300TimestampToDateTime(ts);
 				}
 
@@ -1050,7 +1050,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// Get pressure offset (sea level - station)
+		/// Get pressure offset (sea level - Stations)
 		/// </summary>
 		/// <returns>offset in mb</returns>
 		private double Ws2300PressureOffset()
@@ -1156,7 +1156,7 @@ namespace CumulusMX.Stations
 
 		/*
 		/// <summary>
-		/// Writes data to the station
+		/// Writes data to the Stations
 		/// </summary>
 		/// <param name="address"></param>
 		/// <param name="number"></param>
@@ -1260,7 +1260,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// Read data from the station
+		/// Read data from the Stations
 		/// </summary>
 		/// <param name="address"></param>
 		/// <param name="numberofbytes"></param>
@@ -1323,7 +1323,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// Calculates the checksum for the data received from the station
+		/// Calculates the checksum for the data received from the Stations
 		/// </summary>
 		/// <param name="data"></param>
 		/// <param name="numberofbytes"></param>
@@ -1341,7 +1341,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// Converts 'number of bytes to read' to form expected by station
+		/// Converts 'number of bytes to read' to form expected by Stations
 		/// </summary>
 		/// <param name="number">number to be encoded</param>
 		/// <returns></returns>
@@ -1358,7 +1358,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// calculates the checksum for the first 4 commands sent to the station
+		/// calculates the checksum for the first 4 commands sent to the Stations
 		/// </summary>
 		/// <param name="command"></param>
 		/// <param name="sequence"></param>
@@ -1386,7 +1386,7 @@ namespace CumulusMX.Stations
 		*/
 
 		/// <summary>
-		/// Converts addresses to the form required by the station when sending commands
+		/// Converts addresses to the form required by the Stations when sending commands
 		/// </summary>
 		/// <param name="addressIn">Address to be encoded</param>
 		/// <param name="addressOut">Encoded address</param>
@@ -1402,7 +1402,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// Reset the station by sending command 06
+		/// Reset the Stations by sending command 06
 		/// </summary>
 		/// <returns>True if successful</returns>
 		private bool Ws2300SendReset()

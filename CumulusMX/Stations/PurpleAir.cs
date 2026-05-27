@@ -423,8 +423,8 @@ namespace CumulusMX.Stations
 				// The PA sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the PA clock being correct, we will use our local time
 
-				station.DoAirQuality(json.sensor.pm_2p5, 1);
-				station.DoAirQualityAvg(json.sensor.pm_2p5_24_hours, 1);
+				Stations.DoAirQuality(json.sensor.pm_2p5, 1);
+				Stations.DoAirQualityAvg(json.sensor.pm_2p5_24_hours, 1);
 
 			}
 			catch (Exception ex)

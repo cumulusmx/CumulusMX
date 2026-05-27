@@ -3,7 +3,7 @@ using System.Text;
 
 namespace CumulusMX.Stations
 {
-	// The VPLoopData class extracts and stores the weather data from the array of bytes returned from the Vantage weather station
+	// The VPLoopData class extracts and stores the weather data from the array of bytes returned from the Vantage weather Stations
 	// The array is generated from the return of the LOOP command.
 	//
 	// Contents of the character array (LOOP packet from Vantage):
@@ -302,7 +302,7 @@ namespace CumulusMX.Stations
 		}
 	}
 
-	// The WeatherCalibrationData class extracts and stores the weather data from the array of bytes returned from the Vantage weather station
+	// The WeatherCalibrationData class extracts and stores the weather data from the array of bytes returned from the Vantage weather Stations
 	// The array is generated from the return of the CALED command.
 	//
 	//    Field                           Offset  Size    Explanation
@@ -546,7 +546,7 @@ namespace CumulusMX.Stations
 		}
 	}
 
-	// The VPLoop2Data class extracts and stores the weather data from the array of bytes returned from the Vantage weather station
+	// The VPLoop2Data class extracts and stores the weather data from the array of bytes returned from the Vantage weather Stations
 	// The array is generated from the return of the LPS command.
 	//
 	// Contents of the character array (LOOP2 packet from Vantage):

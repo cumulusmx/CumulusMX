@@ -19,11 +19,10 @@ namespace CumulusMX.Stations
 		private int currentPacketType;
 		private bool stop;
 
-		public WM918Station(Cumulus cumulus)
-			: base(cumulus)
+		public WM918Station(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGON;
-			// station supplies rain rate
+			// Stations supplies rain rate
 			calculaterainrate = false;
 
 			cumulus.LogMessage("Station type = WM918");

@@ -9,17 +9,13 @@ namespace CumulusMX.Stations
 {
 	class HttpStationAmbient : WeatherStation
 	{
-		private readonly WeatherStation station;
 		private bool starting = true;
 		private bool stopping = false;
 		private readonly bool mainStation = true;
-		private readonly int stationIndex;
 
-		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
+		public HttpStationAmbient(Cumulus cumulus, int id) : base(cumulus, id)
 		{
-			this.station = station;
-
-			if (station == null)
+			if (id == 0)
 			{
 				cumulus.LogMessage("Creating HTTP Station (Ambient)");
 			}
@@ -29,8 +25,6 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Creating Extra Sensors - HTTP Station (Ambient)");
 			}
 
-			stationIndex = mainStation ? 0 : 1;
-
 			// Ambient does not provide average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 			// Ambient does not send the rain rate, so we will calculate it
@@ -38,10 +32,10 @@ namespace CumulusMX.Stations
 			// Ambient does not send DP, so force MX to calculate it
 			//cumulus.StationOptions.CalculatedDP = true
 
-			SetSoilMoistUnits(stationIndex, "%");
-			SetAirQualUnits(stationIndex, "µg/m³");
+			SetSoilMoistUnits(StationId, "%");
+			SetAirQualUnits(StationId, "µg/m³");
 
-			// Only perform the Start-up if we are a proper station, not a Extra Sensor
+			// Only perform the Start-up if we are a proper Stations, not a Extra Sensor
 			if (mainStation)
 			{
 				Start();
@@ -70,7 +64,7 @@ namespace CumulusMX.Stations
 			stopping = true;
 			Api.stationAmbient = null;
 			Api.stationAmbientExtra = null;
-			if (station == null)
+			if (StationId == 0)
 			{
 				StopMinuteTimer();
 			}
@@ -89,7 +83,6 @@ namespace CumulusMX.Stations
 			DateTime recDate;
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
-			var thisStation = main ? this : station;
 
 			if (starting || stopping)
 			{
@@ -409,7 +402,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// temp[1-10]f
-					ProcessExtraTemps(data, thisStation);
+					ProcessExtraTemps(data);
 				}
 				catch (Exception ex)
 				{
@@ -421,7 +414,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// humidity[1-10]
-					ProcessExtraHumidity(data, thisStation);
+					ProcessExtraHumidity(data);
 				}
 				catch (Exception ex)
 				{
@@ -435,7 +428,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						// solarradiation
-						ProcessSolar(data, thisStation, recDate);
+						ProcessSolar(data, this, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -450,7 +443,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						// uv
-						ProcessUv(data, thisStation, recDate);
+						ProcessUv(data, this, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -463,7 +456,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// soiltemp[1-10]
-					ProcessSoilTemps(data, thisStation);
+					ProcessSoilTemps(data);
 				}
 				catch (Exception ex)
 				{
@@ -475,7 +468,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// soilhum[1-10]
-					ProcessSoilMoist(data, thisStation);
+					ProcessSoilMoist(data);
 				}
 				catch (Exception ex)
 				{
@@ -500,7 +493,7 @@ namespace CumulusMX.Stations
 					// pm10_in_24h_aqin - [float, µg/m^3]
 					// pm_in_temp_aqin - [float, F]
 					// pm_in_humidity_aqin - [int, %]
-					ProcessAirQuality(data, thisStation);
+					ProcessAirQuality(data, this);
 				}
 				catch (Exception ex)
 				{
@@ -530,7 +523,7 @@ namespace CumulusMX.Stations
 					// lightning_day - [int, count]
 					// lightning_time - [int, Unix time]
 					// lightning_distance - [float, km]
-					ProcessLightning(data, thisStation);
+					ProcessLightning(data);
 				}
 				catch (Exception ex)
 				{
@@ -542,7 +535,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// leak[1 - 4]
-					ProcessLeak(data, thisStation);
+					ProcessLeak(data);
 				}
 				catch (Exception ex)
 				{
@@ -578,19 +571,21 @@ namespace CumulusMX.Stations
 				// === Extra Dew point ===
 				try
 				{
-					ProcessExtraDewPoint(data, thisStation);
+					ProcessExtraDewPoint(data);
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogErrorMessage($"{procName}: Error calculating extra sensor dew points - " + ex.Message);
 				}
 
+				if (StationId == 0)
+				{
+					DoForecast(string.Empty, false);
+				}
 
-				thisStation.DoForecast(string.Empty, false);
-
-				thisStation.UpdateStatusPanel(recDate.ToUniversalTime());
-				thisStation.UpdateMQTT();
-				thisStation.LastDataReadTime = recDate;
+				UpdateStatusPanel(recDate.ToUniversalTime());
+				UpdateMQTT();
+				LastDataReadTime = recDate;
 			}
 			catch (Exception ex)
 			{
@@ -606,11 +601,11 @@ namespace CumulusMX.Stations
 		}
 
 
-		private void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraTemps(NameValueCollection data)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (stationIndex == cumulus.SensorMaps.ExtraTempHum[i - 1])
+				if (StationId == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					double? val = data["temp" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i], CultureInfo.InvariantCulture));
 					WeatherStation.DoExtraTemp(val, i);
@@ -618,11 +613,11 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessExtraHumidity(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraHumidity(NameValueCollection data)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (stationIndex == cumulus.SensorMaps.ExtraTempHum[i - 1])
+				if (StationId == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					int? val = data["humidity" + i] == null ? null : (int) Convert.ToDouble(data["humidity" + i], CultureInfo.InvariantCulture);
 					WeatherStation.DoExtraHum(val, i);
@@ -646,11 +641,11 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessSoilTemps(NameValueCollection data, WeatherStation station)
+		private void ProcessSoilTemps(NameValueCollection data)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (stationIndex == cumulus.SensorMaps.SoilTemp[i - 1])
+				if (StationId == cumulus.SensorMaps.SoilTemp[i - 1])
 				{
 					double? val = data["soiltemp" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltemp" + i], CultureInfo.InvariantCulture));
 					WeatherStation.DoSoilTemp(val, i - 1);
@@ -658,11 +653,11 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
+		private void ProcessSoilMoist(NameValueCollection data)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (stationIndex == cumulus.SensorMaps.SoilMoist[i-1])
+				if (StationId == cumulus.SensorMaps.SoilMoist[i-1])
 				{
 					int? val = data["soilhum" + i] == null ? null : (int) Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture);
 					WeatherStation.DoSoilMoisture(val, i);
@@ -690,7 +685,7 @@ namespace CumulusMX.Stations
 			// From FOSKplugin
 			// pm25_AQIlvl_ch[1-4]
 			// pm25_AQIlvl_avg_24h_ch1
-			if (stationIndex != cumulus.SensorMaps.AirQual[0]) return;
+			if (StationId != cumulus.SensorMaps.AirQual[0]) return;
 
 
 			var pm = data["pm25"] ?? data["pm25_in"] ?? data["pm25_in_aqin"];
@@ -703,7 +698,7 @@ namespace CumulusMX.Stations
 
 		/*
 		 * Not yet used
-		private void ProcessCo2(NameValueCollection data, WeatherStation station)
+		private void ProcessCo2(NameValueCollection data, WeatherStation Stations)
 		{
 			// co2 - [int, ppm]
 			// co2_in - [int, ppm]
@@ -711,11 +706,11 @@ namespace CumulusMX.Stations
 
 			//if (data["co2_in"] != null)
 			//{
-			//	station.CO2 = Convert.ToInt32(data["co2_in"], CultureInfo.InvariantCulture);
+			//	Stations.CO2 = Convert.ToInt32(data["co2_in"], CultureInfo.InvariantCulture);
 			//}
 			//if (data["co2_in_24"] != null)
 			//{
-			//	station.CO2_24h = Convert.ToInt32(data["co2_in_24"], CultureInfo.InvariantCulture);
+			//	Stations.CO2_24h = Convert.ToInt32(data["co2_in_24"], CultureInfo.InvariantCulture);
 			//}
 
 			// From FOSKplugin
@@ -728,30 +723,30 @@ namespace CumulusMX.Stations
 
 			if (data["co2lvl"] != null)
 			{
-				station.CO2 = Convert.ToInt32(data["co2lvl"], CultureInfo.InvariantCulture);
+				Stations.CO2 = Convert.ToInt32(data["co2lvl"], CultureInfo.InvariantCulture);
 			}
 			if (data["pm25_AQIlvl_co2"] != null)
 			{
-				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_AQIlvl_co2"], CultureInfo.InvariantCulture);
+				Stations.CO2_pm2p5 = Convert.ToDouble(data["pm25_AQIlvl_co2"], CultureInfo.InvariantCulture);
 			}
 			if (data["pm25_AQIlvl_24h_co2"] != null)
 			{
-				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
+				Stations.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
 			}
 			if (data["pm10_AQIlvl_co2"] != null)
 			{
-				station.CO2_pm10 = Convert.ToDouble(data["pm10_AQIlvl_co2"], CultureInfo.InvariantCulture);
+				Stations.CO2_pm10 = Convert.ToDouble(data["pm10_AQIlvl_co2"], CultureInfo.InvariantCulture);
 			}
 			if (data["pm10_AQIlvl_24h_co2"] != null)
 			{
-				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
+				Stations.CO2_pm10_24h = Convert.ToDouble(data["pm10_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
 			}
 		}
 		*/
 
-		private void ProcessLightning(NameValueCollection data, WeatherStation station)
+		private void ProcessLightning(NameValueCollection data)
 		{
-			if (stationIndex != cumulus.SensorMaps.Lightning) return;
+			if (StationId != cumulus.SensorMaps.Lightning) return;
 
 			var num = data["lightning_day"];
 			var time = data["lightning_time"];
@@ -793,11 +788,11 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessLeak(NameValueCollection data, WeatherStation station)
+		private void ProcessLeak(NameValueCollection data)
 		{
 			for (var i = 1; i <= 4; i++)
 			{
-				if (stationIndex == cumulus.SensorMaps.Leak[i-1])
+				if (StationId == cumulus.SensorMaps.Leak[i-1])
 				{
 					WeatherStation.DoLeakSensor(data["leak" + i] == null ? null : Convert.ToInt32(data["leak" + i], CultureInfo.InvariantCulture), i);
 				}
@@ -842,7 +837,7 @@ namespace CumulusMX.Stations
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
 		}
 
-		private void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraDewPoint(NameValueCollection data)
 		{
 			for (var i = 1; i <= 10; i++)
 			{

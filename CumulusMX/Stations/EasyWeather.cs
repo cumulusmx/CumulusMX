@@ -46,7 +46,7 @@ namespace CumulusMX.Stations
 	 * 37   Data address        6 digit hex
 	 * 38   Raw data            16x 2-digit hex
 	*/
-	internal class EasyWeather(Cumulus cumulus) : WeatherStation(cumulus)
+	internal class EasyWeather : WeatherStation
 	{
 		private readonly Timer tmrDataRead = new();
 
@@ -70,6 +70,12 @@ namespace CumulusMX.Stations
 
 		private string lastTime = string.Empty;
 		private string lastDate = string.Empty;
+
+		public EasyWeather(Cumulus cumulus, int id) : base(cumulus, id)
+		{
+			LoadLastHoursFromDataLogs(DateTime.Now);
+		}
+
 
 		public override void Start()
 		{

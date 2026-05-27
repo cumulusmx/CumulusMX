@@ -21,7 +21,7 @@ namespace CumulusMX.Stations
 		// Need a reference to the logger in the internal classes
 		internal static Cumulus? CumulusLogger;
 
-		public TempestStation(Cumulus cumulus) : base(cumulus)
+		public TempestStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			calculaterainrate = false;
 			CumulusLogger = cumulus;
@@ -42,7 +42,7 @@ namespace CumulusMX.Stations
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
-			Task.Run(getAndProcessHistoryData);// grab old data, then start the station
+			Task.Run(getAndProcessHistoryData);// grab old data, then start the Stations
 
 		}
 

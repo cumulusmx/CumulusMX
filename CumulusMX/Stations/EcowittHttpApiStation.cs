@@ -45,7 +45,7 @@ namespace CumulusMX.Stations
 		DateTime newLightningTime = DateTime.MinValue;
 
 
-		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
+		public EcowittHttpApiStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			SetAirQualUnits(stationIndex, "µg/m³");
 			SetSoilMoistUnits(stationIndex, "%");
@@ -148,7 +148,7 @@ namespace CumulusMX.Stations
 			// Get the sensor list
 			GetSensorIds(false).Wait();
 
-			// Check station clock
+			// Check Stations clock
 			GetSystemInfo(false, false).Wait();
 
 			// Check firmware
@@ -201,7 +201,7 @@ namespace CumulusMX.Stations
 								ProcessCommonList(rawData.common_list, dataLastRead);
 							}
 
-							// process base station values
+							// process base Stations values
 							if (rawData.wh25 != null)
 							{
 								ProcessWh25(rawData.wh25, dataLastRead);
@@ -429,7 +429,7 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				}
 
-				// get the station list
+				// get the Stations list
 				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 			}
 
@@ -467,7 +467,7 @@ namespace CumulusMX.Stations
 		}
 
 		/// <summary>
-		/// Retrieves and processes historic data from the SD card of the weather station.
+		/// Retrieves and processes historic data from the SD card of the weather Stations.
 		/// This method performs the following steps:
 		/// 1. Logs the start of the historic data process.
 		/// 2. Retrieves the list of log files from the SD card.
@@ -538,7 +538,7 @@ namespace CumulusMX.Stations
 
 			foreach (var file in baseFiles)
 			{
-				// add a short delay for the station to sort itself out before we request the next file
+				// add a short delay for the Stations to sort itself out before we request the next file
 				Thread.Sleep(250);
 
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
@@ -593,7 +593,7 @@ namespace CumulusMX.Stations
 
 			foreach (var file in extraFiles)
 			{
-				// add a short delay for the station to sort itself out before we request the next file
+				// add a short delay for the Stations to sort itself out before we request the next file
 				Thread.Sleep(250);
 
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
@@ -1032,8 +1032,8 @@ namespace CumulusMX.Stations
 									cumulus.LogMessage($"Unknown sensor type in SensorIds. Model={sensor.img}, type={sensor.type}");
 									break;
 							}
-							SensorReception[name] = (byte) (sensor.signal ?? 0);
-							SensorRssi[name] = sensor.rssi ?? 0;
+							StationData.SensorReception[name] = (byte) (sensor.signal ?? 0);
+							StationData.SensorRssi[name] = sensor.rssi ?? 0;
 						}
 					}
 					catch (Exception ex)

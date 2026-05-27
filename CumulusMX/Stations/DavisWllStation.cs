@@ -45,7 +45,7 @@ namespace CumulusMX.Stations
 		private DateTime lastHistoricData;
 		private string subscriptionLevel = string.Empty;
 
-		public DavisWllStation(Cumulus cumulus) : base(cumulus)
+		public DavisWllStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			calculaterainrate = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
@@ -110,7 +110,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Perform Station ID checks - If we have API details!
-			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key or the UUID is known
+			// If the Station ID is missing, this will populate it if the user only has one Stations associated with the API key or the UUID is known
 			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
 			{
 				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")} in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
@@ -124,17 +124,17 @@ namespace CumulusMX.Stations
 				GetAvailableStationIds(false);
 			}
 
-			// Sanity check the station id
+			// Sanity check the Stations id
 			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
 			{
-				// API details supplied, but Station Id is still invalid - do not start the station up.
+				// API details supplied, but Station Id is still invalid - do not start the Stations up.
 				cumulus.LogErrorMessage("WLL - The WeatherLink.com API is enabled, but no Station Id has been configured, not starting the station. Please correct this and restart Cumulus");
 				Cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus", ConsoleColor.Yellow);
 				return;
 			}
 
 
-			// Now get the sensors associated with this station
+			// Now get the sensors associated with this Stations
 			if (useWeatherLinkDotCom)
 				GetAvailableSensors();
 
@@ -1312,7 +1312,7 @@ namespace CumulusMX.Stations
 
 				SensorContactLost = localSensorContactLost;
 
-				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
+				// If the Stations isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
 				LowBatteryDevices.Clear();
 
@@ -3004,7 +3004,7 @@ namespace CumulusMX.Stations
 					// 504 = WLL Health
 					// 506 = AirLink Health
 
-					// Get the LSID of the health station associated with each device
+					// Get the LSID of the health Stations associated with each device
 					var alInHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkInLsid, 506);
 					var alOutHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkOutLsid, 506);
 

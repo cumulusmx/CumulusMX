@@ -81,7 +81,7 @@ namespace CumulusMX.ThirdParty
 						message.Append(APRSsolarradStr(Convert.ToInt32(MetData.SolarRad)));
 					}
 
-					// station type e<string>
+					// Stations type e<string>
 					message.Append($"eCumulus{cumulus.APRSstationtype[cumulus.StationType]}");
 
 					cumulus.LogDebugMessage($"Sending: {message}");

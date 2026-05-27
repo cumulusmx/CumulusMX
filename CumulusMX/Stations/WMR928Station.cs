@@ -26,10 +26,10 @@ namespace CumulusMX.Stations
 		private readonly int[] WMR928PacketLength = [11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255];
 
 
-		public WMR928Station(Cumulus cumulus) : base(cumulus)
+		public WMR928Station(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGON;
-			// station supplies rain rate
+			// Stations supplies rain rate
 			calculaterainrate = false;
 
 			cumulus.LogMessage("Station type = WMR928");
@@ -527,7 +527,7 @@ namespace CumulusMX.Stations
 
 		private void WMR928Indoor2(List<int> buff)
 		{
-			// Indoor Baro-Thermo-Hygrometer  (alternative for some types of station)
+			// Indoor Baro-Thermo-Hygrometer  (alternative for some types of Stations)
 			// FF FF 05 b0 T3T4 T1T2 H1H2 D1D2 P1P2 F1F2 S3S4 S1S2 C1C2
 			// 0  1  2  3  4    5    6    7    8    9    10   11   12
 			// Battery status b

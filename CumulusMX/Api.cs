@@ -585,72 +585,72 @@ namespace CumulusMX
 					{
 						// recent data
 						case "tempdata.json":
-							await writer.WriteAsync(Station.GetTempGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetTempGraphData(incremental, true, start));
 							break;
 						case "winddata.json":
-							await writer.WriteAsync(Station.GetWindGraphData(incremental, start));
+							await writer.WriteAsync(cumulus.GetWindGraphData(incremental, start));
 							break;
 						case "raindata.json":
-							await writer.WriteAsync(Station.GetRainGraphData(incremental, start));
+							await writer.WriteAsync(cumulus.GetRainGraphData(incremental, start));
 							break;
 						case "pressdata.json":
-							await writer.WriteAsync(Station.GetPressGraphData(incremental, start));
+							await writer.WriteAsync(cumulus.GetPressGraphData(incremental, start));
 							break;
 						case "wdirdata.json":
-							await writer.WriteAsync(Station.GetWindDirGraphData(incremental, start));
+							await writer.WriteAsync(cumulus.GetWindDirGraphData(incremental, start));
 							break;
 						case "humdata.json":
-							await writer.WriteAsync(Station.GetHumGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetHumGraphData(incremental, true, start));
 							break;
 						case "solardata.json":
-							await writer.WriteAsync(Station.GetSolarGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetSolarGraphData(incremental, true, start));
 							break;
 						case "airqualitydata.json":
-							await writer.WriteAsync(Station.GetAqGraphData(incremental, start));
+							await writer.WriteAsync(cumulus.GetAqGraphData(incremental, start));
 							break;
 						case "extratemp.json":
-							await writer.WriteAsync(Station.GetExtraTempGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetExtraTempGraphData(incremental, true, start));
 							break;
 						case "extrahum.json":
-							await writer.WriteAsync(Station.GetExtraHumGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetExtraHumGraphData(incremental, true, start));
 							break;
 						case "extradew.json":
-							await writer.WriteAsync(Station.GetExtraDewPointGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetExtraDewPointGraphData(incremental, true, start));
 							break;
 						case "soiltemp.json":
-							await writer.WriteAsync(Station.GetSoilTempGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetSoilTempGraphData(incremental, true, start));
 							break;
 						case "soilmoist.json":
-							await writer.WriteAsync(Station.GetSoilMoistGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetSoilMoistGraphData(incremental, true, start));
 							break;
 						case "soilec.json":
-							await writer.WriteAsync(Station.GetSoilEcGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetSoilEcGraphData(incremental, true, start));
 							break;
 						case "leafwetness.json":
-							await writer.WriteAsync(Station.GetLeafWetnessGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetLeafWetnessGraphData(incremental, true, start));
 							break;
 						case "usertemp.json":
-							await writer.WriteAsync(Station.GetUserTempGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetUserTempGraphData(incremental, true, start));
 							break;
 						case "co2sensor.json":
-							await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetCo2SensorGraphData(incremental, true, start));
 							break;
 						case "laserdepth.json":
-							await writer.WriteAsync(Station.GetLaserDepthGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetLaserDepthGraphData(incremental, true, start));
 							break;
 						case "snow24h.json":
-							await writer.WriteAsync(Station.GetSnow24hGraphData(incremental, true, start));
+							await writer.WriteAsync(cumulus.GetSnow24hGraphData(incremental, true, start));
 							break;
 
 						// daily data
 						case "dailyrain.json":
-							await writer.WriteAsync(Station.GetDailyRainGraphData());
+							await writer.WriteAsync(cumulus.GetDailyRainGraphData());
 							break;
 						case "sunhours.json":
-							await writer.WriteAsync(Station.GetSunHoursGraphData(true));
+							await writer.WriteAsync(cumulus.GetSunHoursGraphData(true));
 							break;
 						case "dailytemp.json":
-							await writer.WriteAsync(Station.GetDailyTempGraphData(true));
+							await writer.WriteAsync(cumulus.GetDailyTempGraphData(true));
 							break;
 						case "units.json":
 							await writer.WriteAsync(Station.GetUnits());
@@ -679,51 +679,51 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.GetIntervalAqGraphData(true, start, end));
 							break;
 						case "intvextratemp.json":
-							await writer.WriteAsync(Station.GetExtraTempGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetExtraTempGraphData(false, true, start, end));
 							break;
 						case "intvextrahum.json":
-							await writer.WriteAsync(Station.GetExtraHumGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetExtraHumGraphData(false, true, start, end));
 							break;
 						case "intvextradew.json":
-							await writer.WriteAsync(Station.GetExtraDewPointGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetExtraDewPointGraphData(false, true, start, end));
 							break;
 						case "intvsoiltemp.json":
-							await writer.WriteAsync(Station.GetSoilTempGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetSoilTempGraphData(false, true, start, end));
 							break;
 						case "intvsoilmoist.json":
-							await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetSoilMoistGraphData(false, true, start, end));
 							break;
 						case "intvsoilec.json":
-							await writer.WriteAsync(Station.GetSoilEcGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetSoilEcGraphData(false, true, start, end));
 							break;
 						case "intvleafwetness.json":
-							await writer.WriteAsync(Station.GetLeafWetnessGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetLeafWetnessGraphData(false, true, start, end));
 							break;
 						case "intvusertemp.json":
-							await writer.WriteAsync(Station.GetUserTempGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetUserTempGraphData(false, true, start, end));
 							break;
 						case "intvco2sensor.json":
-							await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetCo2SensorGraphData(false, true, start, end));
 							break;
 						case "intvlaserdepth.json":
-							await writer.WriteAsync(Station.GetLaserDepthGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetLaserDepthGraphData(false, true, start, end));
 							break;
 						case "intvsnow24h.json":
-							await writer.WriteAsync(Station.GetSnow24hGraphData(false, true, start, end));
+							await writer.WriteAsync(cumulus.GetSnow24hGraphData(false, true, start, end));
 							break;
 
 						// config data
 						case "graphconfig.json":
-							await writer.WriteAsync(Station.GetGraphConfig(true));
+							await writer.WriteAsync(cumulus.GetGraphConfig(true));
 							break;
 						case "availabledata.json":
-							await writer.WriteAsync(Station.GetAvailGraphData(true));
+							await writer.WriteAsync(cumulus.GetAvailGraphData(true));
 							break;
 						case "selectachart.json":
-							await writer.WriteAsync(Station.GetSelectaChartOptions());
+							await writer.WriteAsync(cumulus.GetSelectaChartOptions());
 							break;
 						case "selectaperiod.json":
-							await writer.WriteAsync(Station.GetSelectaPeriodOptions());
+							await writer.WriteAsync(cumulus.GetSelectaPeriodOptions());
 							break;
 						default:
 							Response.StatusCode = 404;
@@ -793,43 +793,43 @@ namespace CumulusMX
 					switch (req)
 					{
 						case "tempdata.json":
-							await writer.WriteAsync(Station.GetAllDailyTempGraphData(true));
+							await writer.WriteAsync(cumulus.GetAllDailyTempGraphData(true));
 							break;
 						case "winddata.json":
-							await writer.WriteAsync(Station.GetAllDailyWindGraphData());
+							await writer.WriteAsync(cumulus.GetAllDailyWindGraphData());
 							break;
 						case "raindata.json":
-							await writer.WriteAsync(Station.GetAllDailyRainGraphData());
+							await writer.WriteAsync(cumulus.GetAllDailyRainGraphData());
 							break;
 						case "pressdata.json":
-							await writer.WriteAsync(Station.GetAllDailyPressGraphData());
+							await writer.WriteAsync(cumulus.GetAllDailyPressGraphData());
 							break;
 						case "wdirdata.json":
-							await writer.WriteAsync(Station.GetAllDailyWindDirGraphData());
+							await writer.WriteAsync(Cumulus.GetAllDailyWindDirGraphData());
 							break;
 						case "humdata.json":
-							await writer.WriteAsync(Station.GetAllDailyHumGraphData());
+							await writer.WriteAsync(Cumulus.GetAllDailyHumGraphData());
 							break;
 						case "solardata.json":
-							await writer.WriteAsync(Station.GetAllDailySolarGraphData(true));
+							await writer.WriteAsync(cumulus.GetAllDailySolarGraphData(true));
 							break;
 						case "degdaydata.json":
-							await writer.WriteAsync(Station.GetAllDegreeDaysGraphData(true));
+							await writer.WriteAsync(cumulus.GetAllDegreeDaysGraphData(true));
 							break;
 						case "dailysnow.json":
-							await writer.WriteAsync(Station.GetAllSnowGraphData(true));
+							await writer.WriteAsync(cumulus.GetAllSnowGraphData(true));
 							break;
 						case "tempsumdata.json":
-							await writer.WriteAsync(Station.GetAllTempSumGraphData(true));
+							await writer.WriteAsync(cumulus.GetAllTempSumGraphData(true));
 							break;
 						case "chillhrsdata.json":
-							await writer.WriteAsync(Station.GetAllChillHrsGraphData(true));
+							await writer.WriteAsync(cumulus.GetAllChillHrsGraphData(true));
 							break;
 						case "units.json":
 							await writer.WriteAsync(Station.GetUnits());
 							break;
 						case "graphconfig.json":
-							await writer.WriteAsync(Station.GetGraphConfig(true));
+							await writer.WriteAsync(cumulus.GetGraphConfig(true));
 							break;
 						default:
 							Response.StatusCode = 404;
@@ -1686,7 +1686,7 @@ namespace CumulusMX
 			}
 		}
 
-		// HTTP Station, prefix /station/
+		// HTTP Station, prefix /Stations/
 		public class HttpStation : WebApiController
 		{
 			[Route(HttpVerbs.Post, "/{req}")]

@@ -15,7 +15,6 @@ namespace CumulusMX.Stations
 	{
 		private readonly WeatherStation station;
 		private readonly bool mainStation;
-		private readonly int stationIndex;
 
 		private bool haveTemp = false;
 		private bool haveHum = false;
@@ -30,12 +29,9 @@ namespace CumulusMX.Stations
 
 		private DateTime lastFileUpdateTime = DateTime.MinValue;
 
-		public JsonStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
+		public JsonStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
-			this.station = station;
-
-			mainStation = station == null;
-			stationIndex = mainStation ? 0 : 1;
+			mainStation = id == 0;
 
 			if (mainStation)
 			{
@@ -273,7 +269,7 @@ namespace CumulusMX.Stations
 				return "Unable to convert data string to data.";
 			}
 
-			// Only do the primary sensors if running as the main station
+			// Only do the primary sensors if running as the main Stations
 			if (mainStation)
 			{
 				// Temperature
@@ -553,7 +549,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Solar
-			if (data.solar != null && stationIndex == cumulus.SensorMaps.Solar)
+			if (data.solar != null && StationId == cumulus.SensorMaps.Solar)
 			{
 				try
 				{
@@ -570,7 +566,7 @@ namespace CumulusMX.Stations
 			}
 
 			// UV
-			if (data.solar != null && stationIndex == cumulus.SensorMaps.UV)
+			if (data.solar != null && StationId == cumulus.SensorMaps.UV)
 			{
 				try
 				{
@@ -602,7 +598,7 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							if (rec.temperature.HasValue && stationIndex == cumulus.SensorMaps.ExtraTempHum[rec.index - 1])
+							if (rec.temperature.HasValue && StationId == cumulus.SensorMaps.ExtraTempHum[rec.index - 1])
 							{
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								WeatherStation.DoExtraTemp(temp, rec.index);
@@ -624,7 +620,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (rec.humidity.HasValue && stationIndex == cumulus.SensorMaps.ExtraTempHum[rec.index - 1])
+						if (rec.humidity.HasValue && StationId == cumulus.SensorMaps.ExtraTempHum[rec.index - 1])
 						{
 							WeatherStation.DoExtraHum(rec.humidity.Value, rec.index);
 						}
@@ -651,7 +647,7 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							if (rec.temperature.HasValue && stationIndex == cumulus.SensorMaps.UserTemp[rec.index - 1])
+							if (rec.temperature.HasValue && StationId == cumulus.SensorMaps.UserTemp[rec.index - 1])
 							{
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								WeatherStation.DoUserTemp(temp, rec.index);
@@ -673,7 +669,7 @@ namespace CumulusMX.Stations
 			{
 				for (var i = 0; i < cumulus.SensorMaps.UserTemp.Length; i++)
 				{
-					if (stationIndex == cumulus.SensorMaps.UserTemp[i])
+					if (StationId == cumulus.SensorMaps.UserTemp[i])
 					{
 						WeatherStation.DoUserTemp(null, i + 1);
 					}
@@ -694,7 +690,7 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							if (rec.temperature.HasValue && stationIndex == cumulus.SensorMaps.SoilTemp[rec.index - 1])
+							if (rec.temperature.HasValue && StationId == cumulus.SensorMaps.SoilTemp[rec.index - 1])
 							{
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								WeatherStation.DoSoilTemp(temp, rec.index);
@@ -716,7 +712,7 @@ namespace CumulusMX.Stations
 			{
 				for (var i = 0; i < cumulus.SensorMaps.SoilTemp.Length; i++)
 				{
-					if (stationIndex == cumulus.SensorMaps.SoilTemp[i])
+					if (StationId == cumulus.SensorMaps.SoilTemp[i])
 					{
 						WeatherStation.DoSoilTemp(null, i + 1);
 					}
@@ -731,7 +727,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (stationIndex == cumulus.SensorMaps.SoilMoist[rec.index])
+						if (StationId == cumulus.SensorMaps.SoilMoist[rec.index])
 						{
 							WeatherStation.DoSoilMoisture(rec.value, rec.index);
 							cumulus.Units.SoilMoistureUnitText[rec.index - 1] = data.units.soilmoisture ?? "%";
@@ -748,7 +744,7 @@ namespace CumulusMX.Stations
 			{
 				for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
 				{
-					if (stationIndex == cumulus.SensorMaps.SoilMoist[i])
+					if (StationId == cumulus.SensorMaps.SoilMoist[i])
 					{
 						WeatherStation.DoSoilMoisture(null, i + 1);
 					}
@@ -762,7 +758,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (stationIndex == cumulus.SensorMaps.SoilMoist[rec.index])
+						if (StationId == cumulus.SensorMaps.SoilMoist[rec.index])
 						{
 							station.DoLeafWetness(rec.value, rec.index);
 						}
@@ -778,7 +774,7 @@ namespace CumulusMX.Stations
 			{
 				for (var i = 0; i < cumulus.SensorMaps.LeafWet.Length; i++)
 				{
-					if (stationIndex == cumulus.SensorMaps.LeafWet[i])
+					if (StationId == cumulus.SensorMaps.LeafWet[i])
 					{
 						station.DoLeafWetness(null, i + 1);
 					}
@@ -823,7 +819,7 @@ namespace CumulusMX.Stations
 			{
 				for (var i = 0; i < cumulus.SensorMaps.AirQual.Length; i++)
 				{
-					if (stationIndex == cumulus.SensorMaps.AirQual[i])
+					if (StationId == cumulus.SensorMaps.AirQual[i])
 					{
 						var chan = i + 1;
 						station.DoAirQuality(null, chan);
@@ -836,7 +832,7 @@ namespace CumulusMX.Stations
 
 
 			// CO2
-			if (data.co2 != null && stationIndex == cumulus.SensorMaps.CO2)
+			if (data.co2 != null && StationId == cumulus.SensorMaps.CO2)
 			{
 				try
 				{
@@ -857,7 +853,7 @@ namespace CumulusMX.Stations
 					retStr.AppendLine("Error processing CO2");
 				}
 			}
-			else if (stationIndex == cumulus.SensorMaps.CO2)
+			else if (StationId == cumulus.SensorMaps.CO2)
 			{
 				MetData.CO2 = null;
 				MetData.CO2_24h = null;
@@ -879,7 +875,7 @@ namespace CumulusMX.Stations
 				retStr.AppendLine("No laser distance units");
 				for (var i = 0; i < cumulus.SensorMaps.LaserDist.Length; i++)
 				{
-					if (stationIndex == cumulus.SensorMaps.LaserDist[i])
+					if (StationId == cumulus.SensorMaps.LaserDist[i])
 					{
 						station.DoLaserDistance(null, i + 1, data.lastupdated);
 
@@ -904,7 +900,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (stationIndex == cumulus.SensorMaps.LaserDist[rec.index - 1])
+						if (StationId == cumulus.SensorMaps.LaserDist[rec.index - 1])
 						{
 							double? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
 							station.DoLaserDistance(range, rec.index, data.lastupdated);
@@ -927,7 +923,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Lightning
-			if (stationIndex == cumulus.SensorMaps.Lightning)
+			if (StationId == cumulus.SensorMaps.Lightning)
 			{
 				MetData.LightningTime = data.lightning.time ?? DateTime.MinValue;
 				MetData.LightningStrikesToday += data.lightning.strikes ?? 0 - MetData.LightningCounter;
@@ -941,7 +937,7 @@ namespace CumulusMX.Stations
 			}
 
 			// BGT
-			if (stationIndex == cumulus.SensorMaps.BlackGlobe)
+			if (StationId == cumulus.SensorMaps.BlackGlobe)
 			{
 				if (data.temperature == null || data.temperature.blackglobe == null)
 				{

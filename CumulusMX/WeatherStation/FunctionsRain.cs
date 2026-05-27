@@ -55,7 +55,7 @@ namespace CumulusMX
 				return;
 			}
 
-			// Has the rain total in the station been reset?
+			// Has the rain total in the Stations been reset?
 			// raindaystart greater than current total, allow for rounding
 			// or current has jumped by more than 40 mm/1.5 inch
 			var maxIncrement = cumulus.Units.Rain == 0 ? 40 : 1.5;

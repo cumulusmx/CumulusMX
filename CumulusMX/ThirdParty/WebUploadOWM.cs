@@ -221,7 +221,7 @@ namespace CumulusMX.ThirdParty
 			return retVal;
 		}
 
-		// Create a new OpenWeatherMap station
+		// Create a new OpenWeatherMap Stations
 		private void CreateOpenWeatherMapStation()
 		{
 			var invC = new CultureInfo("");
@@ -272,7 +272,7 @@ namespace CumulusMX.ThirdParty
 		{
 			if (Enabled && string.IsNullOrWhiteSpace(ID))
 			{
-				// oh, oh! OpenWeatherMap is enabled, but we do not have a station id
+				// oh, oh! OpenWeatherMap is enabled, but we do not have a Stations id
 				// first check if one already exists
 				var stations = GetOpenWeatherMapStations();
 
@@ -284,7 +284,7 @@ namespace CumulusMX.ThirdParty
 				}
 				else if (stations.Length == 1)
 				{
-					// We have one station defined, lets use it!
+					// We have one Stations defined, lets use it!
 					cumulus.LogMessage($"OpenWeatherMap: No station defined, but found one associated with this API key, using this station - {stations[0].id} : {stations[0].name}");
 					ID = stations[0].id;
 					// save the setting

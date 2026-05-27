@@ -436,9 +436,9 @@ namespace CumulusMX
 			}
 
 			// Read the dayfile list extract the records from there
-			if (station.DayFile.Count > 0)
+			if (MetData.DayFile.Count > 0)
 			{
-				var data = station.DayFile.Where(r => r.Date >= startDate && r.Date <= endDate).ToList();
+				var data = MetData.DayFile.Where(r => r.Date >= startDate && r.Date <= endDate).ToList();
 				foreach (var rec in data)
 				{
 					if (firstRec)
@@ -1788,11 +1788,11 @@ namespace CumulusMX
 
 
 			// Read the day file list and extract the records from there
-			if (station.DayFile.Count > 0)
+			if (MetData.DayFile.Count > 0)
 			{
-				for (var i = 0; i < station.DayFile.Count; i++)
+				for (var i = 0; i < MetData.DayFile.Count; i++)
 				{
-					var loggedDate = station.DayFile[i].Date.Date;
+					var loggedDate = MetData.DayFile[i].Date.Date;
 					monthOffset = loggedDate.Month - 1;
 
 					// for the very first record we need to record the date
@@ -1816,83 +1816,83 @@ namespace CumulusMX
 
 
 					// hi gust
-					if (station.DayFile[i].HighGust > highGust[monthOffset].Value)
+					if (MetData.DayFile[i].HighGust > highGust[monthOffset].Value)
 					{
-						highGust[monthOffset].Value = station.DayFile[i].HighGust;
-						highGust[monthOffset].Ts = station.DayFile[i].HighGustTime;
+						highGust[monthOffset].Value = MetData.DayFile[i].HighGust;
+						highGust[monthOffset].Ts = MetData.DayFile[i].HighGustTime;
 					}
 					// lo temp
-					if (station.DayFile[i].LowTemp < lowTemp[monthOffset].Value)
+					if (MetData.DayFile[i].LowTemp < lowTemp[monthOffset].Value)
 					{
-						lowTemp[monthOffset].Value = station.DayFile[i].LowTemp;
-						lowTemp[monthOffset].Ts = station.DayFile[i].LowTempTime;
+						lowTemp[monthOffset].Value = MetData.DayFile[i].LowTemp;
+						lowTemp[monthOffset].Ts = MetData.DayFile[i].LowTempTime;
 					}
 					// hi min temp
-					if (station.DayFile[i].LowTemp > highMinTemp[monthOffset].Value)
+					if (MetData.DayFile[i].LowTemp > highMinTemp[monthOffset].Value)
 					{
-						highMinTemp[monthOffset].Value = station.DayFile[i].LowTemp;
-						highMinTemp[monthOffset].Ts = station.DayFile[i].LowTempTime;
+						highMinTemp[monthOffset].Value = MetData.DayFile[i].LowTemp;
+						highMinTemp[monthOffset].Ts = MetData.DayFile[i].LowTempTime;
 					}
 					// hi temp
-					if (station.DayFile[i].HighTemp > highTemp[monthOffset].Value)
+					if (MetData.DayFile[i].HighTemp > highTemp[monthOffset].Value)
 					{
-						highTemp[monthOffset].Value = station.DayFile[i].HighTemp;
-						highTemp[monthOffset].Ts = station.DayFile[i].HighTempTime;
+						highTemp[monthOffset].Value = MetData.DayFile[i].HighTemp;
+						highTemp[monthOffset].Ts = MetData.DayFile[i].HighTempTime;
 					}
 					// lo max temp
-					if (station.DayFile[i].HighTemp < lowMaxTemp[monthOffset].Value)
+					if (MetData.DayFile[i].HighTemp < lowMaxTemp[monthOffset].Value)
 					{
-						lowMaxTemp[monthOffset].Value = station.DayFile[i].HighTemp;
-						lowMaxTemp[monthOffset].Ts = station.DayFile[i].HighTempTime;
+						lowMaxTemp[monthOffset].Value = MetData.DayFile[i].HighTemp;
+						lowMaxTemp[monthOffset].Ts = MetData.DayFile[i].HighTempTime;
 					}
 
 					// temp ranges
 					// hi temp range
-					if ((station.DayFile[i].HighTemp - station.DayFile[i].LowTemp) > highTempRange[monthOffset].Value)
+					if ((MetData.DayFile[i].HighTemp - MetData.DayFile[i].LowTemp) > highTempRange[monthOffset].Value)
 					{
-						highTempRange[monthOffset].Value = station.DayFile[i].HighTemp - station.DayFile[i].LowTemp;
+						highTempRange[monthOffset].Value = MetData.DayFile[i].HighTemp - MetData.DayFile[i].LowTemp;
 						highTempRange[monthOffset].Ts = loggedDate;
 					}
 					// lo temp range
-					if ((station.DayFile[i].HighTemp - station.DayFile[i].LowTemp) < lowTempRange[monthOffset].Value)
+					if ((MetData.DayFile[i].HighTemp - MetData.DayFile[i].LowTemp) < lowTempRange[monthOffset].Value)
 					{
-						lowTempRange[monthOffset].Value = station.DayFile[i].HighTemp - station.DayFile[i].LowTemp;
+						lowTempRange[monthOffset].Value = MetData.DayFile[i].HighTemp - MetData.DayFile[i].LowTemp;
 						lowTempRange[monthOffset].Ts = loggedDate;
 					}
 
 					// lo baro
-					if (station.DayFile[i].LowPress < lowBaro[monthOffset].Value)
+					if (MetData.DayFile[i].LowPress < lowBaro[monthOffset].Value)
 					{
-						lowBaro[monthOffset].Value = station.DayFile[i].LowPress;
-						lowBaro[monthOffset].Ts = station.DayFile[i].LowPressTime;
+						lowBaro[monthOffset].Value = MetData.DayFile[i].LowPress;
+						lowBaro[monthOffset].Ts = MetData.DayFile[i].LowPressTime;
 					}
 					// hi baro
-					if (station.DayFile[i].HighPress > highBaro[monthOffset].Value)
+					if (MetData.DayFile[i].HighPress > highBaro[monthOffset].Value)
 					{
-						highBaro[monthOffset].Value = station.DayFile[i].HighPress;
-						highBaro[monthOffset].Ts = station.DayFile[i].HighPressTime;
+						highBaro[monthOffset].Value = MetData.DayFile[i].HighPress;
+						highBaro[monthOffset].Ts = MetData.DayFile[i].HighPressTime;
 					}
 					// hi rain rate
-					if (station.DayFile[i].HighRainRate > highRainRate[monthOffset].Value)
+					if (MetData.DayFile[i].HighRainRate > highRainRate[monthOffset].Value)
 					{
-						highRainRate[monthOffset].Value = station.DayFile[i].HighRainRate;
-						highRainRate[monthOffset].Ts = station.DayFile[i].HighRainRateTime;
+						highRainRate[monthOffset].Value = MetData.DayFile[i].HighRainRate;
+						highRainRate[monthOffset].Ts = MetData.DayFile[i].HighRainRateTime;
 					}
 					// hi rain day
-					if (station.DayFile[i].TotalRain > highRainDay[monthOffset].Value)
+					if (MetData.DayFile[i].TotalRain > highRainDay[monthOffset].Value)
 					{
-						highRainDay[monthOffset].Value = station.DayFile[i].TotalRain;
+						highRainDay[monthOffset].Value = MetData.DayFile[i].TotalRain;
 						highRainDay[monthOffset].Ts = loggedDate;
 					}
 					// hi 24h rain
-					if (station.DayFile[i].HighRain24h > highRain24h[monthOffset].Value)
+					if (MetData.DayFile[i].HighRain24h > highRain24h[monthOffset].Value)
 					{
-						highRain24h[monthOffset].Value = station.DayFile[i].HighRain24h;
-						highRain24h[monthOffset].Ts = station.DayFile[i].HighRain24hTime;
+						highRain24h[monthOffset].Value = MetData.DayFile[i].HighRain24h;
+						highRain24h[monthOffset].Ts = MetData.DayFile[i].HighRain24hTime;
 					}
 
 					// monthly rain
-					rainThisMonth += station.DayFile[i].TotalRain;
+					rainThisMonth += MetData.DayFile[i].TotalRain;
 
 					if (rainThisMonth > highRainMonth[monthOffset].Value)
 					{
@@ -1902,7 +1902,7 @@ namespace CumulusMX
 
 
 					// dry/wet period
-					if (Convert.ToInt32(station.DayFile[i].TotalRain * 1000) >= rainThreshold)
+					if (Convert.ToInt32(MetData.DayFile[i].TotalRain * 1000) >= rainThreshold)
 					{
 						if (isDryNow)
 						{
@@ -1944,109 +1944,109 @@ namespace CumulusMX
 					}
 
 					// hi wind run
-					if (station.DayFile[i].WindRun > highWindRun[monthOffset].Value)
+					if (MetData.DayFile[i].WindRun > highWindRun[monthOffset].Value)
 					{
-						highWindRun[monthOffset].Value = station.DayFile[i].WindRun;
+						highWindRun[monthOffset].Value = MetData.DayFile[i].WindRun;
 						highWindRun[monthOffset].Ts = loggedDate;
 					}
 					// hi wind
-					if (station.DayFile[i].HighAvgWind > highWind[monthOffset].Value)
+					if (MetData.DayFile[i].HighAvgWind > highWind[monthOffset].Value)
 					{
-						highWind[monthOffset].Value = station.DayFile[i].HighAvgWind;
-						highWind[monthOffset].Ts = station.DayFile[i].HighAvgWindTime;
+						highWind[monthOffset].Value = MetData.DayFile[i].HighAvgWind;
+						highWind[monthOffset].Ts = MetData.DayFile[i].HighAvgWindTime;
 					}
 
 					// lo humidity
-					if (station.DayFile[i].LowHumidity < lowHum[monthOffset].Value)
+					if (MetData.DayFile[i].LowHumidity < lowHum[monthOffset].Value)
 					{
-						lowHum[monthOffset].Value = station.DayFile[i].LowHumidity;
-						lowHum[monthOffset].Ts = station.DayFile[i].LowHumidityTime;
+						lowHum[monthOffset].Value = MetData.DayFile[i].LowHumidity;
+						lowHum[monthOffset].Ts = MetData.DayFile[i].LowHumidityTime;
 					}
 					// hi humidity
-					if (station.DayFile[i].HighHumidity > highHum[monthOffset].Value)
+					if (MetData.DayFile[i].HighHumidity > highHum[monthOffset].Value)
 					{
-						highHum[monthOffset].Value = station.DayFile[i].HighHumidity;
-						highHum[monthOffset].Ts = station.DayFile[i].HighHumidityTime;
+						highHum[monthOffset].Value = MetData.DayFile[i].HighHumidity;
+						highHum[monthOffset].Ts = MetData.DayFile[i].HighHumidityTime;
 					}
 
 					// hi heat index
-					if (station.DayFile[i].HighHeatIndex > highHeatInd[monthOffset].Value)
+					if (MetData.DayFile[i].HighHeatIndex > highHeatInd[monthOffset].Value)
 					{
-						highHeatInd[monthOffset].Value = station.DayFile[i].HighHeatIndex;
-						highHeatInd[monthOffset].Ts = station.DayFile[i].HighHeatIndexTime;
+						highHeatInd[monthOffset].Value = MetData.DayFile[i].HighHeatIndex;
+						highHeatInd[monthOffset].Ts = MetData.DayFile[i].HighHeatIndexTime;
 					}
 					// hi app temp
-					if (station.DayFile[i].HighAppTemp > highAppTemp[monthOffset].Value)
+					if (MetData.DayFile[i].HighAppTemp > highAppTemp[monthOffset].Value)
 					{
-						highAppTemp[monthOffset].Value = station.DayFile[i].HighAppTemp;
-						highAppTemp[monthOffset].Ts = station.DayFile[i].HighAppTempTime;
+						highAppTemp[monthOffset].Value = MetData.DayFile[i].HighAppTemp;
+						highAppTemp[monthOffset].Ts = MetData.DayFile[i].HighAppTempTime;
 					}
 					// lo app temp
-					if (station.DayFile[i].LowAppTemp < lowAppTemp[monthOffset].Value)
+					if (MetData.DayFile[i].LowAppTemp < lowAppTemp[monthOffset].Value)
 					{
-						lowAppTemp[monthOffset].Value = station.DayFile[i].LowAppTemp;
-						lowAppTemp[monthOffset].Ts = station.DayFile[i].LowAppTempTime;
+						lowAppTemp[monthOffset].Value = MetData.DayFile[i].LowAppTemp;
+						lowAppTemp[monthOffset].Ts = MetData.DayFile[i].LowAppTempTime;
 					}
 
 					// hi rain hour
-					if (station.DayFile[i].HighHourlyRain > highRainHour[monthOffset].Value)
+					if (MetData.DayFile[i].HighHourlyRain > highRainHour[monthOffset].Value)
 					{
-						highRainHour[monthOffset].Value = station.DayFile[i].HighHourlyRain;
-						highRainHour[monthOffset].Ts = station.DayFile[i].HighHourlyRainTime;
+						highRainHour[monthOffset].Value = MetData.DayFile[i].HighHourlyRain;
+						highRainHour[monthOffset].Ts = MetData.DayFile[i].HighHourlyRainTime;
 					}
 
 					// lo wind chill
-					if (station.DayFile[i].LowWindChill < lowWindChill[monthOffset].Value)
+					if (MetData.DayFile[i].LowWindChill < lowWindChill[monthOffset].Value)
 					{
-						lowWindChill[monthOffset].Value = station.DayFile[i].LowWindChill;
-						lowWindChill[monthOffset].Ts = station.DayFile[i].LowWindChillTime;
+						lowWindChill[monthOffset].Value = MetData.DayFile[i].LowWindChill;
+						lowWindChill[monthOffset].Ts = MetData.DayFile[i].LowWindChillTime;
 					}
 
 					// hi dewpt
-					if (station.DayFile[i].HighDewPoint > highDewPt[monthOffset].Value)
+					if (MetData.DayFile[i].HighDewPoint > highDewPt[monthOffset].Value)
 					{
-						highDewPt[monthOffset].Value = station.DayFile[i].HighDewPoint;
-						highDewPt[monthOffset].Ts = station.DayFile[i].HighDewPointTime;
+						highDewPt[monthOffset].Value = MetData.DayFile[i].HighDewPoint;
+						highDewPt[monthOffset].Ts = MetData.DayFile[i].HighDewPointTime;
 					}
 					// lo dewpt
-					if (station.DayFile[i].LowDewPoint < lowDewPt[monthOffset].Value)
+					if (MetData.DayFile[i].LowDewPoint < lowDewPt[monthOffset].Value)
 					{
-						lowDewPt[monthOffset].Value = station.DayFile[i].LowDewPoint;
-						lowDewPt[monthOffset].Ts = station.DayFile[i].LowDewPointTime;
+						lowDewPt[monthOffset].Value = MetData.DayFile[i].LowDewPoint;
+						lowDewPt[monthOffset].Ts = MetData.DayFile[i].LowDewPointTime;
 					}
 
 					// hi feels like
-					if (station.DayFile[i].HighFeelsLike > highFeelsLike[monthOffset].Value)
+					if (MetData.DayFile[i].HighFeelsLike > highFeelsLike[monthOffset].Value)
 					{
-						highFeelsLike[monthOffset].Value = station.DayFile[i].HighFeelsLike;
-						highFeelsLike[monthOffset].Ts = station.DayFile[i].HighFeelsLikeTime;
+						highFeelsLike[monthOffset].Value = MetData.DayFile[i].HighFeelsLike;
+						highFeelsLike[monthOffset].Ts = MetData.DayFile[i].HighFeelsLikeTime;
 					}
 					// lo feels like
-					if (station.DayFile[i].LowFeelsLike < lowFeelsLike[monthOffset].Value)
+					if (MetData.DayFile[i].LowFeelsLike < lowFeelsLike[monthOffset].Value)
 					{
-						lowFeelsLike[monthOffset].Value = station.DayFile[i].LowFeelsLike;
-						lowFeelsLike[monthOffset].Ts = station.DayFile[i].LowFeelsLikeTime;
+						lowFeelsLike[monthOffset].Value = MetData.DayFile[i].LowFeelsLike;
+						lowFeelsLike[monthOffset].Ts = MetData.DayFile[i].LowFeelsLikeTime;
 					}
 
 					// hi humidex
-					if (station.DayFile[i].HighHumidex > highHumidex[monthOffset].Value)
+					if (MetData.DayFile[i].HighHumidex > highHumidex[monthOffset].Value)
 					{
-						highHumidex[monthOffset].Value = station.DayFile[i].HighHumidex;
-						highHumidex[monthOffset].Ts = station.DayFile[i].HighHumidexTime;
+						highHumidex[monthOffset].Value = MetData.DayFile[i].HighHumidex;
+						highHumidex[monthOffset].Ts = MetData.DayFile[i].HighHumidexTime;
 					}
 
 					// hi BGT
-					if (station.DayFile[i].HighBgt > highBgt[monthOffset].Value)
+					if (MetData.DayFile[i].HighBgt > highBgt[monthOffset].Value)
 					{
-						highBgt[monthOffset].Value = station.DayFile[i].HighBgt.Value;
-						highBgt[monthOffset].Ts = station.DayFile[i].HighBgtTime.Value;
+						highBgt[monthOffset].Value = MetData.DayFile[i].HighBgt.Value;
+						highBgt[monthOffset].Ts = MetData.DayFile[i].HighBgtTime.Value;
 					}
 
 					// hi WBGT
-					if (station.DayFile[i].HighWbgt > highWbgt[monthOffset].Value)
+					if (MetData.DayFile[i].HighWbgt > highWbgt[monthOffset].Value)
 					{
-						highWbgt[monthOffset].Value = station.DayFile[i].HighWbgt.Value;
-						highWbgt[monthOffset].Ts = station.DayFile[i].HighWbgtTime.Value;
+						highWbgt[monthOffset].Value = MetData.DayFile[i].HighWbgt.Value;
+						highWbgt[monthOffset].Ts = MetData.DayFile[i].HighWbgtTime.Value;
 					}
 				}
 
@@ -3251,10 +3251,10 @@ namespace CumulusMX
 						try
 						{
 							// Update the in memory record
-							station.DayFile[lineNum] = new DayFileRec(newLine);
+							MetData.DayFile[lineNum] = new DayFileRec(newLine);
 
 							// update SQLite
-							station.RecentDataDb.Update(station.DayFile[lineNum]);
+							station.RecentDataDb.Update(MetData.DayFile[lineNum]);
 
 							// write dayfile back again
 							File.WriteAllLines(cumulus.DayFileName, lines);
@@ -3286,64 +3286,64 @@ namespace CumulusMX
 								var updt = new StringBuilder(1024);
 
 								updt.Append($"UPDATE {cumulus.MySqlFuncs.MySqlSettings.Dayfile.TableName} SET ");
-								updt.Append($"HighWindGust={station.DayFile[lineNum].HighGust.ToString(cumulus.WindFormat, InvC)},");
-								updt.Append($"HWindGBear={station.DayFile[lineNum].HighGustBearing},");
-								updt.Append($"THWindG={station.DayFile[lineNum].HighGustTime:\\'HH:mm\\'},");
-								updt.Append($"MinTemp={station.DayFile[lineNum].LowTemp.ToFixed(cumulus.TempFormat)},");
-								updt.Append($"TMinTemp={station.DayFile[lineNum].LowTempTime:\\'HH:mm\\'},");
-								updt.Append($"MaxTemp={station.DayFile[lineNum].HighTemp.ToFixed(cumulus.TempFormat)},");
-								updt.Append($"TMaxTemp={station.DayFile[lineNum].HighTempTime:\\'HH:mm\\'},");
-								updt.Append($"MinPress={station.DayFile[lineNum].LowPress.ToString(cumulus.PressFormat, InvC)},");
-								updt.Append($"TMinPress={station.DayFile[lineNum].LowPressTime:\\'HH:mm\\'},");
-								updt.Append($"MaxPress={station.DayFile[lineNum].HighPress.ToString(cumulus.PressFormat, InvC)},");
-								updt.Append($"TMaxPress={station.DayFile[lineNum].HighPressTime:\\'HH:mm\\'},");
-								updt.Append($"MaxRainRate={station.DayFile[lineNum].HighRainRate.ToString(cumulus.RainFormat, InvC)},");
-								updt.Append($"TMaxRR={station.DayFile[lineNum].HighRainRateTime:\\'HH:mm\\'},");
-								updt.Append($"TotRainFall={station.DayFile[lineNum].TotalRain.ToString(cumulus.RainFormat, InvC)},");
-								updt.Append($"AvgTemp={station.DayFile[lineNum].AvgTemp.ToString(cumulus.TempFormat, InvC)},");
-								updt.Append($"TotWindRun={station.DayFile[lineNum].WindRun.ToString("F1", InvC)},");
-								updt.Append($"HighAvgWSpeed={station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
-								updt.Append($"THAvgWSpeed={station.DayFile[lineNum].HighAvgWindTime:\\'HH:mm\\'},");
-								updt.Append($"LowHum={(station.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowHumidity.ToString() : "NULL")},");
-								updt.Append($"TLowHum={(station.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowHumidityTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HighHum={(station.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidity.ToString() : "NULL")},");
-								updt.Append($"THighHum={(station.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidityTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"TotalEvap={station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
-								updt.Append($"HoursSun={station.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
-								updt.Append($"HighHeatInd={(station.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHeatIndex.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"THighHeatInd={(station.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHeatIndexTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighAppTemp.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"THighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowAppTemp.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"TLowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
-								updt.Append($"THighHourRain={station.DayFile[lineNum].HighHourlyRainTime:\\'HH:mm\\'},");
-								updt.Append($"LowWindChill={(station.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowWindChill.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"TLowWindChill={(station.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowWindChillTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HighDewPoint={(station.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighDewPoint.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"THighDewPoint={(station.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighDewPointTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"LowDewPoint={(station.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowDewPoint.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"TLowDewPoint={(station.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowDewPointTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"DomWindDir={station.DayFile[lineNum].DominantWindBearing},");
-								updt.Append($"HeatDegDays={(station.DayFile[lineNum].HeatingDegreeDays > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC) : "NULL")},");
-								updt.Append($"CoolDegDays={(station.DayFile[lineNum].CoolingDegreeDays > Cumulus.DefaultHiVal ? station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC) : "NULL")},");
-								updt.Append($"HighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighSolar.ToString() : "NULL")},");
-								updt.Append($"THighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighSolarTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC) : "NULL")},");
-								updt.Append($"THighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighUvTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
-								updt.Append($"DomWindDirSym='{station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
-								updt.Append($"MaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighFeelsLike.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"TMaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"MinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowFeelsLike.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"TMinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"MaxHumidex={(station.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidex.ToFixed(cumulus.TempFormat) : "NULL")},");
-								updt.Append($"TMaxHumidex={(station.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidexTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"ChillHours={(station.DayFile[lineNum].ChillHours > Cumulus.DefaultHiVal ? station.DayFile[lineNum].ChillHours.ToString("F1", InvC) : "NULL")},");
-								updt.Append($"HighRain24h={(station.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighRain24h.ToString(cumulus.RainFormat, InvC) : "NULL")},");
-								updt.Append($"THighRain24h={(station.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighRain24hTime.ToString("\\'HH:mm\\'") : "NULL")} ");
+								updt.Append($"HighWindGust={MetData.DayFile[lineNum].HighGust.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"HWindGBear={MetData.DayFile[lineNum].HighGustBearing},");
+								updt.Append($"THWindG={MetData.DayFile[lineNum].HighGustTime:\\'HH:mm\\'},");
+								updt.Append($"MinTemp={MetData.DayFile[lineNum].LowTemp.ToFixed(cumulus.TempFormat)},");
+								updt.Append($"TMinTemp={MetData.DayFile[lineNum].LowTempTime:\\'HH:mm\\'},");
+								updt.Append($"MaxTemp={MetData.DayFile[lineNum].HighTemp.ToFixed(cumulus.TempFormat)},");
+								updt.Append($"TMaxTemp={MetData.DayFile[lineNum].HighTempTime:\\'HH:mm\\'},");
+								updt.Append($"MinPress={MetData.DayFile[lineNum].LowPress.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"TMinPress={MetData.DayFile[lineNum].LowPressTime:\\'HH:mm\\'},");
+								updt.Append($"MaxPress={MetData.DayFile[lineNum].HighPress.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"TMaxPress={MetData.DayFile[lineNum].HighPressTime:\\'HH:mm\\'},");
+								updt.Append($"MaxRainRate={MetData.DayFile[lineNum].HighRainRate.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"TMaxRR={MetData.DayFile[lineNum].HighRainRateTime:\\'HH:mm\\'},");
+								updt.Append($"TotRainFall={MetData.DayFile[lineNum].TotalRain.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"AvgTemp={MetData.DayFile[lineNum].AvgTemp.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"TotWindRun={MetData.DayFile[lineNum].WindRun.ToString("F1", InvC)},");
+								updt.Append($"HighAvgWSpeed={MetData.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
+								updt.Append($"THAvgWSpeed={MetData.DayFile[lineNum].HighAvgWindTime:\\'HH:mm\\'},");
+								updt.Append($"LowHum={(MetData.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowHumidity.ToString() : "NULL")},");
+								updt.Append($"TLowHum={(MetData.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowHumidityTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HighHum={(MetData.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighHumidity.ToString() : "NULL")},");
+								updt.Append($"THighHum={(MetData.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighHumidityTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"TotalEvap={MetData.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"HoursSun={MetData.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
+								updt.Append($"HighHeatInd={(MetData.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighHeatIndex.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"THighHeatInd={(MetData.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighHeatIndexTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HighAppTemp={(MetData.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighAppTemp.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"THighAppTemp={(MetData.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"LowAppTemp={(MetData.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowAppTemp.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"TLowAppTemp={(MetData.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HighHourRain={MetData.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"THighHourRain={MetData.DayFile[lineNum].HighHourlyRainTime:\\'HH:mm\\'},");
+								updt.Append($"LowWindChill={(MetData.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowWindChill.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"TLowWindChill={(MetData.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowWindChillTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HighDewPoint={(MetData.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighDewPoint.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"THighDewPoint={(MetData.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighDewPointTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"LowDewPoint={(MetData.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowDewPoint.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"TLowDewPoint={(MetData.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowDewPointTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"DomWindDir={MetData.DayFile[lineNum].DominantWindBearing},");
+								updt.Append($"HeatDegDays={(MetData.DayFile[lineNum].HeatingDegreeDays > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC) : "NULL")},");
+								updt.Append($"CoolDegDays={(MetData.DayFile[lineNum].CoolingDegreeDays > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC) : "NULL")},");
+								updt.Append($"HighSolarRad={(MetData.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighSolar.ToString() : "NULL")},");
+								updt.Append($"THighSolarRad={(MetData.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighSolarTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HighUV={(MetData.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC) : "NULL")},");
+								updt.Append($"THighUV={(MetData.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighUvTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HWindGBearSym='{station.CompassPoint(MetData.DayFile[lineNum].HighGustBearing)}',");
+								updt.Append($"DomWindDirSym='{station.CompassPoint(MetData.DayFile[lineNum].DominantWindBearing)}',");
+								updt.Append($"MaxFeelsLike={(MetData.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighFeelsLike.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"TMaxFeelsLike={(MetData.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"MinFeelsLike={(MetData.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowFeelsLike.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"TMinFeelsLike={(MetData.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"MaxHumidex={(MetData.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighHumidex.ToFixed(cumulus.TempFormat) : "NULL")},");
+								updt.Append($"TMaxHumidex={(MetData.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighHumidexTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"ChillHours={(MetData.DayFile[lineNum].ChillHours > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].ChillHours.ToString("F1", InvC) : "NULL")},");
+								updt.Append($"HighRain24h={(MetData.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighRain24h.ToString(cumulus.RainFormat, InvC) : "NULL")},");
+								updt.Append($"THighRain24h={(MetData.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighRain24hTime.ToString("\\'HH:mm\\'") : "NULL")} ");
 
-								updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
+								updt.Append($"WHERE LogDate='{MetData.DayFile[lineNum].Date:yyyy-MM-dd}';");
 								updateStr = updt.ToString();
 
 								cumulus.MySqlFuncs.MySqlCommandAsync(updateStr, "EditDayFile").Wait();
@@ -3364,7 +3364,7 @@ namespace CumulusMX
 
 						// and yesterdays rain
 						var yest = cumulus.MeteoDate().AddDays(-1);
-						MetData.RainYesterday = station.DayFile.LastOrDefault(day => day.Date == yest.Date).TotalRain;
+						MetData.RainYesterday = MetData.DayFile.LastOrDefault(day => day.Date == yest.Date).TotalRain;
 					}
 					else
 					{
@@ -3405,7 +3405,7 @@ namespace CumulusMX
 						// remove from file array
 						lines.RemoveAt(lineNum);
 						// Update the in memory record
-						station.DayFile.RemoveAt(lineNum);
+						MetData.DayFile.RemoveAt(lineNum);
 					}
 					catch (Exception ex)
 					{

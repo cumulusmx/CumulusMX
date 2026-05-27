@@ -53,7 +53,7 @@ namespace CumulusMX.Stations
 			//airLinkLastUpdateTime = cumulus.LastUpdateTime
 
 			// Working out if we are stand-alone or integrated with WLL is a bit tricky.
-			// Easiest to see if we are a node of a WLL station
+			// Easiest to see if we are a node of a WLL Stations
 			standalone = !(
 				cumulus.StationType == StationTypes.WLL &&
 				cumulus.AirLinkIsNode &&
@@ -220,8 +220,8 @@ namespace CumulusMX.Stations
 			//wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
 			//dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
 
-			// Only start reading history if the main station isn't a WLL
-			// and we have a station id
+			// Only start reading history if the main Stations isn't a WLL
+			// and we have a Stations id
 			if (standaloneHistory)
 			{
 				// Read the data from the WL APIv2
@@ -568,8 +568,8 @@ namespace CumulusMX.Stations
 						cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Found an unknown transmitter type [{type}]!");
 						break;
 				}
-				//station.UpdateStatusPanel(DateTime.Now)
-				//station.UpdateMQTT()
+				//Stations.UpdateStatusPanel(DateTime.Now)
+				//Stations.UpdateMQTT()
 			}
 			catch (Exception exp)
 			{
@@ -634,7 +634,7 @@ namespace CumulusMX.Stations
 
 					if (stationId < 10)
 					{
-						var msg = "No AirLink WeatherLink API station ID in the configuration";
+						var msg = "No AirLink WeatherLink API Stations ID in the configuration";
 						cumulus.LogWarningMessage(msg);
 						Cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 						return;
@@ -665,7 +665,7 @@ namespace CumulusMX.Stations
 					historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {historicUrl.ToString().Replace(apiKey, "API_KEY")}");
-					station.lastDataReadTime = airLinkLastUpdateTime;
+					Stations.lastDataReadTime = airLinkLastUpdateTime;
 
 					WlHistory histObj;
 					WlHistorySensor sensorWithMostRecs;

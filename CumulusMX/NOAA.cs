@@ -261,7 +261,7 @@ namespace CumulusMX
 
 			try
 			{
-				var days = station.DayFile.Where(d => d.Date.Year == year && d.Date.Month == month).ToList();
+				var days = MetData.DayFile.Where(d => d.Date.Year == year && d.Date.Month == month).ToList();
 
 				foreach (var day in days)
 				{
@@ -998,7 +998,7 @@ namespace CumulusMX
 			}
 			try
 			{
-				var thisYear = station.DayFile.Where(d => d.Date >= thedate && d.Date < thedate.AddYears(1)).ToList();
+				var thisYear = MetData.DayFile.Where(d => d.Date >= thedate && d.Date < thedate.AddYears(1)).ToList();
 
 				for (var month = 1; month <= 12; month++)
 				{

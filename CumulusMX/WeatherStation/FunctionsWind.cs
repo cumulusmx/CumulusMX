@@ -506,7 +506,7 @@ namespace CumulusMX
 				return MetData.WindRunToday;
 			}
 
-			var dayfile = DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
+			var dayfile = MetData.DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
 
 			// if the current month add todays windrun
 			if (year == now.Year && month == now.Month)

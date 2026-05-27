@@ -31,7 +31,7 @@ namespace CumulusMX.Stations
 
 		private readonly bool isVp2Station = false;
 
-		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
+		public DavisCloudStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			calculaterainrate = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
@@ -55,7 +55,7 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Davis Cloud Station (VP2/Vue) selected");
 				isVp2Station = true;
 
-				// Do not ue the user sensor mappings for VP2 station - they are fixed
+				// Do not ue the user sensor mappings for VP2 Stations - they are fixed
 				numLeafWetnessSensors = 2;
 				cumulus.WllLeafWetIdx[1] = 1;
 				cumulus.WllLeafWetIdx[2] = 2;
@@ -126,7 +126,7 @@ namespace CumulusMX.Stations
 			GetSystemStatus();
 
 			// Perform Station ID checks - If we have API details!
-			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key
+			// If the Station ID is missing, this will populate it if the user only has one Stations associated with the API key
 			if (cumulus.WllStationId < 10)
 			{
 				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")} in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
@@ -140,17 +140,17 @@ namespace CumulusMX.Stations
 				GetAvailableStationIds(false);
 			}
 
-			// Sanity check the station id
+			// Sanity check the Stations id
 			if (cumulus.WllStationId < 10)
 			{
-				// API details supplied, but Station Id is still invalid - do not start the station up.
+				// API details supplied, but Station Id is still invalid - do not start the Stations up.
 				cumulus.LogErrorMessage("The WeatherLink.com API is enabled, but no Station Id has been configured, not starting the station. Please correct this and restart Cumulus");
 				Cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus", ConsoleColor.Yellow);
 				return;
 			}
 
 
-			// Now get the sensors associated with this station
+			// Now get the sensors associated with this Stations
 			GetAvailableSensors();
 
 			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
@@ -1350,7 +1350,7 @@ namespace CumulusMX.Stations
 											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing dew point value");
 										}
 
-										// use wind chill from station - otherwise we calculate it at the end of processing the record when we have all the data
+										// use wind chill from Stations - otherwise we calculate it at the end of processing the record when we have all the data
 										try
 										{
 											// do last WC
@@ -2146,7 +2146,7 @@ namespace CumulusMX.Stations
 
 			LastDataReadTime = DateTime.Now;
 
-			// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
+			// If the Stations isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 			// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
 			LowBatteryDevices.Clear();
 

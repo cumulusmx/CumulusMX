@@ -43,7 +43,7 @@ namespace CumulusMX.Stations
 		const int DefaultVid = 0x1941;
 		const int DefaultPid = 0x8021;
 
-		internal FOStation(Cumulus cumulus) : base(cumulus)
+		internal FOStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			var data = new byte[32];
 
@@ -100,7 +100,7 @@ namespace CumulusMX.Stations
 								do
 								{
 									WriteAddress(0x10, (byte) Cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
-									WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
+									WriteAddress(0x1A, 0xAA); // tell the Stations to read the new parameter
 
 									var readAttempts = 3;
 
@@ -854,7 +854,7 @@ namespace CumulusMX.Stations
 			if (DataStopped)
 			{
 				cumulus.LogMessage("Attempting to reopen the USB device...");
-				// We are not getting any data from the station, try reopening the USB connection
+				// We are not getting any data from the Stations, try reopening the USB connection
 				if (stream != null)
 				{
 					try
@@ -968,7 +968,7 @@ namespace CumulusMX.Stations
 
 					var sensorclockOK = true;
 
-					// Check that were not within N seconds of the station updating memory
+					// Check that were not within N seconds of the Stations updating memory
 					if (FOSensorClockTime != DateTime.MinValue)
 					{
 						secsToSkip = (int) Math.Floor(now.Subtract(FOSensorClockTime).TotalSeconds) % 48;
@@ -1115,7 +1115,7 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					// station clock minute change
+					// Stations clock minute change
 					// the minutes in the data block only seems to update when data is written to the block,
 					// so we cannot use that as an accurate indication of when the console clock minute changes
 				}
@@ -1518,7 +1518,7 @@ namespace CumulusMX.Stations
 		private void FinaliseSync()
 		{
 			cumulus.LogMessage("Finalise Synchronisation");
-			// the best we can do is assume the station and CMX clocks are in sync - possibly true if the station has an RCC, otherwise...!
+			// the best we can do is assume the Stations and CMX clocks are in sync - possibly true if the Stations has an RCC, otherwise...!
 			if (!stationSyncDone)
 			{
 				var oneMin = new TimeSpan(0, 1, 0);

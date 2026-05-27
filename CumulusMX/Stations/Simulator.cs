@@ -13,7 +13,7 @@ namespace CumulusMX.Stations
 
 		private bool solarIntialised;
 
-		public Simulator(Cumulus cumulus) : base(cumulus)
+		public Simulator(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 
 			cumulus.LogMessage("Station type = Simulator");

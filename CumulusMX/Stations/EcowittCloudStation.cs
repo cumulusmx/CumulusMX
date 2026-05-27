@@ -19,7 +19,7 @@ namespace CumulusMX.Stations
 		private Version deviceFirmware;
 		private int lastHour = -1;
 
-		public EcowittCloudStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
+		public EcowittCloudStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			this.station = station ?? this;
 
@@ -112,7 +112,7 @@ namespace CumulusMX.Stations
 
 			ecowittApi = new EcowittApi(cumulus, this, mainStation);
 
-			// Only perform the Start-up if we are a proper station, not a Extra Sensor
+			// Only perform the Start-up if we are a proper Stations, not a Extra Sensor
 			try
 			{
 				if (mainStation)
@@ -346,7 +346,7 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				// Only do the primary sensors if running as the main station
+				// Only do the primary sensors if running as the main Stations
 				if (mainStation)
 				{
 					// Outdoor temp/hum
@@ -805,7 +805,7 @@ namespace CumulusMX.Stations
 				{
 					var sensor = (EcowittApi.CurrentPm25) data["pm25_ch" + i];
 					station.DoAirQuality(sensor == null ? null : sensor.pm25.value, i);
-					//station.DoAirQualityAvg(sensor == null ? null : sensor.AqiAvg24h.value, i)
+					//Stations.DoAirQualityAvg(sensor == null ? null : sensor.AqiAvg24h.value, i)
 				}
 			}
 		}

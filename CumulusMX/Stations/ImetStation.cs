@@ -16,7 +16,7 @@ namespace CumulusMX.Stations
 		private int readCounter = 30;
 		private bool stop = false;
 
-		public ImetStation(Cumulus cumulus) : base(cumulus)
+		public ImetStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetOptions.UpdateLogPointer);
 			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetOptions.WaitTime);
@@ -320,7 +320,7 @@ namespace CumulusMX.Stations
 		private static string ExtractText(string input, string after)
 		{
 			// return string after supplied string
-			// used for extracting actual response from reply from station
+			// used for extracting actual response from reply from Stations
 			// assumes that the terminating CRLF is not present, as
 			// readto() should have stripped this off
 			var pos1 = input.IndexOf(after);
@@ -768,7 +768,7 @@ namespace CumulusMX.Stations
 					ImetGetData();
 					if (cumulus.ImetLoggerInterval != Cumulus.logints[cumulus.DataLogInterval])
 					{
-						// logging interval has changed; update station to match
+						// logging interval has changed; update Stations to match
 						ImetSetLoggerInterval(Cumulus.logints[cumulus.DataLogInterval]);
 					}
 					else
@@ -811,7 +811,7 @@ namespace CumulusMX.Stations
 
 				if (cumulus.StationOptions.SyncTime && h == cumulus.StationOptions.ClockSettingHour && min == 2)
 				{
-					// It's 0400, set the station clock
+					// It's 0400, set the Stations clock
 					SetStationClock();
 				}
 			}

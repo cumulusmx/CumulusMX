@@ -176,8 +176,8 @@ namespace CumulusMX.ThirdParty
 			if (MetData.RecentMaxGust >= 0)
 				bodyObj.Add("windgustmph", Math.Round(ConvertUnits.UserWindToMPH(MetData.RecentMaxGust), 1));
 
-			//if (SendUV && station.UV.HasValue)
-			//	Data.Append("&UV=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
+			//if (SendUV && Stations.UV.HasValue)
+			//	Data.Append("&UV=" + Stations.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
 
 			return bodyObj.ToJsonString();
 		}

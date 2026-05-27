@@ -75,7 +75,7 @@ namespace CumulusMX.LogFiles
 			// 8  MetData rainfall rate
 			// 9  Total rainfall today so far
 			// 10  MetData sea level pressure
-			// 11  Total rainfall counter as held by the station
+			// 11  Total rainfall counter as held by the Stations
 			// 12  Inside temperature
 			// 13  Inside humidity
 			// 14  MetData gust (i.e. 'Latest')
@@ -213,7 +213,7 @@ namespace CumulusMX.LogFiles
 			);
 		}
 
-		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus, WeatherStation station)
+		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus)
 		{
 			var inv = CultureInfo.InvariantCulture;
 			return string.Join(",",

@@ -126,7 +126,7 @@ namespace CumulusMX
 
 		public const int LogFileRetries = 3;
 
-		private WeatherStation station;
+		private WeatherStation[] Stations = new WeatherStation[2];
 		public bool HasExtraStation { get; set; } = false;
 
 		internal DavisAirLink airLinkIn;
@@ -1425,7 +1425,7 @@ namespace CumulusMX
 			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/")
 
 			// Set up the API web server
-			// Some APi functions require the station, so set them after station initialisation
+			// Some APi functions require the Stations, so set them after Stations initialisation
 			Api.cumulus = this;
 			Api.programSettings = new ProgramSettings(this);
 			Api.stationSettings = new StationSettings(this);
@@ -1501,106 +1501,36 @@ namespace CumulusMX
 			LogMessage("Datalogger is " + (StationOptions.UseDataLogger ? "Enabled" : "Disabled"));
 
 			Manufacturer = GetStationManufacturerFromType(StationType);
-			switch (StationType)
-			{
-				case StationTypes.FineOffset:
-				case StationTypes.FineOffsetSolar:
-					station = new FOStation(this);
-					break;
-				case StationTypes.VantagePro:
-				case StationTypes.VantagePro2:
-					station = new DavisStation(this);
-					break;
-				case StationTypes.WMR928:
-					station = new WMR928Station(this);
-					break;
-				case StationTypes.WM918:
-					station = new WM918Station(this);
-					break;
-				case StationTypes.WS2300:
-					station = new WS2300Station(this);
-					break;
-				case StationTypes.WMR200:
-					station = new WMR200Station(this);
-					break;
-				case StationTypes.Instromet:
-					station = new ImetStation(this);
-					break;
-				case StationTypes.WMR100:
-					station = new WMR100Station(this);
-					break;
-				case StationTypes.EasyWeather:
-					station = new EasyWeather(this);
-					station.LoadLastHoursFromDataLogs(DateTime.Now);
-					break;
-				case StationTypes.WLL:
-					station = new DavisWllStation(this);
-					break;
-				case StationTypes.GW1000:
-					station = new GW1000Station(this);
-					break;
-				case StationTypes.Tempest:
-					station = new TempestStation(this);
-					break;
-				case StationTypes.HttpWund:
-					station = new HttpStationWund(this);
-					break;
-				case StationTypes.HttpEcowitt:
-					station = new HttpStationEcowitt(this);
-					break;
-				case StationTypes.HttpAmbient:
-					station = new HttpStationAmbient(this);
-					break;
-				case StationTypes.Simulator:
-					station = new Simulator(this);
-					break;
-				case StationTypes.EcowittCloud:
-					station = new EcowittCloudStation(this);
-					break;
-				case StationTypes.DavisCloudWll:
-				case StationTypes.DavisCloudVP2:
-					station = new DavisCloudStation(this);
-					break;
-				case StationTypes.JsonStation:
-					station = new JsonStation(this);
-					break;
-				case StationTypes.EcowittHttpApi:
-					station = new EcowittHttpApiStation(this);
-					break;
 
-				default:
-					LogConsoleMessage("Station type not set", ConsoleColor.Red);
-					LogMessage("Station type not set = " + StationType);
-					break;
-			}
+			Stations[0] = CreateWeatherStation(StationType, 0);
 
 			LogMessage($"Wind settings: Calc avg speed={StationOptions.CalcuateAverageWindSpeed}, Use speed for avg={StationOptions.UseSpeedForLatest}, Gust time={StationOptions.PeakGustMinutes}, Avg time={StationOptions.AvgSpeedMinutes}");
 
-			if (station != null)
+			if (Stations[0] != null)
 			{
-				WebTags = new WebTags(this, station);
+				WebTags = new WebTags(this, Stations[0]);
 				WebTags.InitialiseWebtags();
 
-				Api.Station = station;
-				Api.stationSettings.SetStation(station);
-				Api.extraSensorSettings.SetStation(station);
-				Api.dataEditor.SetStation(station);
+				Api.Station = Stations[0];
+				Api.stationSettings.SetStation(Stations[0]);
+				Api.extraSensorSettings.SetStation(Stations[0]);
+				Api.dataEditor.SetStation(Stations[0]);
 
 				if (StationType == StationTypes.HttpWund)
 				{
-					Api.stationWund = (HttpStationWund) station;
+					Api.stationWund = (HttpStationWund) Stations[0];
 				}
 				else if (StationType == StationTypes.HttpEcowitt)
 				{
-					Api.stationEcowitt = (HttpStationEcowitt) station;
+					Api.stationEcowitt = (HttpStationEcowitt) Stations[0];
 				}
 				else if (StationType == StationTypes.HttpAmbient)
 				{
-					Api.stationAmbient = (HttpStationAmbient) station;
+					Api.stationAmbient = (HttpStationAmbient) Stations[0];
 				}
 				else if (StationType == StationTypes.JsonStation && JsonStationOptions.Connectiontype == 1)
 				{
-					Api.stationJson = (JsonStation) station;
+					Api.stationJson = (JsonStation) Stations[0];
 				}
 
 				if (AirLinkInEnabled)
@@ -1608,20 +1538,21 @@ namespace CumulusMX
 					LogMessage("Creating indoor AirLink station");
 					LogConsoleMessage($"Opening indoor AirLink");
 					airLinkDataIn = new AirLinkData();
-					airLinkIn = new DavisAirLink(this, true, station);
+					airLinkIn = new DavisAirLink(this, true, Stations[0]);
 				}
 				if (AirLinkOutEnabled)
 				{
 					LogMessage("Creating outdoor AirLink station");
 					LogConsoleMessage($"Opening outdoor AirLink");
 					airLinkDataOut = new AirLinkData();
-					airLinkOut = new DavisAirLink(this, false, station);
+					airLinkOut = new DavisAirLink(this, false, Stations[0]);
 				}
 				if (EcowittExtraEnabled)
 				{
 					LogMessage("Creating Ecowitt extra sensors station");
 					LogConsoleMessage($"Opening Ecowitt extra sensors");
-					ecowittExtra = new HttpStationEcowitt(this, station);
+					ecowittExtra = new HttpStationEcowitt(this, 1);
+					Stations[1] = ecowittExtra;
 					Api.stationEcowittExtra = ecowittExtra;
 					HasExtraStation = true;
 				}
@@ -1629,7 +1560,8 @@ namespace CumulusMX
 				{
 					LogMessage("Creating Ambient extra sensors station");
 					LogConsoleMessage($"Opening Ambient extra sensors");
-					ambientExtra = new HttpStationAmbient(this, station);
+					ambientExtra = new HttpStationAmbient(this, 1);
+					Stations[1] = ambientExtra;
 					Api.stationAmbientExtra = ambientExtra;
 					HasExtraStation = true;
 				}
@@ -1637,14 +1569,16 @@ namespace CumulusMX
 				{
 					LogMessage("Creating Ecowitt cloud extra sensors station");
 					LogConsoleMessage($"Opening Ecowitt cloud extra sensors");
-					ecowittCloudExtra = new EcowittCloudStation(this, station);
+					ecowittCloudExtra = new EcowittCloudStation(this, 1);
+					Stations[1] = ecowittCloudExtra;
 					HasExtraStation = true;
 				}
 				if (JsonExtraStationOptions.ExtraSensorsEnabled)
 				{
 					LogMessage("Creating JSON station extra sensors station");
 					LogConsoleMessage($"Opening JSON extra sensors");
-					stationJsonExtra = new JsonStation(this, station);
+					stationJsonExtra = new JsonStation(this, 1);
+					Stations[1] = stationJsonExtra;
 					Api.stationJsonExtra = stationJsonExtra;
 					HasExtraStation = true;
 				}
@@ -1652,25 +1586,25 @@ namespace CumulusMX
 				{
 					LogMessage("Creating PurpleAir station");
 					LogConsoleMessage($"Opening PurpleAir");
-					purpleAir = new PurpleAir(this, station);
+					purpleAir = new PurpleAir(this, Stations[0]);
 				}
 
 
-				// set the third party upload station
-				Wund.station = station;
-				Windy.station = station;
-				WindGuru.station = station;
-				PWS.station = station;
-				WOW.station = station;
-				WOW_BE.station = station;
-				APRS.station = station;
-				AWEKAS.station = station;
-				WCloud.station = station;
-				OpenWeatherMap.station = station;
-				Bluesky.station = station;
+				// set the third party upload Stations
+				Wund.station = Stations[0];
+				Windy.station = Stations[0];
+				WindGuru.station = Stations[0];
+				PWS.station = Stations[0];
+				WOW.station = Stations[0];
+				WOW_BE.station = Stations[0];
+				APRS.station = Stations[0];
+				AWEKAS.station = Stations[0];
+				WCloud.station = Stations[0];
+				OpenWeatherMap.station = Stations[0];
+				Bluesky.station = Stations[0];
 				Bluesky.CancelToken = Program.ExitSystemToken;
 
-				httpFiles = new HttpFiles(this, station);
+				httpFiles = new HttpFiles(this, Stations[0]);
 
 				Api.httpFiles = httpFiles;
 
@@ -1702,34 +1636,114 @@ namespace CumulusMX
 				InitialiseRG11();
 
 
-				// Do the start-up  MySQL commands before the station is started
+				// Do the start-up  MySQL commands before the Stations is started
 				if (MySqlFuncs.MySqlSettings.CustomStartUp.Enabled)
 				{
 					CustomMySqlStartUp();
 				}
 
-				if (station.timerStartNeeded)
+				if (Stations[0].timerStartNeeded)
 				{
 					StartTimersAndSensors();
 				}
 
 				if ((StationType == StationTypes.WMR100) || (StationType == StationTypes.EasyWeather) || (Manufacturer == StationManufacturer.OREGON) || StationType == StationTypes.Simulator)
 				{
-					station.StartLoop();
+					Stations[0].StartLoop();
 				}
 
-				// let the web socket know about the station
-				WebSock.SetSetStation(station);
+				// let the web socket know about the Stations
+				WebSock.SetSetStation(Stations[0]);
 
 				// If enabled generate the daily graph data files, and upload at first opportunity
 				LogDebugMessage("Generating the daily graph data files");
-				station.CreateEodGraphDataFiles();
-				station.CreateDailyGraphDataFiles();
+				CreateEodGraphDataFiles();
+				CreateDailyGraphDataFiles();
 			}
 
 			LogDebugMessage("Lock: Cumulus releasing the lock");
 			SyncInit.Release();
 		}
+
+		private WeatherStation CreateWeatherStation(int type, int id)
+		{
+			WeatherStation station = null;
+			switch (type)
+			{
+				case StationTypes.FineOffset:
+				case StationTypes.FineOffsetSolar:
+					station = new FOStation(this, id);
+					break;
+				case StationTypes.VantagePro:
+				case StationTypes.VantagePro2:
+					station = new DavisStation(this, id);
+					break;
+				case StationTypes.WMR928:
+					station = new WMR928Station(this, id);
+					break;
+				case StationTypes.WM918:
+					station = new WM918Station(this, id);
+					break;
+				case StationTypes.WS2300:
+					station = new WS2300Station(this, id);
+					break;
+				case StationTypes.WMR200:
+					station = new WMR200Station(this, id);
+					break;
+				case StationTypes.Instromet:
+					station = new ImetStation(this, id);
+					break;
+				case StationTypes.WMR100:
+					station = new WMR100Station(this, id);
+					break;
+				case StationTypes.EasyWeather:
+					station = new EasyWeather(this, id);
+					break;
+				case StationTypes.WLL:
+					station = new DavisWllStation(this, id);
+					break;
+				case StationTypes.GW1000:
+					station = new GW1000Station(this, id);
+					break;
+				case StationTypes.Tempest:
+					station = new TempestStation(this, id);
+					break;
+				case StationTypes.HttpWund:
+					station = new HttpStationWund(this, id);
+					break;
+				case StationTypes.HttpEcowitt:
+					station = new HttpStationEcowitt(this, id);
+					break;
+				case StationTypes.HttpAmbient:
+					station = new HttpStationAmbient(this, id);
+					break;
+				case StationTypes.Simulator:
+					station = new Simulator(this, id);
+					break;
+				case StationTypes.EcowittCloud:
+					station = new EcowittCloudStation(this, id);
+					break;
+				case StationTypes.DavisCloudWll:
+				case StationTypes.DavisCloudVP2:
+					station = new DavisCloudStation(this, id);
+					break;
+				case StationTypes.JsonStation:
+					station = new JsonStation(this, id);
+					break;
+				case StationTypes.EcowittHttpApi:
+					station = new EcowittHttpApiStation(this, id);
+					break;
+
+				default:
+					var prefix = (id == 1 ? "Primary" : "Secondary");
+					LogConsoleMessage(prefix + " Station type not set", ConsoleColor.Red);
+					LogMessage(prefix + " Station type not set = " + type);
+					break;
+			}
+
+			return station;
+		}
+
 
 		internal void SetUpHttpProxy()
 		{
@@ -1878,7 +1892,7 @@ namespace CumulusMX
 
 		private void CustomHttpSecondsTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!station.DataStopped)
+			if (!Stations[0].DataStopped)
 				_ = CustomHttpSecondsUpdate();
 		}
 
@@ -2300,7 +2314,7 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything else
 				return;
@@ -2331,7 +2345,7 @@ namespace CumulusMX
 
 		public void MQTTSecondChanged(DateTime now)
 		{
-			if (MQTT.EnableInterval && !station.DataStopped)
+			if (MQTT.EnableInterval && !Stations[0].DataStopped)
 				MqttPublisher.UpdateMQTTfeed("Interval", now);
 		}
 
@@ -2361,7 +2375,7 @@ namespace CumulusMX
 			return retVal;
 		}
 
-		// Create a new OpenWeatherMap station
+		// Create a new OpenWeatherMap Stations
 		internal void CreateOpenWeatherMapStation()
 		{
 			var invC = CultureInfo.InvariantCulture;
@@ -2411,7 +2425,7 @@ namespace CumulusMX
 		{
 			if (OpenWeatherMap.Enabled && string.IsNullOrWhiteSpace(OpenWeatherMap.ID))
 			{
-				// oh, oh! OpenWeatherMap is enabled, but we do not have a station id
+				// oh, oh! OpenWeatherMap is enabled, but we do not have a Stations id
 				// first check if one already exists
 				var stations = GetOpenWeatherMapStations();
 
@@ -2423,7 +2437,7 @@ namespace CumulusMX
 				}
 				else if (stations.Length == 1)
 				{
-					// We have one station defined, lets use it!
+					// We have one Stations defined, lets use it!
 					LogMessage($"OpenWeatherMap: No station defined, but found one associated with this API key, using this station - {stations[0].id} : {stations[0].name}");
 					OpenWeatherMap.ID = stations[0].id;
 					// save the setting
@@ -2447,7 +2461,7 @@ namespace CumulusMX
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
@@ -2455,7 +2469,7 @@ namespace CumulusMX
 
 			var cycle = RealtimeCycleCounter++;
 
-			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!Stations[0].PressReadyToPlot || !Stations[0].TempReadyToPlot || !Stations[0].WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
 				LogWarningMessage($"Realtime[{cycle}]: Not all data is ready, aborting process");
@@ -4078,7 +4092,7 @@ namespace CumulusMX
 		public bool HourlyForecast { get; set; }
 
 		/// <summary>
-		///  0 = station, 1 = Cumulus, 2 = forecast.txt, 3 = None
+		///  0 = Stations, 1 = Cumulus, 2 = forecast.txt, 3 = None
 		/// </summary>
 		public int ForecastSource { get; set; }
 		public DateTime LastForecastDotTxtReadTime { get; set; } = DateTime.MinValue;
@@ -4232,7 +4246,7 @@ namespace CumulusMX
 
 		public static string LatestError { get; set; }
 		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
-		internal WeatherStation Station { get => station; set => station = value; }
+		internal WeatherStation Station { get => Stations[0]; }
 
 		public static CancellationTokenSource RealtimeFtpWatchDogTokenSource { get; set; } = new();
 		private Task RealtimeFtpWatchDogTask;
@@ -4333,7 +4347,7 @@ namespace CumulusMX
 			// 8  MetData rainfall rate
 			// 9  Total rainfall today so far
 			// 10  MetData sea level pressure
-			// 11  Total rainfall counter as held by the station
+			// 11  Total rainfall counter as held by the Stations
 			// 12  Inside temperature
 			// 13  Inside humidity
 			// 14  MetData gust (i.e. 'Latest')
@@ -4359,11 +4373,11 @@ namespace CumulusMX
 			LogMessage("DoLogFile: Writing log entry for " + timestamp.ToCmxLogFormat());
 			LogDebugMessage("DoLogFile: max gust: " + MetData.RecentMaxGust.ToString(WindFormat));
 
-			MetData.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
+			MetData.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out Stations[0].SolarElevation, SolarOptions);
 
 			var filename = GetLogFileName(timestamp);
 
-			var line = LogFileRec.CurrentToCsv(timestamp, this, station);
+			var line = LogFileRec.CurrentToCsv(timestamp, this);
 			var inv = CultureInfo.InvariantCulture;
 			var sep = ",";
 			var success = false;
@@ -4403,7 +4417,7 @@ namespace CumulusMX
 			} while (!success && retries > 0);
 
 
-			station.WriteTodayFile(timestamp, true);
+			Stations[0].WriteTodayFile(timestamp, true);
 
 			if (MySqlFuncs.MySqlSettings.Monthly.Enabled)
 			{
@@ -4440,8 +4454,8 @@ namespace CumulusMX
 					values.Append(sep + MetData.WindBearing.ToString());
 					values.Append(sep + MetData.RG11RainToday.ToString(RainFormat, inv));
 					values.Append(sep + MetData.RainSinceMidnight.ToFixed(RainFormat));
-					values.Append(sep + "'" + station.CompassPoint(MetData.WindAvgBearing) + "'");
-					values.Append(sep + "'" + station.CompassPoint(MetData.WindBearing) + "'");
+					values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindAvgBearing) + "'");
+					values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindBearing) + "'");
 					values.Append(sep + MetData.FeelsLike.ToFixed(TempFormat));
 					values.Append(sep + MetData.Humidex.ToFixed(TempFormat));
 					values.Append(sep + MetData.BlackGlobeTemp.ToFixed(TempFormat, "NULL"));
@@ -4515,7 +4529,7 @@ namespace CumulusMX
 
 			LogDebugMessage($"DoExtraLogFile: Writing log entry for {timestamp}");
 
-			var line = ExtraLogFileRec.CurrentToCsv(timestamp, this, station);
+			var line = ExtraLogFileRec.CurrentToCsv(timestamp, this);
 
 			var success = false;
 			var retries = LogFileRetries;
@@ -4656,7 +4670,7 @@ namespace CumulusMX
 
 		public void DoCustomIntervalLogs(DateTime timestamp)
 		{
-			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!Stations[0].PressReadyToPlot || !Stations[0].TempReadyToPlot || !Stations[0].WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
 				LogMessage($"DoCustomIntervalLogs: Not all data is ready, aborting process");
@@ -5029,7 +5043,7 @@ namespace CumulusMX
 									var backUpDest = Path.Combine(dirpath, "cumulusmx.db");
 									var zipLocation = Path.Combine("data", "cumulusmx.db");
 									LogDebugMessage("Making backup copy of the database");
-									station.RecentDataDb.Backup(backUpDest);
+									Stations[0].RecentDataDb.Backup(backUpDest);
 									LogDebugMessage("Completed backup copy of the database");
 
 									LogDebugMessage("Archiving backup copy of the database");
@@ -5355,24 +5369,24 @@ namespace CumulusMX
 				/* do nothing */
 			}
 
-			if (station != null)
+			if (Stations != null)
 			{
 				LogMessage("Stopping station...");
 				try
 				{
-					if (station.HaveReadData)
+					if (Stations[0].HaveReadData)
 					{
 						LogMessage("Writing today.ini file");
-						station.WriteTodayFile(DateTime.Now, false);
+						Stations[0].WriteTodayFile(DateTime.Now, false);
 						LogMessage("Completed writing today.ini file");
 					}
 					else
 					{
 						LogMessage("No data read this session, today.ini not written");
 					}
-					station.SaveWindData();
+					Stations[0].SaveWindData();
 
-					station.Stop();
+					Stations[0].Stop();
 					LogMessage("Station stopped");
 				}
 				catch
@@ -5456,7 +5470,7 @@ namespace CumulusMX
 						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].FileName);
 						if (StdWebFiles[i].FileName == "wxnow.txt")
 						{
-							station.CreateWxnowFile();
+							CreateWxnowFile();
 						}
 						else
 						{
@@ -5467,7 +5481,7 @@ namespace CumulusMX
 				LogDebugMessage($"Interval[{cycle}]: Done creating standard Data file");
 
 				LogDebugMessage($"Interval[{cycle}]: Creating graph data files");
-				station.CreateGraphDataFiles();
+				CreateGraphDataFiles();
 				LogDebugMessage($"Interval[{cycle}]: Done creating graph data files");
 
 				LogDebugMessage($"Interval[{cycle}]: Creating extra files");
@@ -5670,7 +5684,7 @@ namespace CumulusMX
 							string text;
 							if (StdWebFiles[i].FileName == "wxnow.txt")
 							{
-								text = station.CreateWxnowFileString();
+								text = CreateWxnowFileString();
 							}
 							else
 							{
@@ -5730,7 +5744,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var text = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
+							var text = CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
@@ -5786,7 +5800,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
+							var text = CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							// Uploaded OK, reset the upload required flag
@@ -7549,7 +7563,7 @@ namespace CumulusMX
 				sb.Append(MetData.RainRate.ToString(RainFormat, InvC) + ' ');                 // 9
 				sb.Append(MetData.RainToday.ToString(RainFormat, InvC) + ' ');                // 10
 				sb.Append(MetData.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
-				sb.Append(station.CompassPoint(MetData.WindBearing) + ' ');                       // 12
+				sb.Append(Stations[0].CompassPoint(MetData.WindBearing) + ' ');                       // 12
 				sb.Append(Beaufort(MetData.WindAverage) + ' ');                               // 13
 				sb.Append(Units.WindText + ' ');                                              // 14
 				sb.Append(Units.TempText[1].ToString() + ' ');                                // 15
@@ -7588,8 +7602,8 @@ namespace CumulusMX
 				sb.Append(MetData.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
 				sb.Append(MetData.Forecastnumber.ToString() + ' ');                           // 49
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
-				sb.Append(station.SensorContactLost ? "1 " : "0 ");                           // 51
-				sb.Append(station.CompassPoint(MetData.WindAvgBearing) + ' ');                    // 52
+				sb.Append(Stations[0].SensorContactLost ? "1 " : "0 ");                           // 51
+				sb.Append(Stations[0].CompassPoint(MetData.WindAvgBearing) + ' ');                    // 52
 				sb.Append(MetData.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
 				sb.Append(MetData.ApparentTemperature.ToFixed(TempFormat) + ' ');             // 55
@@ -7636,7 +7650,7 @@ namespace CumulusMX
 			values.Append(sep + MetData.RainRate.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainToday.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.Pressure.ToString(PressFormat, InvC) );
-			values.Append(sep + "'" + station.CompassPoint(MetData.WindBearing) + "'");
+			values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindBearing) + "'");
 			values.Append(sep + Beaufort(MetData.WindAverage));
 			values.Append(sep + "'" + Units.WindText + "'");
 			values.Append(sep + "'" + Units.TempText[1].ToString() + "'");
@@ -7675,8 +7689,8 @@ namespace CumulusMX
 			values.Append(sep + MetData.RainLastHour.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.Forecastnumber.ToString());
 			values.Append(sep + (IsDaylight() ? "'1'" : "'0'"));
-			values.Append(sep + (station.SensorContactLost ? "'1'" : "'0'"));
-			values.Append(sep + "'" + station.CompassPoint(MetData.WindAvgBearing) + "'");
+			values.Append(sep + (Stations[0].SensorContactLost ? "'1'" : "'0'"));
+			values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindAvgBearing) + "'");
 			values.Append(sep + (MetData.CloudBase).ToString() );
 			values.Append(sep + (CloudBaseInFeet ? "'ft'" : "'m'") );
 			values.Append(sep + MetData.ApparentTemperature.ToFixed(TempFormat));
@@ -7805,7 +7819,7 @@ namespace CumulusMX
 			LogMessage("Start Timers");
 			// start the general one-second timer
 			LogMessage("Starting 1-second timer");
-			station.StartSecondsTimer();
+			Stations[0].StartSecondsTimer();
 			LogMessage($"Data logging interval = {DataLogInterval} ({logints[DataLogInterval]} mins)");
 
 
@@ -7872,13 +7886,13 @@ namespace CumulusMX
 
 		internal async Task BlueskyTimedUpdate(DateTime now)
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
 			}
 
-			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!Stations[0].PressReadyToPlot || !Stations[0].TempReadyToPlot || !Stations[0].WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
 				LogMessage($"BlueskyTimedUpdate: Not all data is ready, aborting process");
@@ -7994,13 +8008,13 @@ namespace CumulusMX
 
 		internal async void CustomMysqlSecondsChanged()
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
 			}
 
-			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!Stations[0].PressReadyToPlot || !Stations[0].TempReadyToPlot || !Stations[0].WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
 				LogMessage($"CustomMysqlSecondsChanged: Not all data is ready, aborting process");
@@ -8035,13 +8049,13 @@ namespace CumulusMX
 
 		internal async Task CustomMysqlMinutesUpdate(DateTime now, bool live)
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
 			}
 
-			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!Stations[0].PressReadyToPlot || !Stations[0].TempReadyToPlot || !Stations[0].WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
 				LogMessage($"CustomMysqlMinutesUpdate: Not all data is ready, aborting process");
@@ -8092,7 +8106,7 @@ namespace CumulusMX
 
 		internal async Task CustomMysqlRollover(bool live)
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
@@ -8131,13 +8145,13 @@ namespace CumulusMX
 
 		internal async Task CustomMySqlTimedUpdate(DateTime now)
 		{
-			if (station.DataStopped)
+			if (Stations[0].DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
 			}
 
-			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!Stations[0].PressReadyToPlot || !Stations[0].TempReadyToPlot || !Stations[0].WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
 				LogMessage($"CustomMySqlTimedUpdate: Not all data is ready, aborting process");
@@ -8408,7 +8422,7 @@ namespace CumulusMX
 				WOW.Updating = true;
 
 				string pwstring;
-				string URL = station.GetWOWURL(out pwstring, timestamp);
+				string URL = Stations.GetWOWURL(out pwstring, timestamp);
 
 				string starredpwstring = "&siteAuthenticationKey=" + new string('*', WOW.PW.Length);
 
@@ -8797,12 +8811,12 @@ namespace CumulusMX
 			}
 			else if (input == "<noaayearfile>")
 			{
-				NoaaReports noaa = new NoaaReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, Stations[0]);
 				return noaa.GetLastNoaaYearReportFilename(dat, true);
 			}
 			else if (input == "<noaamonthfile>")
 			{
-				NoaaReports noaa = new NoaaReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, Stations[0]);
 				return noaa.GetLastNoaaMonthReportFilename(dat, true);
 			}
 			else if (input.StartsWith("<custinterval"))
@@ -8853,12 +8867,12 @@ namespace CumulusMX
 			}
 			else if (input.Contains("<noaayearfile>"))
 			{
-				NoaaReports noaa = new NoaaReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, Stations[0]);
 				return input.Replace("<noaayearfile>", Path.GetFileName(noaa.GetLastNoaaYearReportFilename(dat, false)));
 			}
 			else if (input.Contains("<noaamonthfile>"))
 			{
-				NoaaReports noaa = new NoaaReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, Stations[0]);
 				return input.Replace("<noaamonthfile>", Path.GetFileName(noaa.GetLastNoaaMonthReportFilename(dat, false)));
 			}
 			else if (input.Contains("<custinterval"))

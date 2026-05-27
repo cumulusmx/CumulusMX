@@ -844,7 +844,7 @@ namespace CumulusMX.Stations
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
 						cumulus.LogDebugMessage($"GetSensorInfo: Page {page} not found (404). Skipping.");
-						// If page 1 is missing, treat as station not supporting API
+						// If page 1 is missing, treat as Stations not supporting API
 						if (page == 1)
 						{
 							cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");

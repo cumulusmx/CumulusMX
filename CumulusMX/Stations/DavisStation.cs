@@ -59,7 +59,7 @@ namespace CumulusMX.Stations
 
 		private TcpClient socket;
 
-		public DavisStation(Cumulus cumulus) : base(cumulus)
+		public DavisStation(Cumulus cumulus, int id) : base(cumulus, id)
 		{
 			calculaterainrate = false;
 
@@ -2052,7 +2052,7 @@ namespace CumulusMX.Stations
 				// Process it
 				var now = DateTime.Now;
 
-				// Extract station pressure, and use it to calculate altimeter pressure
+				// Extract Stations pressure, and use it to calculate altimeter pressure
 
 				// first sanity check - one user was getting zero values!
 				if (loopData.AbsolutePressure < 20)
@@ -2081,7 +2081,7 @@ namespace CumulusMX.Stations
 					cumulus.LogDebugMessage("LOOP2: Ignoring wind speed: " + loopData.CurrentWindSpeed + " mph");
 				}
 
-				// Check if the station 10 minute gust value is greater than ours - only if our gust period is 10 minutes or more though
+				// Check if the Stations 10 minute gust value is greater than ours - only if our gust period is 10 minutes or more though
 				if (loopData.WindGust10Min < 200 && cumulus.StationOptions.PeakGustMinutes >= 10)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
@@ -2580,7 +2580,7 @@ namespace CumulusMX.Stations
 								{
 									// do roll-over
 									cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
-									// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
+									// If the roll-over processing takes more that ~10 seconds the Stations times out sending the archive data
 									// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
 									var watch = new Stopwatch();
 									watch.Start();
@@ -2742,7 +2742,7 @@ namespace CumulusMX.Stations
 									DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
 								}
 
-								// No station pressure in archive data
+								// No Stations pressure in archive data
 								MetData.StationPressure = 0;
 								MetData.AltimeterPressure = MetData.Pressure;
 
@@ -3885,7 +3885,7 @@ namespace CumulusMX.Stations
 				1 => ConvertUnits.RainINToUser(clicks * 0.01),// Rain gauge is imperial 0.01 in
 				2 => ConvertUnits.RainMMToUser(clicks * 0.1),// Rain gauge is metric 0.1 mm
 				3 => ConvertUnits.RainMMToUser(clicks * 0.2),// Rain gauge is imperial 0.001 in
-				_ => cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01,// Rain gauge type not configured, assume it is the same as the station units
+				_ => cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01,// Rain gauge type not configured, assume it is the same as the Stations units
 																			// Assume standard gauge type of 0.01 in or 0.02 mm
 			};
 		}
