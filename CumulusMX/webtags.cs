@@ -3879,6 +3879,11 @@ namespace CumulusMX
 			return cumulus.Build;
 		}
 
+		private string TagCumulusPort(Dictionary<string, string> tagParams)
+		{
+			return Program.Httpport.ToString();
+		}
+
 		private string TagNewBuildAvailable(Dictionary<string, string> tagParams)
 		{
 			if (int.TryParse(cumulus.Build, out var thisbuild) && int.TryParse(cumulus.LatestBuild, out var latestbuild))
@@ -7681,6 +7686,7 @@ namespace CumulusMX
 				{ "realtimeinterval", Tagrealtimeinterval },
 				{ "version", Tagversion },
 				{ "build", Tagbuild },
+				{ "CumulusPort", TagCumulusPort },
 				{ "NewBuildAvailable", TagNewBuildAvailable },
 				{ "NewBuildNumber", TagNewBuildNumber },
 				{ "update", Tagupdate },
