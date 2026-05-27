@@ -22,7 +22,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
-- The new web tag `<#SensorRssi>` that currently supports the Ecowitt HTTP API station
+- The new web tag `<#EcowittRssi>` that currently supports the Ecowitt HTTP API station
+- Error decoding Windy error responses
 
 ---
 
@@ -35,7 +36,7 @@ Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 relea
 
 ### New
 
-- Adds a new web tag `<#SensorRssi>` that currently supports the Ecowitt HTTP API station. It lists the RSSI value for each sensor - if available
+- Adds a new web tag `<#EcowittRssi>` that currently supports the Ecowitt HTTP API station. It lists the RSSI value for each sensor - if available
 	- Like the `<#EcowittReception>` web tag it supports a `format=xxx` parameter which affects the output, valid values are "text" or "json". The default is a text string
 
 ### Changed

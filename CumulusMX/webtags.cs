@@ -3903,6 +3903,11 @@ namespace CumulusMX
 			return dtformat == null ? DateTime.Now.ToString() : DateTime.Now.ToString(dtformat);
 		}
 
+		private string TagCumulusPort(Dictionary<string, string> tagParams)
+		{
+			return Program.Httpport.ToString();
+		}
+
 		private string TagLatestNoaaMonthlyReport(Dictionary<string, string> tagParams)
 		{
 			return cumulus.NOAAconf.LatestMonthReport;
@@ -7685,6 +7690,7 @@ namespace CumulusMX
 				{ "NewBuildAvailable", TagNewBuildAvailable },
 				{ "NewBuildNumber", TagNewBuildNumber },
 				{ "update", Tagupdate },
+				{ "CumulusPort", TagCumulusPort },
 				{ "LastRainTip", TagLastRainTip },
 				{ "LastRainTipISO", TagLastRainTipIso },
 				{ "MinutesSinceLastRainTip", TagMinutesSinceLastRainTip },
