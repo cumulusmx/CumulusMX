@@ -10,6 +10,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.1.4 \[b5011\]][34] - 2026-06-26
+
+### New
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Fixed
+
+- The new web tag `<#SensorRssi>` that currently supports the Ecowitt HTTP API station
+
+---
+
 ## [5.1.3 \[b5010\]][33] - 2026-05-26
 
 Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 release
@@ -1479,3 +1495,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006
 [32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5008
 [33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010
+[34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011

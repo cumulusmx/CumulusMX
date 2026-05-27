@@ -1623,7 +1623,6 @@ namespace CumulusMX.Stations
 			public string id { get; set; }
 			public int batt { get; set; }
 			public int? signal { get; set; }
-
 			public int? rssi { get; set; }
 			public bool idst { get; set; }
 		}

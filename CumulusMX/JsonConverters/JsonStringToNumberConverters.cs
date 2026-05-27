@@ -14,7 +14,7 @@ namespace CumulusMX.JsonConverters
 			{
 				string stringValue = reader.GetString();
 				// int only allows nn.0 decimal strings
-				if (int.TryParse(stringValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out int value))
+				if (int.TryParse(stringValue, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out int value))
 				{
 					return value;
 				}
@@ -45,7 +45,7 @@ namespace CumulusMX.JsonConverters
 					return null;
 				}
 				// int only allows nn.0 decimal strings
-				else if (int.TryParse(stringValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out int value))
+				else if (int.TryParse(stringValue, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out int value))
 				{
 					return value;
 				}
