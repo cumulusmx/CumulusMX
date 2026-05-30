@@ -2711,6 +2711,18 @@ namespace CumulusMX
 
 		private async Task<bool> RealtimeFtpTestConnectionAsync(string filename)
 		{
+			string tempFile;
+
+			// redo this every time in case the path has been changed
+			if (FtpOptions.Directory.Length > 0)
+			{
+				tempFile = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/') + filename;
+			}
+			else
+			{
+				tempFile = filename;
+			}
+
 			try
 			{
 				if (FtpOptions.FtpMode == FtpProtocols.SFTP)
@@ -2718,9 +2730,9 @@ namespace CumulusMX
 					if (RealtimeSSH == null || !RealtimeSSH.IsConnected)
 						return false;
 
-					RealtimeSSH.WriteAllText(filename, "test");
-					var text = RealtimeSSH.ReadAllText(filename);
-					RealtimeSSH.DeleteFile(filename);
+					RealtimeSSH.WriteAllText(tempFile, "test");
+					var text = RealtimeSSH.ReadAllText(tempFile);
+					RealtimeSSH.DeleteFile(tempFile);
 
 					return text == "test";
 				}
@@ -2731,13 +2743,13 @@ namespace CumulusMX
 
 					var bytes = Encoding.ASCII.GetBytes("test");
 
-					if (RealtimeFTP.UploadBytes(bytes, filename, FtpRemoteExists.Overwrite).IsFailure())
+					if (RealtimeFTP.UploadBytes(bytes, tempFile, FtpRemoteExists.Overwrite).IsFailure())
 						return false;
 
-					if (!RealtimeFTP.DownloadBytes(out byte[] read, filename))
+					if (!RealtimeFTP.DownloadBytes(out byte[] read, tempFile))
 						return false;
 
-					RealtimeFTP.DeleteFile(filename);
+					RealtimeFTP.DeleteFile(tempFile);
 
 					return read.SequenceEqual(bytes);
 				}
