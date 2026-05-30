@@ -805,6 +805,7 @@ namespace CumulusMX.Stations
 	{
 		public int code { get; set; }
 		public string message { get; set; }
+		public string msg { get; set; }
 	}
 
 	public class WlSensorList

@@ -541,8 +541,8 @@ namespace CumulusMX.Stations
 					try
 					{
 						var historyError = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-						cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
+						cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message ?? historyError.msg}");
+						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message ?? historyError.msg}", ConsoleColor.Red);
 					}
 					catch
 					{
@@ -3827,7 +3827,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-						cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+						cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message ?? errObj.msg}");
 					}
 					catch
 					{
