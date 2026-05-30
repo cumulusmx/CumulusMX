@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Nothing
+- Add web tag for the Cumulus dashboard/web socket port - `<#CumulusPort>`
 
 ### Changed
 
@@ -24,6 +24,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - The new web tag `<#EcowittRssi>` that currently supports the Ecowitt HTTP API station
 - Error decoding Windy error responses
+- Fix inconsistent error responses from wl.com causing an exception
 
 ---
 

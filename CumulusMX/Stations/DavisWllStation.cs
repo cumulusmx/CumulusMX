@@ -1585,8 +1585,8 @@ namespace CumulusMX.Stations
 					try
 					{
 						var historyError = JsonSerializer.Deserialize<WlErrorResponse>(responseBody, jsonOptions);
-						cumulus.LogWarningMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
+						cumulus.LogWarningMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message ?? historyError.msg}");
+						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message ?? historyError.msg}", ConsoleColor.Red);
 					}
 					catch
 					{
@@ -3132,11 +3132,11 @@ namespace CumulusMX.Stations
 					try
 					{
 						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-						cumulus.LogMessage($"WLLStations: WeatherLink API Error: {errObj.code} - {errObj.message}, Cumulus.LogLevel.Warning");
+						cumulus.LogMessage($"WLLStations: WeatherLink API Error: {errObj.code} - {errObj.message ?? errObj.msg}", Cumulus.MxLogLevel.Warning);
 					}
 					catch
 					{
-						cumulus.LogMessage($"WLLStations: WeatherLink API HTTP Error: {responseCode}, Cumulus.LogLevel.Warning");
+						cumulus.LogMessage($"WLLStations: WeatherLink API HTTP Error: {responseCode}", Cumulus.MxLogLevel.Warning);
 					}
 					return;
 				}
@@ -3245,7 +3245,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-						cumulus.LogWarningMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+						cumulus.LogWarningMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message ?? errObj.msg}");
 					}
 					catch
 					{
