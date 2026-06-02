@@ -1186,16 +1186,24 @@ namespace CumulusMX.Stations
 								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
 								DoBGT(bgt, dateTime);
+
+								if (cumulus.StationOptions.CalculatedWBGT)
+								{
+									CalculateWBGT(dateTime);
+								}
 							}
 							break;
 
 						case "0xA2": // WBGT
-							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+							if (!cumulus.StationOptions.CalculatedWBGT)
 							{
-								var wbgt = sensor.valDbl.Value;
-								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
+								if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+								{
+									var wbgt = sensor.valDbl.Value;
+									wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
 
-								DoWBGT(wbgt, dateTime);
+									DoWBGT(wbgt, dateTime);
+								}
 							}
 							break;
 

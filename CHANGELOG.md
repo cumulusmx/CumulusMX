@@ -15,10 +15,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Add web tag for the Cumulus dashboard/web socket port - `<#CumulusPort>`
+- Adds a new station option for Cumulus calculates WBGT<br>
+	You can use this if say you have a BGT value from your extra sensors, but want to use the outdoor temperature/humidity from your main station
 
 ### Changed
 
-- Nothing
+- The dashboard web socket connections are now protocol independent
 
 ### Fixed
 
@@ -38,8 +40,8 @@ Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 relea
 
 ### New
 
-- Adds a new web tag `<#EcowittRssi>` that currently supports the Ecowitt HTTP API station. It lists the RSSI value for each sensor - if available
-	- Like the `<#EcowittReception>` web tag it supports a `format=xxx` parameter which affects the output, valid values are "text" or "json". The default is a text string
+- Adds a new web tag `<#EcowittRssi>` that currently supports the Ecowitt HTTP API station. It lists the RSSI value for each sensor - if available<br>
+	Like the `<#EcowittReception>` web tag it supports a `format=xxx` parameter which affects the output, valid values are "text" or "json". The default is a text string
 
 ### Changed
 

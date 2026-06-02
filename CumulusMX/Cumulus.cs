@@ -4151,6 +4151,8 @@ namespace CumulusMX
 			StationOptions.CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
 			StationOptions.CalculatedET = ini.GetValue("Station", "CalculatedET", false);
 			StationOptions.CalculateSLP = ini.GetValue("Station", "CalculatedSLP", false);
+			StationOptions.CalculatedWBGT = ini.GetValue("Station", "CalculatedWBGT", false);
+
 			RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
 			Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
 			//ConfirmClose = ini.GetValue("Station", "ConfirmClose", false)
@@ -6333,6 +6335,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "CalculatedWC", StationOptions.CalculatedWC);
 			ini.SetValue("Station", "CalculatedET", StationOptions.CalculatedET);
 			ini.SetValue("Station", "CalculatedSLP", StationOptions.CalculateSLP);
+			ini.SetValue("Station", "CalculatedWBGT", StationOptions.CalculatedWBGT);
 
 			ini.SetValue("Station", "RolloverHour", RolloverHour);
 			ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
@@ -14817,6 +14820,7 @@ namespace CumulusMX
 		public bool SyncTime { get; set; }
 		public int ClockSettingHour { get; set; }
 		public bool CalculateSLP { get; set; }
+		public bool CalculatedWBGT { get; set; }
 		public bool UseCumulusPresstrendstr { get; set; }
 		public bool LogExtraSensors { get; set; }
 		public bool WS2300IgnoreStationClock { get; set; }

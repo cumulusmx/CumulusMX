@@ -680,7 +680,14 @@ namespace CumulusMX.Stations
 						if (mainStation || cumulus.ExtraSensorUseBGT)
 						{
 							station.DoBGT(data.black_globe_temperature.bgt.value, data.black_globe_temperature.bgt.time.LocalFromUnixTime());
-							station.DoWBGT(data.black_globe_temperature.wbgt.value, data.black_globe_temperature.wbgt.time.LocalFromUnixTime());
+							if (cumulus.StationOptions.CalculatedWBGT)
+							{
+								station.CalculateWBGT(data.black_globe_temperature.bgt.time.LocalFromUnixTime());
+							}
+							else
+							{
+								station.DoWBGT(data.black_globe_temperature.wbgt.value, data.black_globe_temperature.wbgt.time.LocalFromUnixTime());
+							}
 						}
 					}
 					catch (Exception ex)

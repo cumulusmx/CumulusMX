@@ -7180,6 +7180,22 @@ namespace CumulusMX
 			CheckMonthlyAlltime("HighBgt", BlackGlobeTemp.Value, true, timestamp);
 		}
 
+		public void CalculateWBGT(DateTime ts)
+		{
+			if (BlackGlobeTemp.HasValue && Pressure > 0)
+			{
+				var wbgt_c = MeteoLib.CalculateWetBulbeGlobeTemp(
+					ConvertUnits.UserTempToC(OutdoorTemperature),
+					ConvertUnits.UserTempToC(OutdoorDewpoint),
+					ConvertUnits.UserPressToHpa(Pressure),
+					ConvertUnits.UserTempToC(BlackGlobeTemp.Value)
+					);
+				wbgt_c = cumulus.Calib.WetBulb.Calibrate(wbgt_c);
+
+				DoWBGT(ConvertUnits.TempCToUser(wbgt_c), ts);
+			}
+		}
+
 		public void DoWBGT(double? temp, DateTime timestamp)
 		{
 			WetBulbGlobeTemp = temp;

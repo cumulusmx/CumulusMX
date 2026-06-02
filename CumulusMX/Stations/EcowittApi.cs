@@ -2203,10 +2203,14 @@ namespace CumulusMX.Stations
 				if (rec.Value.BGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
 					station.DoBGT((double) rec.Value.BGT, recDateTime);
-				}
-				if (rec.Value.WBGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
-				{
-					station.DoWBGT((double) rec.Value.WBGT.Value, recDateTime);
+					if (cumulus.StationOptions.CalculatedWBGT)
+					{
+						station.CalculateWBGT(recDateTime);
+					}
+					else if (rec.Value.WBGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+					{
+						station.DoWBGT((double) rec.Value.WBGT.Value, recDateTime);
+					}
 				}
 			}
 			catch (Exception ex)

@@ -1349,12 +1349,17 @@ namespace CumulusMX.Stations
 			if (data["bgt"] != null)
 			{
 				station.DoBGT(ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum)), recDate);
+
+				if (cumulus.StationOptions.CalculatedWBGT)
+				{
+					station.CalculateWBGT(recDate);
+				}
 			}
 		}
 
 		private void ProcessWBGT(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
-			if (data["wbgt"] != null)
+			if (data["wbgt"] != null && !cumulus.StationOptions.CalculatedWBGT)
 			{
 				station.DoWBGT(ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum)), recDate);
 			}
