@@ -1729,33 +1729,46 @@ namespace CumulusMX.Stations
 			//	}
 			//]
 
-			cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
-
-			for (var i = 0; i < sensors.Length; i++)
+			if (sensors == null)
 			{
-				var sensor = sensors[i];
-
-				if (sensor.channel.HasValue)
+				for (var i = 0; i < cumulus.SensorMaps.AirQual.Length; i++)
 				{
-					if (cumulus.SensorMaps.AirQual[sensor.channel.Value - 1] != stationIndex)
-						continue;
+					if (cumulus.SensorMaps.AirQual[i] == stationIndex)
+					{
+						DoAirQuality(null, i + 1);
+					}
+				}
+			}
+			else
+			{
+				cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
 
-					try
-					{
-						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
-					}
+				for (var i = 0; i < sensors.Length; i++)
+				{
+					var sensor = sensors[i];
 
-					try
+					if (sensor.channel.HasValue)
 					{
-						DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
+						if (cumulus.SensorMaps.AirQual[sensor.channel.Value - 1] != stationIndex)
+							continue;
+
+						try
+						{
+							DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+						}
+
+						try
+						{
+							DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
+						}
 					}
 				}
 			}
