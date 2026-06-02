@@ -62,6 +62,7 @@ namespace CumulusMX.Settings
 				leafwetisrainingthrsh = cumulus.StationOptions.LeafWetnessIsRainingThrsh,
 				userainforisraining = cumulus.StationOptions.UseRainForIsRaining,
 				snowseasonstart = cumulus.SnowSeasonStart,
+				calcwbgt = cumulus.StationOptions.CalculatedWBGT,
 				advanced = optionsAdv
 			};
 
@@ -733,6 +734,7 @@ namespace CumulusMX.Settings
 					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
 					cumulus.StationOptions.CalculatedET = settings.Options.calculateet;
 					cumulus.StationOptions.CalculateSLP = settings.Options.calculateslp;
+					cumulus.StationOptions.CalculatedWBGT = settings.Options.calcwbgt;
 					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
 					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
@@ -1776,6 +1778,7 @@ namespace CumulusMX.Settings
 			public bool calculatewindchill { get; set; }
 			public bool calculateet { get; set; }
 			public bool calculateslp { get; set; }
+			public bool calcwbgt { get; set; }
 			public bool cumuluspresstrendnames { get; set; }
 			public bool roundwindspeeds { get; set; }
 			public bool ignorelacrosseclock { get; set; }

@@ -9373,6 +9373,7 @@ namespace CumulusMX
 		public bool SyncTime { get; set; }
 		public int ClockSettingHour { get; set; }
 		public bool CalculateSLP { get; set; }
+		public bool CalculatedWBGT { get; set; }
 		public bool UseCumulusPresstrendstr { get; set; }
 		public bool LogExtraSensors { get; set; }
 		public bool WS2300IgnoreStationClock { get; set; }

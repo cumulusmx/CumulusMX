@@ -1305,12 +1305,17 @@ namespace CumulusMX.Stations
 			if (StationId == cumulus.SensorMaps.BlackGlobe)
 			{
 				DoBGT(data["bgt"] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum)), recDate);
+
+				if (cumulus.StationOptions.CalculatedWBGT)
+				{
+					CalculateWBGT(recDate);
+				}
 			}
 		}
 
 		private void ProcessWBGT(NameValueCollection data, DateTime recDate)
 		{
-			if (StationId == cumulus.SensorMaps.BlackGlobe)
+			if (StationId == cumulus.SensorMaps.BlackGlobe && !cumulus.StationOptions.CalculatedWBGT)
 			{
 				DoWBGT(data["wbgt"] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum)), recDate);
 			}

@@ -1187,6 +1187,11 @@ namespace CumulusMX.Stations
 									bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
 									DoBGT(bgt, dateTime);
+
+									if (cumulus.StationOptions.CalculatedWBGT)
+									{
+										CalculateWBGT(dateTime);
+									}
 								}
 								else
 								{
@@ -1196,7 +1201,7 @@ namespace CumulusMX.Stations
 							break;
 
 						case "0xA2": // WBGT
-							if (cumulus.SensorMaps.BlackGlobeEnabled && cumulus.SensorMaps.BlackGlobe == stationIndex)
+							if (cumulus.SensorMaps.BlackGlobeEnabled && cumulus.SensorMaps.BlackGlobe == stationIndex && !cumulus.StationOptions.CalculatedWBGT)
 							{
 								if (sensor.valDbl.HasValue)
 								{

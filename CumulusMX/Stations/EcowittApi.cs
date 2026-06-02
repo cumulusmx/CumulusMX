@@ -2202,10 +2202,14 @@ namespace CumulusMX.Stations
 				if (rec.Value.StationIndex == cumulus.SensorMaps.BlackGlobe)
 				{
 					station.DoBGT(rec.Value.BGT, recDateTime);
-				}
-				if (rec.Value.StationIndex == cumulus.SensorMaps.BlackGlobe)
-				{
-					station.DoWBGT(rec.Value.WBGT, recDateTime);
+					if (cumulus.StationOptions.CalculatedWBGT)
+					{
+						station.CalculateWBGT(recDateTime);
+					}
+					else if (rec.Value.StationIndex == cumulus.SensorMaps.BlackGlobe)
+					{
+						station.DoWBGT(rec.Value.WBGT, recDateTime);
+					}
 				}
 			}
 			catch (Exception ex)
