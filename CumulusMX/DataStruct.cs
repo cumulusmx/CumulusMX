@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
 
 namespace CumulusMX
 {
 	// The annotations on this class are so it can be serialised as JSON
 	public class DataStruct(
-		Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double? indoorTemp, double outdoorDewpoint, double windChill,
+		Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double? indoorTemp, double outdoorDewpoint, double windChill, double? bgt, double? wbgt,
 		int? indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
 		double rainToday, double rainYesterday, double rainWeek, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
 		double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday,
@@ -129,6 +128,20 @@ namespace CumulusMX
 		}
 
 		public string LowWindChillTodayTime { get; } = lowWindChillTodayTime;
+
+		double? _bgt = bgt;
+
+		public string BGT
+		{
+			get => _bgt.ToFixedLocal(cumulus.TempFormat, "-");
+		}
+
+		double? _wbgt = wbgt;
+
+		public string WBGT
+		{
+			get => _wbgt.ToFixedLocal(cumulus.TempFormat, "-");
+		}
 
 		public string WindUnit { get; } = windUnit;
 
