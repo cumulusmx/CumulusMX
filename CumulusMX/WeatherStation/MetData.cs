@@ -36,6 +36,8 @@ namespace CumulusMX
 
 		public static double YestAvgTemp { get; set; }
 
+		public static double AverageTemp { get => MetData.TempSamplesToday > 0 ? MetData.TempTotalToday / MetData.TempSamplesToday : 0; }
+
 		public static double? BlackGlobeTemp { get; set; }
 
 		public static double TempChangeLastHour { get; set; }
@@ -95,6 +97,8 @@ namespace CumulusMX
 		public static double GrowingDegreeDaysThisYear2 { get; set; }
 
 		public static double TempTotalToday { get; set; }
+
+		public static int TempSamplesToday { get; set; }
 
 		public static double ChillHours { get; set; }
 
@@ -235,6 +239,8 @@ namespace CumulusMX
 		public static double RainCounterDayStart { get; set; } = 0.0;
 
 		public static double RainCounter { get; set; } = 0.0;
+
+		public static string LastRainTip { get; set; }
 
 		public static double StormRain { get; set; }
 

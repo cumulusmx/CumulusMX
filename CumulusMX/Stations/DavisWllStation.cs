@@ -2015,7 +2015,7 @@ namespace CumulusMX.Stations
 										// set the values for daily average, arch_int is in seconds, but always whole minutes
 										if (data11.temp_avg.HasValue)
 										{
-											tempsamplestoday += data11.arch_int / 60;
+											MetData.TempSamplesToday += data11.arch_int / 60;
 											MetData.TempTotalToday += ConvertUnits.TempFToUser(data11.temp_avg.Value) * data11.arch_int / 60;
 										}
 

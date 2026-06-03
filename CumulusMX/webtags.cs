@@ -579,12 +579,12 @@ namespace CumulusMX
 
 		private string Tagcurrentwdir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(MetData.WindBearing);
+			return cumulus.CompassPoint(MetData.WindBearing);
 		}
 
 		private string Tagwdir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(MetData.WindAvgBearing);
+			return cumulus.CompassPoint(MetData.WindAvgBearing);
 		}
 
 		private string Tagwgust(Dictionary<string, string> tagParams)
@@ -921,7 +921,7 @@ namespace CumulusMX
 
 		private string Tagavgtemp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(MetData.TempTotalToday / station.tempsamplestoday, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(MetData.AverageTemp, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagavgtempY(Dictionary<string, string> tagParams)
@@ -1060,7 +1060,7 @@ namespace CumulusMX
 
 		private string Tagdomwinddir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(MetData.DominantWindBearing);
+			return cumulus.CompassPoint(MetData.DominantWindBearing);
 		}
 
 		private string TagdomwindbearingY(Dictionary<string, string> tagParams)
@@ -1070,7 +1070,7 @@ namespace CumulusMX
 
 		private string TagdomwinddirY(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(MetData.YestDominantWindBearing);
+			return cumulus.CompassPoint(MetData.YestDominantWindBearing);
 		}
 
 		private string Tagbeaufort(Dictionary<string, string> tagParams)
@@ -2284,7 +2284,7 @@ namespace CumulusMX
 
 		private string TagdirectionTm(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(DailyHighLow.Today.HighGustBearing);
+			return cumulus.CompassPoint(DailyHighLow.Today.HighGustBearing);
 		}
 
 		private string TagrrateTm(Dictionary<string, string> tagParams)
@@ -2626,7 +2626,7 @@ namespace CumulusMX
 
 		private string TagdirectionYm(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(DailyHighLow.Yest.HighGustBearing);
+			return cumulus.CompassPoint(DailyHighLow.Yest.HighGustBearing);
 		}
 
 		private string TagrrateYm(Dictionary<string, string> tagParams)
@@ -3937,14 +3937,14 @@ namespace CumulusMX
 
 		private string TagLastRainTipIso(Dictionary<string, string> tagParams)
 		{
-			return station.LastRainTip;
+			return MetData.LastRainTip;
 		}
 
 		private string TagLastRainTip(Dictionary<string, string> tagParams)
 		{
 			try
 			{
-				var lastTip = DateTime.Parse(station.LastRainTip, CultureInfo.CurrentCulture);
+				var lastTip = DateTime.Parse(MetData.LastRainTip, CultureInfo.CurrentCulture);
 				return GetFormattedDateTime(lastTip, "d", tagParams);
 			}
 			catch (Exception)
@@ -3958,7 +3958,7 @@ namespace CumulusMX
 			DateTime lastTip;
 			try
 			{
-				lastTip = DateTime.Parse(station.LastRainTip, CultureInfo.CurrentCulture);
+				lastTip = DateTime.Parse(MetData.LastRainTip, CultureInfo.CurrentCulture);
 			}
 			catch (Exception)
 			{

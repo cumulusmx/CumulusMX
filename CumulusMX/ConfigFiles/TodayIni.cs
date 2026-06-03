@@ -38,7 +38,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("ReadTodayFile: Date = " + todayfiledate + ", LastUpdateTime = " + cumulus.LastUpdateTime + ", Month = " + CurrentMonth);
 
-			LastRainTip = ini.GetValue("Rain", "LastTip", "0000-00-00 00:00");
+			MetData.LastRainTip = ini.GetValue("Rain", "LastTip", "0000-00-00 00:00");
 
 			FOSensorClockTime = ini.GetValue("FineOffset", "FOSensorClockTime", DateTime.MinValue);
 			FOStationClockTime = ini.GetValue("FineOffset", "FOStationClockTime", DateTime.MinValue);
@@ -99,7 +99,7 @@ namespace CumulusMX
 			else
 				DailyHighLow.Today.TempRange = 0;
 			MetData.TempTotalToday = ini.GetValue("Temp", "Total", 0.0);
-			tempsamplestoday = ini.GetValue("Temp", "Samples", 1);
+			MetData.TempSamplesToday = ini.GetValue("Temp", "Samples", 1);
 			MetData.HeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			MetData.CoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			MetData.GrowingDegreeDaysThisYear1 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear1", 0.0);
@@ -266,7 +266,7 @@ namespace CumulusMX
 				ini.SetValue("Wind", "Gust", DailyHighLow.Today.HighGust);
 				ini.SetValue("Wind", "Time", DailyHighLow.Today.HighGustTime);
 				ini.SetValue("Wind", "Bearing", DailyHighLow.Today.HighGustBearing);
-				ini.SetValue("Wind", "Direction", CompassPoint(DailyHighLow.Today.HighGustBearing));
+				ini.SetValue("Wind", "Direction", cumulus.CompassPoint(DailyHighLow.Today.HighGustBearing));
 				ini.SetValue("Wind", "Windrun", MetData.WindRunToday);
 				ini.SetValue("Wind", "DominantWindBearing", MetData.DominantWindBearing);
 				ini.SetValue("Wind", "DominantWindBearingMinutes", MetData.DominantWindBearingMinutes);
@@ -278,7 +278,7 @@ namespace CumulusMX
 				ini.SetValue("Temp", "High", DailyHighLow.Today.HighTemp);
 				ini.SetValue("Temp", "HTime", DailyHighLow.Today.HighTempTime);
 				ini.SetValue("Temp", "Total", MetData.TempTotalToday);
-				ini.SetValue("Temp", "Samples", tempsamplestoday);
+				ini.SetValue("Temp", "Samples", MetData.TempSamplesToday);
 				ini.SetValue("Temp", "ChillHours", MetData.ChillHours);
 				ini.SetValue("Temp", "HeatingDegreeDays", MetData.HeatingDegreeDays);
 				ini.SetValue("Temp", "CoolingDegreeDays", MetData.CoolingDegreeDays);
@@ -310,7 +310,7 @@ namespace CumulusMX
 				ini.SetValue("Rain", "Start", MetData.RainCounterDayStart);
 				ini.SetValue("Rain", "Midnight", MetData.MidnightRainCount);
 				ini.SetValue("Rain", "Last", MetData.RainCounter);
-				ini.SetValue("Rain", "LastTip", LastRainTip);
+				ini.SetValue("Rain", "LastTip", MetData.LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", MetData.ConsecutiveRainDays);
 				ini.SetValue("Rain", "ConsecutiveDryDays", MetData.ConsecutiveDryDays);
 				ini.SetValue("Rain", "RG11Today", MetData.RG11RainToday);

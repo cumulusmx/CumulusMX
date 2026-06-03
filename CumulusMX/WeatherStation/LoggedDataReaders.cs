@@ -23,7 +23,6 @@ namespace CumulusMX
 					windRoseData.Append(windcounts[i].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 				}
 			}
-			var stormRainStart = MetData.StartOfStorm == DateTime.MinValue ? "-----" : MetData.StartOfStorm.ToString("d");
 
 			var alarms = new List<DashboardAlarms>();
 			if (cumulus.NewRecordAlarm.Enabled)
@@ -84,23 +83,7 @@ namespace CumulusMX
 			}
 
 
-			var data = new DataStruct(cumulus, MetData.Temperature, MetData.Humidity, MetData.TempTotalToday / tempsamplestoday, MetData.TemperatureIn, MetData.Dewpoint, MetData.WindChill, MetData.HumidityIn,
-				MetData.Pressure, MetData.WindLatest, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindRunToday, MetData.WindBearing, MetData.WindAvgBearing, MetData.RainToday, MetData.RainYesterday, MetData.RainWeek, MetData.RainMonth, MetData.RainYear, MetData.RainRate,
-				MetData.RainLastHour, MetData.HeatIndex, MetData.Humidex, MetData.ApparentTemperature, MetData.TempTrendVal, MetData.PressTrendVal, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
-				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, MetData.BearingRangeFrom10, MetData.BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
-				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
-				DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighRainRate, DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHumidity, DailyHighLow.Today.LowHumidity,
-				DailyHighLow.Today.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
-				DailyHighLow.Today.HighDewPoint, DailyHighLow.Today.LowDewPoint, DailyHighLow.Today.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowWindChill,
-				DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.SolarRad, DailyHighLow.Today.HighSolar, DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.UV, DailyHighLow.Today.HighUv,
-				DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.ForecastStr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
-				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHeatIndex, DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighAppTemp,
-				DailyHighLow.Today.LowAppTemp, DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.CurrentSolarMax,
-				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, MetData.SunshineHours, CompassPoint(MetData.DominantWindBearing), LastRainTip,
-				DailyHighLow.Today.HighHourlyRain, DailyHighLow.Today.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(DailyHighLow.Today.HighWind), "F" + Cumulus.Beaufort(MetData.WindAverage),
-				cumulus.BeaufortDesc(MetData.WindAverage), LastDataReadTimestamp, DataStopped, MetData.StormRain, stormRainStart, MetData.CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", MetData.RainLast24Hour,
-				MetData.FeelsLike, DailyHighLow.Today.HighFeelsLike, DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowFeelsLike, DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
-				DailyHighLow.Today.HighHumidex, DailyHighLow.Today.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), alarms);
+			var data = new DataStruct(cumulus, windRoseData.ToString(), alarms);
 
 			try
 			{
@@ -715,7 +698,7 @@ namespace CumulusMX
 			return "[]";
 		}
 
-		private static string getTimeString(DateTime time, string format = "HH:mm")
+		public static string GetTimeString(DateTime time, string format = "HH:mm")
 		{
 			if (time <= DateTime.MinValue)
 			{
@@ -727,7 +710,7 @@ namespace CumulusMX
 			}
 		}
 
-		private string getTimeString(TimeSpan timespan, string format = "HH:mm")
+		public static string GetTimeString(TimeSpan timespan, string format = "HH:mm")
 		{
 			try
 			{
@@ -738,11 +721,11 @@ namespace CumulusMX
 
 				var dt = DateTime.MinValue.Add(timespan);
 
-				return getTimeString(dt, format);
+				return GetTimeString(dt, format);
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"getTimeString: Exception caught - {e.Message}");
+				Program.cumulus.LogMessage($"getTimeString: Exception caught - {e.Message}");
 				return "-----";
 			}
 		}

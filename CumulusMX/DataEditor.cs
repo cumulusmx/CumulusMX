@@ -3331,8 +3331,8 @@ namespace CumulusMX
 								updt.Append($"THighSolarRad={(MetData.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighSolarTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighUV={(MetData.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC) : "NULL")},");
 								updt.Append($"THighUV={(MetData.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighUvTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"HWindGBearSym='{station.CompassPoint(MetData.DayFile[lineNum].HighGustBearing)}',");
-								updt.Append($"DomWindDirSym='{station.CompassPoint(MetData.DayFile[lineNum].DominantWindBearing)}',");
+								updt.Append($"HWindGBearSym='{cumulus.CompassPoint(MetData.DayFile[lineNum].HighGustBearing)}',");
+								updt.Append($"DomWindDirSym='{cumulus.CompassPoint(MetData.DayFile[lineNum].DominantWindBearing)}',");
 								updt.Append($"MaxFeelsLike={(MetData.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighFeelsLike.ToFixed(cumulus.TempFormat) : "NULL")},");
 								updt.Append($"TMaxFeelsLike={(MetData.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? MetData.DayFile[lineNum].HighFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"MinFeelsLike={(MetData.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? MetData.DayFile[lineNum].LowFeelsLike.ToFixed(cumulus.TempFormat) : "NULL")},");
@@ -3685,8 +3685,8 @@ namespace CumulusMX
 								updt.Append(sep +$"CurrWindBearing={LogRec.Bearing.ToText("NULL")}");
 								updt.Append(sep +$"RG11rain={LogRec.RG11RainToday.ToFixed(cumulus.RainFormat, "NULL")}");
 								updt.Append(sep +$"RainSinceMidnight={LogRec.RainSinceMidnight.ToFixed(cumulus.RainFormat, "NULL")}");
-								updt.Append(sep +$"WindbearingSym={(LogRec.Bearing.HasValue ? $"'{station.CompassPoint(LogRec.AvgBearing)}'" : "NULL")}");
-								updt.Append(sep +$"CurrWindBearingSym={(LogRec.Bearing.HasValue ? $"'{station.CompassPoint(LogRec.Bearing.Value)}'" : "NULL")}");
+								updt.Append(sep +$"WindbearingSym={(LogRec.Bearing.HasValue ? $"'{cumulus.CompassPoint(LogRec.AvgBearing)}'" : "NULL")}");
+								updt.Append(sep +$"CurrWindBearingSym={(LogRec.Bearing.HasValue ? $"'{cumulus.CompassPoint(LogRec.Bearing.Value)}'" : "NULL")}");
 								updt.Append(sep +$"FeelsLike={LogRec.FeelsLike.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"Humidex={LogRec.Humidex.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"BlackGlobeTemp={LogRec.BlackGlobeTemp.ToFixed(cumulus.TempFormat, "NULL")}");

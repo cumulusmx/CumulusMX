@@ -45,7 +45,7 @@ namespace CumulusMX
 			json.Append("&nbsp;\"],");
 
 			json.Append($"[\"{cumulus.Trans.DataCaptions["AvgTemp"]}\",\"");
-			json.Append((MetData.TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
+			json.Append(MetData.AverageTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
 			json.Append(MetData.YestAvgTemp.ToFixedLocal(cumulus.TempFormat));
@@ -279,12 +279,12 @@ namespace CumulusMX
 
 			json.Append($"[\"{cumulus.Trans.DataCaptions["DomDir"]}\",\"");
 			json.Append(MetData.DominantWindBearing.ToString("F0"));
-			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(MetData.DominantWindBearing));
+			json.Append("&nbsp;&deg;&nbsp;" + cumulus.CompassPoint(MetData.DominantWindBearing));
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append(sepStr);
 			json.Append(MetData.YestDominantWindBearing.ToString("F0"));
-			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(MetData.YestDominantWindBearing));
+			json.Append("&nbsp;&deg;&nbsp;" + cumulus.CompassPoint(MetData.YestDominantWindBearing));
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append("\"]");

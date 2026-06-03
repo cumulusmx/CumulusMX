@@ -2543,7 +2543,7 @@ namespace CumulusMX.Stations
 									{
 										var temp = ConvertUnits.TempFToUser(archiveData.OutsideTemperature);
 										// add in 'archivePeriod' minutes worth of temperature to the temp samples
-										tempsamplestoday += interval;
+										MetData.TempSamplesToday += interval;
 										MetData.TempTotalToday += temp * interval;
 
 										// update chill hours
@@ -2678,7 +2678,7 @@ namespace CumulusMX.Stations
 									if (h != rollHour || timestamp.Minute != 0)
 									{
 										// add in 'archivePeriod' minutes worth of temperature to the temp samples
-										tempsamplestoday += interval;
+										MetData.TempSamplesToday += interval;
 										MetData.TempTotalToday += MetData.Temperature * interval;
 
 										// update chill hours

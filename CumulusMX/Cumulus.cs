@@ -126,7 +126,7 @@ namespace CumulusMX
 
 		public const int LogFileRetries = 3;
 
-		private WeatherStation[] Stations = new WeatherStation[2];
+		internal WeatherStation[] Stations { get; } = new WeatherStation[2];
 		public bool HasExtraStation { get; set; } = false;
 
 		internal DavisAirLink airLinkIn;
@@ -4466,8 +4466,8 @@ namespace CumulusMX
 					values.Append(sep + MetData.WindBearing.ToString());
 					values.Append(sep + MetData.RG11RainToday.ToString(RainFormat, inv));
 					values.Append(sep + MetData.RainSinceMidnight.ToFixed(RainFormat));
-					values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindAvgBearing) + "'");
-					values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindBearing) + "'");
+					values.Append(sep + "'" + CompassPoint(MetData.WindAvgBearing) + "'");
+					values.Append(sep + "'" + CompassPoint(MetData.WindBearing) + "'");
 					values.Append(sep + MetData.FeelsLike.ToFixed(TempFormat));
 					values.Append(sep + MetData.Humidex.ToFixed(TempFormat));
 					values.Append(sep + MetData.BlackGlobeTemp.ToFixed(TempFormat, "NULL"));
@@ -7575,7 +7575,7 @@ namespace CumulusMX
 				sb.Append(MetData.RainRate.ToString(RainFormat, InvC) + ' ');                 // 9
 				sb.Append(MetData.RainToday.ToString(RainFormat, InvC) + ' ');                // 10
 				sb.Append(MetData.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
-				sb.Append(Stations[0].CompassPoint(MetData.WindBearing) + ' ');                       // 12
+				sb.Append(CompassPoint(MetData.WindBearing) + ' ');                       // 12
 				sb.Append(Beaufort(MetData.WindAverage) + ' ');                               // 13
 				sb.Append(Units.WindText + ' ');                                              // 14
 				sb.Append(Units.TempText[1].ToString() + ' ');                                // 15
@@ -7615,7 +7615,7 @@ namespace CumulusMX
 				sb.Append(MetData.Forecastnumber.ToString() + ' ');                           // 49
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
 				sb.Append(Stations[0].SensorContactLost ? "1 " : "0 ");                           // 51
-				sb.Append(Stations[0].CompassPoint(MetData.WindAvgBearing) + ' ');                    // 52
+				sb.Append(CompassPoint(MetData.WindAvgBearing) + ' ');                    // 52
 				sb.Append(MetData.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
 				sb.Append(MetData.ApparentTemperature.ToFixed(TempFormat) + ' ');             // 55
@@ -7662,7 +7662,7 @@ namespace CumulusMX
 			values.Append(sep + MetData.RainRate.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainToday.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.Pressure.ToString(PressFormat, InvC) );
-			values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindBearing) + "'");
+			values.Append(sep + "'" + CompassPoint(MetData.WindBearing) + "'");
 			values.Append(sep + Beaufort(MetData.WindAverage));
 			values.Append(sep + "'" + Units.WindText + "'");
 			values.Append(sep + "'" + Units.TempText[1].ToString() + "'");
@@ -7702,7 +7702,7 @@ namespace CumulusMX
 			values.Append(sep + MetData.Forecastnumber.ToString());
 			values.Append(sep + (IsDaylight() ? "'1'" : "'0'"));
 			values.Append(sep + (Stations[0].SensorContactLost ? "'1'" : "'0'"));
-			values.Append(sep + "'" + Stations[0].CompassPoint(MetData.WindAvgBearing) + "'");
+			values.Append(sep + "'" + CompassPoint(MetData.WindAvgBearing) + "'");
 			values.Append(sep + (MetData.CloudBase).ToString() );
 			values.Append(sep + (CloudBaseInFeet ? "'ft'" : "'m'") );
 			values.Append(sep + MetData.ApparentTemperature.ToFixed(TempFormat));
@@ -8794,6 +8794,12 @@ namespace CumulusMX
 			m = secs % 60;
 			d = secs / 60;
 		}
+
+		public string CompassPoint(int bearing)
+		{
+			return bearing == 0 ? "-" : Trans.compassp[(bearing * 100 + 1125) % 36000 / 2250];
+		}
+
 
 		public void AddToWebServiceLists(DateTime timestamp)
 		{

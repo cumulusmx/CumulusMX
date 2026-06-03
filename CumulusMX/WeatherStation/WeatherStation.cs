@@ -845,8 +845,6 @@ namespace CumulusMX
 
 		public double WindAverageUncalibrated { get; set; } = 0;
 
-		public int tempsamplestoday { get; set; }
-
 
 		public DateTime lastSpikeRemoval = DateTime.MinValue;
 		private double previousPress = 9999;
@@ -1089,7 +1087,7 @@ namespace CumulusMX
 					if (!first_temp)
 					{
 						// update temperature average items
-						tempsamplestoday++;
+						MetData.TempSamplesToday++;
 						MetData.TempTotalToday += MetData.Temperature;
 					}
 
@@ -1548,8 +1546,6 @@ namespace CumulusMX
 				}
 			}
 		}
-
-		public string LastRainTip { get; set; }
 
 
 		public bool FirstForecastDone = false;
@@ -2193,7 +2189,7 @@ namespace CumulusMX
 				MetData.RainToday = 0;
 
 				MetData.TempTotalToday = MetData.Temperature;
-				tempsamplestoday = 1;
+				MetData.TempSamplesToday = 1;
 
 				// Copy today"s high wind settings to yesterday
 				DailyHighLow.Yest.HighWind = DailyHighLow.Today.HighWind;
@@ -2522,11 +2518,6 @@ namespace CumulusMX
 		protected static int BCDchartoint(int c)
 		{
 			return c / 16 * 10 + c % 16;
-		}
-
-		public string CompassPoint(int bearing)
-		{
-			return bearing == 0 ? "-" : cumulus.Trans.compassp[(bearing * 100 + 1125) % 36000 / 2250];
 		}
 
 		public void StartLoop()

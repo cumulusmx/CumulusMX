@@ -188,7 +188,7 @@ namespace CumulusMX
 				if (Math.Round(total, cumulus.RainDPlaces) - Math.Round(previoustotal, cumulus.RainDPlaces) > 0)
 				{
 					// rain has occurred
-					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
+					MetData.LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
 
 					if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
 					{

@@ -680,11 +680,7 @@ namespace CumulusMX
 			// 57  High WBGT
 			// 58  High WBGT time
 
-			double AvgTemp;
-			if (tempsamplestoday > 0)
-				AvgTemp = MetData.TempTotalToday / tempsamplestoday;
-			else
-				AvgTemp = 0;
+			double AvgTemp = MetData.AverageTemp;
 
 			// save the value for yesterday
 			MetData.YestAvgTemp = AvgTemp;
@@ -928,8 +924,8 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.HighSolarTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat, inv));
 				queryString.Append(sep + DailyHighLow.Today.HighUvTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + "'" + CompassPoint(DailyHighLow.Today.HighGustBearing) + "'");
-				queryString.Append(sep + "'" + CompassPoint(MetData.DominantWindBearing) + "'");
+				queryString.Append(sep + "'" + cumulus.CompassPoint(DailyHighLow.Today.HighGustBearing) + "'");
+				queryString.Append(sep + "'" + cumulus.CompassPoint(MetData.DominantWindBearing) + "'");
 				queryString.Append(sep + DailyHighLow.Today.HighFeelsLike.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.HighFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.LowFeelsLike.ToFixed(cumulus.TempFormat));

@@ -107,7 +107,7 @@ namespace CumulusMX
 			ini.SetValue("Wind", "Gust", DailyHighLow.Yest.HighGust);
 			ini.SetValue("Wind", "Time", DailyHighLow.Yest.HighGustTime);
 			ini.SetValue("Wind", "Bearing", DailyHighLow.Yest.HighGustBearing);
-			ini.SetValue("Wind", "Direction", CompassPoint(DailyHighLow.Yest.HighGustBearing));
+			ini.SetValue("Wind", "Direction", cumulus.CompassPoint(DailyHighLow.Yest.HighGustBearing));
 			ini.SetValue("Wind", "Windrun", MetData.YesterdayWindRun);
 			ini.SetValue("Wind", "DominantWindBearing", MetData.YestDominantWindBearing);
 			// Temperature

@@ -1485,7 +1485,7 @@ namespace CumulusMX.Stations
 						UpdateDegreeDays(interval);
 
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
-						tempsamplestoday += interval;
+						MetData.TempSamplesToday += interval;
 						MetData.TempTotalToday += MetData.Temperature * interval;
 
 						// update chill hours

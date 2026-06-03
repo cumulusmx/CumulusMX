@@ -1,488 +1,225 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CumulusMX
 {
 	// The annotations on this class are so it can be serialised as JSON
-	public class DataStruct(
-		Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double? indoorTemp, double outdoorDewpoint, double windChill,
-		int? indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
-		double rainToday, double rainYesterday, double rainWeek, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
-		double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday,
-		string windUnit, string windRunUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday,
-		string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday,
-		string highRainRateTodayTime, int highHumToday, int lowHumToday, string highHumTodayTime, string lowHumTodayTime, string pressUnit, string tempUnit,
-		string rainUnit, double highDewpointToday, double lowDewpointToday, string highDewpointTodayTime, string lowDewpointTodayTime, double lowWindChillToday,
-		string lowWindChillTodayTime, int? solarRad, int highSolarRadToday, string highSolarRadTodayTime, double? uvindex, double highUVindexToday,
-		string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday,
-		string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime,
-		int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO,
-		double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, DateTime lastDataRead,
-		bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain,
-		double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime,
-		double highHumidexToday, string highHumidexTodayTime, List<DashboardAlarms> alarms)
+	public class DataStruct(Cumulus cumulus, string windRoseData, List<DashboardAlarms> alarms)
 	{
 		private readonly Cumulus cumulus = cumulus;
 
-		double _stormRain = stormRain;
+		public string StormRain { get => MetData.StormRain.ToString(cumulus.RainFormat); }
 
-		public string StormRain
-		{
-			get => _stormRain.ToString(cumulus.RainFormat);
-		}
+		public string StormRainStart { get => MetData.StartOfStorm == DateTime.MinValue ? "-----" : MetData.StartOfStorm.ToString("d"); }
 
-		public string StormRainStart { get; } = stormRainStart;
+		public int CurrentSolarMax { get => MetData.CurrentSolarMax; }
 
-		public int CurrentSolarMax { get; } = currentSolarMax;
+		public string HighHeatIndexToday { get => DailyHighLow.Today.HighHeatIndex.ToFixedLocal(cumulus.TempFormat); }
 
-		double _highHeatIndexToday = highHeatIndexToday;
+		public string HighHeatIndexTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighHeatIndexTime); }
 
-		public string HighHeatIndexToday
-		{
-			get => _highHeatIndexToday.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string Sunrise { get => WeatherStation.GetTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat); }
 
-		public string HighHeatIndexTodayTime { get; } = highHeatIndexTodayTime;
+		public string Sunset { get => WeatherStation.GetTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat); }
 
-		public string Sunrise { get; } = sunrise;
+		public string Moonrise { get => WeatherStation.GetTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat); }
 
-		public string Sunset { get; } = sunset;
+		public string Moonset { get => WeatherStation.GetTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat); }
 
-		public string Moonrise { get; } = moonrise;
+		public string Forecast { get => MetData.ForecastStr; }
 
-		public string Moonset { get; } = moonset;
+		public string UVindex { get => MetData.UV.ToFixedLocal(cumulus.UVFormat, "-"); }
 
-		public string Forecast { get; } = forecast;
+		public string HighUVindexToday { get => DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat); }
+ 
+		public string HighUVindexTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighUvTime); }
 
-		double? _uVindex { get; } = uvindex;
+		public string HighSolarRadTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighSolarTime); }
 
-		public string UVindex
-		{
-			get => _uVindex.ToFixedLocal(cumulus.UVFormat, "-");
-		}
+		public int HighSolarRadToday { get => DailyHighLow.Today.HighSolar; }
 
-		double _highUVindexToday = highUVindexToday;
+		public string SolarRad { get => MetData.SolarRad.ToText("-"); }
 
-		public string HighUVindexToday
-		{
-			get => _highUVindexToday.ToString(cumulus.UVFormat);
-		}
+		public string IndoorTemp { get => MetData.TemperatureIn.ToFixedLocal(cumulus.TempFormat, "-"); }
 
-		public string HighUVindexTodayTime { get; } = highUVindexTodayTime;
+		public string OutdoorDewpoint { get => MetData.Dewpoint.ToFixedLocal(cumulus.TempFormat); }
 
-		public string HighSolarRadTodayTime { get; } = highSolarRadTodayTime;
+		public string LowDewpointToday { get => DailyHighLow.Today.LowDewPoint.ToFixedLocal(cumulus.TempFormat); }
 
-		public int HighSolarRadToday { get; } = highSolarRadToday;
+		public string HighDewpointToday { get => DailyHighLow.Today.HighDewPoint.ToFixedLocal(cumulus.TempFormat); }
 
-		int? _SolarRad = solarRad;
+		public string LowDewpointTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowDewPointTime); }
 
-		public string SolarRad
-		{
-			get => _SolarRad.ToText("-");
-		}
+		public string HighDewpointTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighDewPointTime); }
 
-		double? _indoorTemp = indoorTemp;
+		public string WindChill { get => MetData.WindChill.ToFixedLocal(cumulus.TempFormat); }
 
-		public string IndoorTemp
-		{
-			get => _indoorTemp.ToFixedLocal(cumulus.TempFormat, "-");
-		}
+		public string LowWindChillToday { get => DailyHighLow.Today.LowWindChill.ToFixedLocal(cumulus.TempFormat); }
 
-		double _outdoorDewpoint = outdoorDewpoint;
+		public string LowWindChillTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowWindChillTime); }
 
-		public string OutdoorDewpoint
-		{
-			get => _outdoorDewpoint.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string BGT { get => MetData.BlackGlobeTemp.ToFixedLocal(cumulus.TempFormat, "-"); }
 
-		double _lowDewpointToday = lowDewpointToday;
+		public string WBGT { get => MetData.WetBulbGlobeTemp.ToFixedLocal(cumulus.TempFormat, "-"); }
 
-		public string LowDewpointToday
-		{
-			get => _lowDewpointToday.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string WindUnit { get => cumulus.Units.WindText; }
 
-		double _highDewpointToday = highDewpointToday;
+		public string WindRunUnit { get => cumulus.Units.WindRunText; }
 
-		public string HighDewpointToday
-		{
-			get => _highDewpointToday.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string RainUnit { get => cumulus.Units.RainText; }
 
-		public string LowDewpointTodayTime { get; } = lowDewpointTodayTime;
+		public string TempUnit { get => cumulus.Units.TempText; }
 
-		public string HighDewpointTodayTime { get; } = highDewpointTodayTime;
+		public string PressUnit { get => cumulus.Units.PressText; }
 
-		double _windChill = windChill;
+		public string CloudbaseUnit { get => cumulus.CloudBaseInFeet ? "ft" : "m"; }
 
-		public string WindChill
-		{
-			get => _windChill.ToFixedLocal(cumulus.TempFormat);
-		}
+		public int Cloudbase { get => MetData.CloudBase; }
 
-		double _lowWindChillToday = lowWindChillToday;
+		public string LowHumTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowHumidityTime); }
 
-		public string LowWindChillToday
-		{
-			get => _lowWindChillToday.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string HighHumTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighHumidityTime); }
 
-		public string LowWindChillTodayTime { get; } = lowWindChillTodayTime;
+		public int LowHumToday { get => DailyHighLow.Today.LowHumidity; }
 
-		public string WindUnit { get; } = windUnit;
+		public int HighHumToday { get => DailyHighLow.Today.HighHumidity; }
 
-		public string WindRunUnit { get; } = windRunUnit;
+		public string HighRainRateTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighRainRateTime); }
 
-		public string RainUnit { get; } = rainUnit;
+		public string HighRainRateToday { get => DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat); }
 
-		public string TempUnit { get; } = tempUnit;
+		public string HighHourlyRainTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighHourlyRainTime); }
 
-		public string PressUnit { get; } = pressUnit;
+		public string HighHourlyRainToday { get => DailyHighLow.Today.HighHourlyRain.ToString(cumulus.RainFormat); }
 
-		public string CloudbaseUnit { get; } = cloudbaseUnit;
+		public string LowPressTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowPressTime); }
 
-		public int Cloudbase { get; } = cloudbase;
+		public string HighPressTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighPressTime); }
 
-		public string LowHumTodayTime { get; } = lowHumTodayTime;
+		public string LowPressToday { get => DailyHighLow.Today.LowPress.ToString(cumulus.PressFormat); }
 
-		public string HighHumTodayTime { get; } = highHumTodayTime;
+		public string HighPressToday { get => DailyHighLow.Today.HighPress.ToString(cumulus.PressFormat); }
 
-		public int LowHumToday { get; } = lowHumToday;
+		public string LowTempTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowTempTime); }
 
-		public int HighHumToday { get; } = highHumToday;
+		public string HighTempTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighTempTime); }
 
-		public string HighRainRateTodayTime { get; } = highRainRateTodayTime;
+		public string LowTempToday { get => DailyHighLow.Today.LowTemp.ToFixedLocal(cumulus.TempFormat); }
 
-		double _highRainRateToday = highRainRateToday;
-
-		public string HighRainRateToday
-		{
-			get => _highRainRateToday.ToString(cumulus.RainFormat);
-		}
-
-		public string HighHourlyRainTodayTime { get; } = highHourlyRainTodayTime;
-
-		double _highHourlyRainToday = highHourlyRainToday;
-
-		public string HighHourlyRainToday
-		{
-			get => _highHourlyRainToday.ToString(cumulus.RainFormat);
-		}
-
-		public string LowPressTodayTime { get; } = lowPressTodayTime;
-
-		public string HighPressTodayTime { get; } = highPressTodayTime;
-
-		double _lowPressToday = lowPressToday;
-
-		public string LowPressToday
-		{
-			get => _lowPressToday.ToString(cumulus.PressFormat);
-		}
-
-		double _highPressToday = highPressToday;
-
-		public string HighPressToday
-		{
-			get => _highPressToday.ToString(cumulus.PressFormat);
-		}
-
-		public string LowTempTodayTime { get; } = lowTempTodayTime;
-
-		public string HighTempTodayTime { get; } = highTempTodayToday;
-
-		double _lowTempToday = lowTempToday;
-
-		public string LowTempToday
-		{
-			get => _lowTempToday.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		double _highTempToday = highTempToday;
-
-		public string HighTempToday
-		{
-			get => _highTempToday.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string HighTempToday { get => DailyHighLow.Today.HighTemp.ToFixedLocal(cumulus.TempFormat); }
 
 		public string WindRoseData { get; } = windRoseData;
 
-		public int BearingRangeTo10 { get; } = bearingRangeTo10;
+		public int BearingRangeTo10 { get => MetData.BearingRangeTo10; }
 
-		public int BearingRangeFrom10 { get; } = bearingRangeFrom10;
+		public int BearingRangeFrom10 { get => MetData.BearingRangeFrom10; }
 
-		public int HighGustBearingToday { get; } = highGustBearingToday;
+		public int HighGustBearingToday { get => DailyHighLow.Today.HighGustBearing; }
 
-		double _highWindToday = highWindToday;
+		public string HighWindToday { get => DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat); }
 
-		public string HighWindToday
-		{
-			get => _highWindToday.ToString(cumulus.WindAvgFormat);
-		}
+		public string HighGustTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighGustTime); }
 
-		public string HighGustTodayTime { get; } = highGustTodayTime;
+		public string HighGustToday { get => DailyHighLow.Today.HighGust.ToString(cumulus.WindAvgFormat); }
 
-		double _highGustToday = highGustToday;
+		public string OutdoorTemp { get => MetData.Temperature.ToFixedLocal(cumulus.TempFormat); }
 
-		public string HighGustToday
-		{
-			get => _highGustToday.ToString(cumulus.WindFormat);
-		}
+		public int OutdoorHum { get => MetData.Humidity; }
 
-		double _outdoorTemp = outdoorTemp;
+		public string AvgTempToday { get => MetData.AverageTemp.ToFixedLocal(cumulus.TempFormat); }
 
-		public string OutdoorTemp
-		{
-			get => _outdoorTemp.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string IndoorHum { get => MetData.HumidityIn.ToText("-"); }
 
-		public int OutdoorHum { get; } = outdoorHum;
+		public string Pressure { get => MetData.Pressure.ToFixedLocal(cumulus.PressFormat); }
 
-		double _avgTempToday = avgTempToday;
+		public string AlltimeHighPressure { get => Records.AllTime.HighPress.Val.ToString(cumulus.PressFormat); }
 
-		public string AvgTempToday
-		{
-			get => _avgTempToday.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string AlltimeLowPressure { get => Records.AllTime.LowPress.Val.ToString(cumulus.PressFormat); }
 
-		int? _indoorHum = indoorHum;
+		public string WindLatest { get => MetData.WindLatest.ToString(cumulus.WindFormat); }
 
-		public string IndoorHum
-		{
-			get => _indoorHum.ToText("-");
-		}
+		public string WindAverage { get => MetData.WindAverage.ToString(cumulus.WindAvgFormat); }
 
-		double _pressure = pressure;
+		public string Recentmaxgust { get => MetData.RecentMaxGust.ToString(cumulus.WindFormat); }
 
-		public string Pressure
-		{
-			get => _pressure.ToString(cumulus.PressFormat);
-		}
+		public string WindRunToday { get => MetData.WindRunToday.ToString(cumulus.WindRunFormat); }
 
-		double _alltimeHighPressure = alltimeHighPressure;
+		public int Bearing { get => MetData.WindBearing; }
 
-		public string AlltimeHighPressure
-		{
-			get => _alltimeHighPressure.ToString(cumulus.PressFormat);
-		}
+		public int Avgbearing { get => MetData.WindAvgBearing; }
 
-		double _alltimeLowPressure = alltimeLowPressure;
+		public string RainToday { get => MetData.RainToday.ToString(cumulus.RainFormat); }
 
-		public string AlltimeLowPressure
-		{
-			get => _alltimeLowPressure.ToString(cumulus.PressFormat);
-		}
+		public string RainYesterday { get => MetData.RainYesterday.ToString(cumulus.RainFormat); }
 
-		double _windLatest = windLatest;
+		public string RainWeek { get => MetData.RainWeek.ToString(cumulus.RainFormat); }
 
-		public string WindLatest
-		{
-			get => _windLatest.ToString(cumulus.WindFormat);
-		}
+		public string RainMonth { get => MetData.RainMonth.ToString(cumulus.RainFormat); }
 
-		double _windAverage = windAverage;
+		public string RainYear { get => MetData.RainYear.ToString(cumulus.RainFormat); }
 
-		public string WindAverage
-		{
-			get => _windAverage.ToString(cumulus.WindAvgFormat);
-		}
+		public string RainRate { get => MetData.RainRate.ToString(cumulus.RainFormat); }
 
-		double _recentmaxgust = recentmaxgust;
+		public string RainLastHour { get => MetData.RainLastHour.ToString(cumulus.RainFormat); }
 
-		public string Recentmaxgust
-		{
-			get => _recentmaxgust.ToString(cumulus.WindFormat);
-		}
+		public string RainLast24Hour { get => MetData.RainLast24Hour.ToString(cumulus.RainFormat); }
 
-		double _windRunToday = windRunToday;
+		public string HeatIndex { get => MetData.HeatIndex.ToString(cumulus.TempFormat); }
 
-		public string WindRunToday
-		{
-			get => _windRunToday.ToString(cumulus.WindRunFormat);
-		}
+		public string Humidex { get => MetData.Humidex.ToString(cumulus.TempFormat); }
 
-		public int Bearing { get; } = bearing;
+		public string HighHumidexTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighHumidexTime); }
 
-		public int Avgbearing { get; } = avgbearing;
+		public string HighHumidexToday { get => DailyHighLow.Today.HighHumidex.ToFixedLocal(cumulus.TempFormat); }
 
-		double _rainToday = rainToday;
+		public string AppTemp { get => MetData.ApparentTemperature.ToString(cumulus.TempFormat); }
 
-		public string RainToday
-		{
-			get => _rainToday.ToString(cumulus.RainFormat);
-		}
+		public string LowAppTempTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowAppTempTime); }
 
-		double _rainYesterday = rainYesterday;
+		public string HighAppTempTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighAppTempTime); }
 
-		public string RainYesterday
-		{
-			get => _rainYesterday.ToString(cumulus.RainFormat);
-		}
+		public string LowAppTempToday { get => DailyHighLow.Today.LowAppTemp.ToFixedLocal(cumulus.TempFormat); }
 
-		double _rainWeek = rainWeek;
+		public string HighAppTempToday { get => DailyHighLow.Today.HighAppTemp.ToFixedLocal(cumulus.TempFormat); }
 
-		public string RainWeek
-		{
-			get => _rainWeek.ToString(cumulus.RainFormat);
-		}
+		public string FeelsLike { get => MetData.FeelsLike.ToString(cumulus.TempFormat); }
 
-		double _rainMonth = rainMonth;
+		public string LowFeelsLikeTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.LowFeelsLikeTime); }
 
-		public string RainMonth
-		{
-			get => _rainMonth.ToString(cumulus.RainFormat);
-		}
+		public string HighFeelsLikeTodayTime { get => WeatherStation.GetTimeString(DailyHighLow.Today.HighFeelsLikeTime); }
 
-		double _rainYear = rainYear;
+		public string LowFeelsLikeToday { get => DailyHighLow.Today.LowFeelsLike.ToFixedLocal(cumulus.TempFormat); }
 
-		public string RainYear
-		{
-			get => _rainYear.ToString(cumulus.RainFormat);
-		}
+		public string HighFeelsLikeToday { get => DailyHighLow.Today.HighFeelsLike.ToFixedLocal(cumulus.TempFormat); }
 
-		double _rainRate = rainRate;
+		public string TempTrend { get => MetData.TempTrendVal.ToString(cumulus.TempTrendFormat); }
 
-		public string RainRate
-		{
-			get => _rainRate.ToString(cumulus.RainFormat);
-		}
+		public string PressTrend { get => MetData.PressTrendStr; }
 
-		double _rainLastHour = rainLastHour;
+		public string SunshineHours { get => MetData.SunshineHours.ToString(cumulus.SunFormat); }
 
-		public string RainLastHour
-		{
-			get => _rainLastHour.ToString(cumulus.RainFormat);
-		}
+		public string Version { get => cumulus.Version; }
 
-		double _rainLast24Hour = last24hourRain;
+		public string Build { get => cumulus.Build; }
 
-		public string RainLast24Hour
-		{
-			get => _rainLast24Hour.ToString(cumulus.RainFormat);
-		}
+		public string DominantWindDirection { get => cumulus.CompassPoint(MetData.DominantWindBearing); }
 
-		double _heatIndex = heatIndex;
+		public string LastRainTipISO { get => MetData.LastRainTip; }
 
-		public string HeatIndex
-		{
-			get => _heatIndex.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string HighBeaufortToday { get => "F" + Cumulus.Beaufort(DailyHighLow.Today.HighWind); }
 
-		double _humidex = humidex;
+		public string Beaufort { get => "F" + Cumulus.Beaufort(MetData.WindAverage); }
 
-		public string Humidex
-		{
-			get => _humidex.ToFixedLocal(cumulus.TempFormat);
-		}
+		public string BeaufortDesc { get => cumulus.BeaufortDesc(MetData.WindAverage); }
 
-		public string HighHumidexTodayTime { get; } = highHumidexTodayTime;
+		//public string LastDataRead { get => cumulus.Stations.Max(s => s.LastDataReadTimestamp).ToLocalTime().ToString(cumulus.ProgramOptions.TimeFormatLong); } 
+		public string LastDataRead { get => cumulus.Stations[0].LastDataReadTimestamp.ToLocalTime().ToString(cumulus.ProgramOptions.TimeFormatLong); }
 
-		double _highHumidexToday = highHumidexToday;
+		//public string LastDataReadDate { get => cumulus.Stations.Max(s => s.LastDataReadTimestamp).ToLocalTime().ToString("d"); }
+		public string LastDataReadDate { get => cumulus.Stations[0].LastDataReadTimestamp.ToLocalTime().ToString("d"); }
 
-		public string HighHumidexToday
-		{
-			get => _highHumidexToday.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		double _appTemp = appTemp;
-
-		public string AppTemp
-		{
-			get => _appTemp.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		public string LowAppTempTodayTime { get; } = lowAppTempTodayTime;
-
-		public string HighAppTempTodayTime { get; } = highAppTempTodayTime;
-
-		double _lowAppTempToday = lowAppTempToday;
-
-		public string LowAppTempToday
-		{
-			get => _lowAppTempToday.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		double _highAppTempToday = highAppTempToday;
-
-		public string HighAppTempToday
-		{
-			get => _highAppTempToday.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		double _feelsLike = feelsLike;
-
-		public string FeelsLike
-		{
-			get => _feelsLike.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		public string LowFeelsLikeTodayTime { get; } = lowFeelsLikeTodayTime;
-
-		public string HighFeelsLikeTodayTime { get; } = highFeelsLikeTodayTime;
-
-		double _lowFeelsLikeToday = lowFeelsLikeToday;
-
-		public string LowFeelsLikeToday
-		{
-			get => _lowFeelsLikeToday.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		double _highFeelsLikeToday = highFeelsLikeToday;
-
-		public string HighFeelsLikeToday
-		{
-			get => _highFeelsLikeToday.ToFixedLocal(cumulus.TempFormat);
-		}
-
-		double _tempTrend = tempTrend;
-
-		public string TempTrend
-		{
-			get => _tempTrend.ToFixedLocal(cumulus.TempTrendFormat);
-		}
-
-		double _pressTrend = pressTrend;
-
-		public string PressTrend
-		{
-			get => _pressTrend.ToFixedLocal(cumulus.PressTrendFormat);
-		}
-
-		double _sunshineHours = sunshineHours;
-
-		public string SunshineHours
-		{
-			get => _sunshineHours.ToString(cumulus.SunFormat);
-		}
-
-		public string Version
-		{
-			get => cumulus.Version;
-		}
-
-		public string Build
-		{
-			get => cumulus.Build;
-		}
-
-		public string DominantWindDirection { get; } = domWindDir;
-
-		public string LastRainTipISO { get; } = lastRainTipISO;
-
-		public string HighBeaufortToday { get; } = highBeaufortToday;
-
-		public string Beaufort { get; } = beaufort;
-
-		public string BeaufortDesc { get; } = beaufortDesc;
-
-		public string LastDataRead { get; } = lastDataRead.ToLocalTime().ToString(cumulus.ProgramOptions.TimeFormatLong);
-
-		public string LastDataReadDate
-		{
-			get => lastDataRead.ToLocalTime().ToString("d");
-		}
-
-		public bool DataStopped { get; } = dataStopped;
+		public bool DataStopped { get => cumulus.Stations[0].DataStopped; }
 
 		public List<DashboardAlarms> Alarms { get; } = alarms;
 	}

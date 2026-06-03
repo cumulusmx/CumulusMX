@@ -1897,7 +1897,7 @@ namespace CumulusMX.Stations
 				}
 
 				// add in archive period minutes worth of temperature to the temp samples
-				station.tempsamplestoday += 5;
+				MetData.TempSamplesToday += 5;
 				MetData.TempTotalToday += MetData.Temperature * 5;
 
 				// add in 'following interval' minutes worth of wind speed to windrun

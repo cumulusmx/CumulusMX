@@ -272,11 +272,7 @@ namespace CumulusMX.ThirdParty
 			else
 				presstrend = -2;
 
-			double AvgTemp;
-			if (station.tempsamplestoday > 0)
-				AvgTemp = MetData.TempTotalToday / station.tempsamplestoday;
-			else
-				AvgTemp = 0;
+			double AvgTemp = MetData.AverageTemp;
 
 			StringBuilder sb = new StringBuilder("https://data.awekas.at/eingabe_pruefung.php?");
 

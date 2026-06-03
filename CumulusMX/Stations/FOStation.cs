@@ -485,7 +485,7 @@ namespace CumulusMX.Stations
 					{
 						DoOutdoorTemp(ConvertUnits.TempCToUser(historydata.outTemp), timestamp);
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
-						tempsamplestoday += historydata.interval;
+						MetData.TempSamplesToday += historydata.interval;
 						MetData.TempTotalToday += MetData.Temperature * historydata.interval;
 					}
 
