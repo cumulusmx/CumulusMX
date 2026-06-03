@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CumulusMX
 {
-	// The annotations on this class are so it can be serialised as JSON
+#pragma warning disable CA1822 // Mark members as static
 	public class DataStruct(Cumulus cumulus, string windRoseData, List<DashboardAlarms> alarms)
 	{
 		private readonly Cumulus cumulus = cumulus;

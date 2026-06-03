@@ -101,7 +101,7 @@ namespace CumulusMX
 				// Compute the hash of the input string.
 				hashValue = hmac.ComputeHash(stream);
 			}
-			return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
+			return Convert.ToHexStringLower(hashValue);
 		}
 
 		public static string RemoveCrTabsFromString(string input)

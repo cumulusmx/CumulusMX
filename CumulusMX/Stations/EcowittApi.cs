@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CumulusMX.Stations
 {
-	internal class EcowittApi
+	internal partial class EcowittApi
 	{
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
@@ -3101,7 +3101,7 @@ namespace CumulusMX.Stations
 								return defaultUrl;
 							}
 
-							var found = System.Text.RegularExpressions.Regex.Match(responseBody, "https.*mp4");
+							var found = HttpsMp4Regex().Match(responseBody);
 
 							if (found.Success)
 							{
@@ -4252,5 +4252,8 @@ namespace CumulusMX.Stations
 			public string attach2file { get; set; }
 			public int queryintval { get; set; }
 		}
+
+		[System.Text.RegularExpressions.GeneratedRegex("https.*mp4")]
+		private static partial System.Text.RegularExpressions.Regex HttpsMp4Regex();
 	}
 }

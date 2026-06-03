@@ -25,9 +25,9 @@ namespace CumulusMX.Stations
 		private DateTime lastHistoricData;
 		private string subscriptionLevel = string.Empty;
 
-		private int numLeafWetnessSensors = 8;
-		private int numSoilMoistureSensors = 16;
-		private int numSoiltempSensors = 16;
+		private readonly int numLeafWetnessSensors = 8;
+		private readonly int numSoilMoistureSensors = 16;
+		private readonly int numSoiltempSensors = 16;
 
 		private readonly bool isVp2Station = false;
 
@@ -55,7 +55,7 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Davis Cloud Station (VP2/Vue) selected");
 				isVp2Station = true;
 
-				// Do not ue the user sensor mappings for VP2 Stations - they are fixed
+				// Do not use the user sensor mappings for VP2 Stations - they are fixed
 				numLeafWetnessSensors = 2;
 				cumulus.WllLeafWetIdx[1] = 1;
 				cumulus.WllLeafWetIdx[2] = 2;
@@ -168,11 +168,12 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Starting Davis Cloud Station");
 
 				bw = new BackgroundWorker();
-				bw.DoWork += ((object sender, DoWorkEventArgs e) => {
+				bw.DoWork += (sender, e) =>
+				{
 					Cumulus.SyncInit.Wait();
 					StartLoop();
-					Cumulus.SyncInit.Release();
-				});
+					_ = Cumulus.SyncInit.Release();
+				};
 				bw.RunWorkerAsync();
 			}
 			else

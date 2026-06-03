@@ -205,11 +205,12 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Starting Davis Station");
 
 				bw = new BackgroundWorker();
-				bw.DoWork += ((object sender, DoWorkEventArgs e) => {
+				bw.DoWork += (sender, e) =>
+				{
 					Cumulus.SyncInit.Wait();
 					StartLoop();
-					Cumulus.SyncInit.Release();
-				});
+					_ = Cumulus.SyncInit.Release();
+				};
 				bw.RunWorkerAsync();
 			}
 			else

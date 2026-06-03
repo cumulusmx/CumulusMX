@@ -179,11 +179,12 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Starting Davis WLL");
 
 				bw = new BackgroundWorker();
-				bw.DoWork += ((object sender, DoWorkEventArgs e) => {
+				bw.DoWork += (sender, e) =>
+				{
 					Cumulus.SyncInit.Wait();
 					StartLoop();
-					Cumulus.SyncInit.Release();
-				});
+					_ = Cumulus.SyncInit.Release();
+				};
 				bw.RunWorkerAsync();
 			}
 			else
@@ -2364,7 +2365,7 @@ namespace CumulusMX.Stations
 									var sunshine = data11.rainfall_clicks.Value / 100.0;
 									if (sunshine > 0)
 									{
-										cumulus.LogDebugMessage($"WL.com historic: Adding sunshine hours {sunshine.ToString("F2")}");
+										cumulus.LogDebugMessage($"WL.com historic: Adding sunshine hours {sunshine:F2}");
 									}
 									MetData.SunshineHours += sunshine;
 								}

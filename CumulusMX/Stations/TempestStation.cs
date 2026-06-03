@@ -89,7 +89,7 @@ namespace CumulusMX.Stations
 
 			cumulus.LogMessage("Processing history data, number of entries = " + totalentries);
 			Cumulus.LogConsoleMessage(
-				$"Processing history data for {totalentries} records. {DateTime.Now.ToLongTimeString()}");
+				$"Processing history data for {totalentries} records. {DateTime.Now:T}");
 
 			var rollHour = Math.Abs(cumulus.GetHourInc());
 			var luhour = cumulus.LastUpdateTime.Hour;
@@ -290,7 +290,7 @@ namespace CumulusMX.Stations
 			ticks = Environment.TickCount - ticks;
 			var rate = (double) totalentries / ticks * 1000;
 			cumulus.LogMessage($"End processing history data. Rate: {rate:f2}/second");
-			Cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}, Rate: {rate:f2}/second");
+			Cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now:T}, Rate: {rate:f2}/second");
 
 		}
 
