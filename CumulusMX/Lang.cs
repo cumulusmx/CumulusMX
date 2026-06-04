@@ -145,6 +145,8 @@ namespace CumulusMX
 				{ "LoFeelsLike", "Low Feels Like" },
 				{ "Humidex", "Humidex" },
 				{ "HiHumidex", "High Humidex" },
+				{ "Hum", "Humidity" },
+				{ "HumIn", "Indoor Humidity" },
 				{ "HiHum", "High Humidity" },
 				{ "LoHum", "Low Humidity" },
 				{ "TotalRain", "Total Rain" },

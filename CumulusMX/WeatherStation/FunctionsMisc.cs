@@ -407,7 +407,10 @@ namespace CumulusMX
 		public void DoForecast(string forecast, bool hourly)
 		{
 			// store weather Stations forecast if available
-			MetData.WsForecast = forecast;
+			if (!string.IsNullOrEmpty(forecast))
+			{
+				MetData.WsForecast = forecast;
+			}
 
 			if (cumulus.ForecastSource == 3)
 			{
