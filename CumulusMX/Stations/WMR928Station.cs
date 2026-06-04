@@ -519,7 +519,7 @@ namespace CumulusMX.Stations
 				3 => "Rain",
 				6 => "Partly Cloudy",
 				12 => "Clear",
-				_ => "Unknown"
+				_ => cumulus.Trans.ForecastNotAvailable,
 			};
 
 			DoForecast(forecast, false);
@@ -562,22 +562,14 @@ namespace CumulusMX.Stations
 			var forecast = string.Empty;
 
 			var fcnum = buff[9] & 16;
-			switch (fcnum)
+			forecast = fcnum switch
 			{
-				case 2:
-					forecast = "Cloudy";
-					break;
-				case 3:
-					forecast = "Rain";
-					break;
-				case 6:
-					forecast = "Partly Cloudy";
-					break;
-				case 12:
-					forecast = "Clear";
-					break;
-			}
-
+				2 => "Cloudy",
+				3 => "Rain",
+				6 => "Partly Cloudy",
+				12 => "Clear",
+				_ => cumulus.Trans.ForecastNotAvailable,
+			};
 			DoForecast(forecast, false);
 		}
 

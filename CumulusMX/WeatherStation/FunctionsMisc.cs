@@ -407,7 +407,7 @@ namespace CumulusMX
 		public void DoForecast(string forecast, bool hourly)
 		{
 			// store weather Stations forecast if available
-			if (!string.IsNullOrEmpty(forecast))
+			if (!string.IsNullOrEmpty(forecast) && StationId == cumulus.SensorMaps.StationForecast)
 			{
 				MetData.WsForecast = forecast;
 			}
@@ -424,7 +424,7 @@ namespace CumulusMX
 					cumulus.LastForecastDotTxtReadTime = DateTime.UtcNow;
 				}
 			}
-			else if (cumulus.ForecastSource == 0)
+			else if (cumulus.ForecastSource == 0 && StationId == cumulus.SensorMaps.StationForecast)
 			{
 				// user wants to display Stations forecast
 				MetData.ForecastStr = MetData.WsForecast;

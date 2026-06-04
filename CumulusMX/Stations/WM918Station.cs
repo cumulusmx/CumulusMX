@@ -332,22 +332,14 @@ namespace CumulusMX.Stations
 
 			// Forecast
 			var num = buff[6] & 0xF;
-			switch (num)
+			forecast = num switch
 			{
-				case 1:
-					forecast = "Sunny";
-					break;
-				case 2:
-					forecast = "Cloudy";
-					break;
-				case 4:
-					forecast = "Partly Cloudy";
-					break;
-				case 8:
-					forecast = "Rain";
-					break;
-			}
-
+				1 => "Sunny",
+				2 => "Cloudy",
+				4 => "Partly Cloudy",
+				8 => "Rain",
+				_ => cumulus.Trans.ForecastNotAvailable,
+			};
 			DoForecast(forecast, false);
 		}
 

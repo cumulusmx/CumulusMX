@@ -652,6 +652,8 @@ namespace CumulusMX
 				SensorMaps.PrimaryIndoorTempHum = ini.GetValue("SensorMaps", "PrimaryIndoorTHSensor", 0, 0, 16);  // 0=default, 1-16=extra t/h sensor number
 			}
 
+			SensorMaps.StationForecast = ini.GetValue("SensorMaps", "StationForecast", 0, 0, 1);
+
 			// 0 = Main Station, 1 = Secondary Station
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
 			{
@@ -3020,6 +3022,7 @@ namespace CumulusMX
 			// Sensor Mappings
 			ini.SetValue("SensorMaps", "PrimaryTHSensor", SensorMaps.PrimaryTempHum);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			ini.SetValue("SensorMaps", "PrimaryIndoorTHSensor", SensorMaps.PrimaryIndoorTempHum);  // 0=default, 1-8=extra t/h sensor number
+			ini.SetValue("SensorMaps", "StationForecast", SensorMaps.StationForecast);
 			ini.SetValue("SensorMaps", "SolarEnabled", SensorMaps.SolarEnabled);
 			ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
 			ini.SetValue("SensorMaps", "UVEnabled", SensorMaps.UVEnabled);

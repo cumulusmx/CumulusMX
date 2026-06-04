@@ -9447,6 +9447,7 @@ namespace CumulusMX
 		public int Camera;
 		public bool LeakEnabled;
 		public int[] Leak = new int[4];
+		public int StationForecast;
 	}
 
 	public class FtpOptionsClass

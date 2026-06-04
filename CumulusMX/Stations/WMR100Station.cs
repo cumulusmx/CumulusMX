@@ -492,7 +492,7 @@ namespace CumulusMX.Stations
 				4 => "Clear",
 				5 => "Snowy",
 				6 => "Partly Cloudy",
-				_ => "Unknown",
+				_ => cumulus.Trans.ForecastNotAvailable,
 			};
 			DoForecast(fcstr, false);
 		}

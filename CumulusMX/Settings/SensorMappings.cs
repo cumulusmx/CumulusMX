@@ -22,6 +22,7 @@ namespace CumulusMX.Settings
 			{
 				indoorTemp = cumulus.SensorMaps.IndoorTemp,
 				indoorHum = cumulus.SensorMaps.IndoorHum,
+				stationForecast = cumulus.SensorMaps.StationForecast,
 				temperature = cumulus.SensorMaps.Temperature,
 				humidity = cumulus.SensorMaps.Humidity,
 				wind = cumulus.SensorMaps.Wind,
@@ -101,6 +102,7 @@ namespace CumulusMX.Settings
 			{
 				cumulus.SensorMaps.IndoorTemp = settings.indoorTemp;
 				cumulus.SensorMaps.IndoorHum = settings.indoorHum;
+				cumulus.SensorMaps.StationForecast = settings.stationForecast;
 				cumulus.SensorMaps.Temperature = settings.temperature;
 				cumulus.SensorMaps.Humidity = settings.humidity;
 				cumulus.SensorMaps.Wind = settings.wind;
@@ -205,6 +207,7 @@ namespace CumulusMX.Settings
 		{
 			public int indoorTemp { get; set; }
 			public int indoorHum { get; set; }
+			public int stationForecast { get; set; }
 			public int temperature { get; set; }
 			public int humidity { get; set; }
 			public int wind { get; set; }
