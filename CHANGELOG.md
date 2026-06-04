@@ -21,6 +21,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - The dashboard web socket connections are now protocol independent
+- Dashboard BGT/WBGT values moved from the Extra Sensors page to the Now page
 
 ### Fixed
 
