@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SixLabors.ImageSharp;
+using SkiaSharp;
 
 
 namespace CumulusMX.ThirdParty
@@ -527,11 +527,40 @@ namespace CumulusMX.ThirdParty
 				try
 				{
 					using var httpStream = cumulus.MyHttpClient.GetStreamAsync(filepath).Result;
-					var image = SixLabors.ImageSharp.Image.Load(httpStream);
-					var format = image.Metadata.DecodedImageFormat;
-					imageType = format.DefaultMimeType;
+
+					// Load the image from the stream
+					using var skData = SKData.Create(httpStream);
+					using var skImage = SKImage.FromEncodedData(skData);
+
+					if (skImage == null)
+						throw new Exception("Unable to decode image");
+
+					// Detect format
+					var codec = SKCodec.Create(skData);
+					if (codec == null)
+						throw new Exception("Unable to detect image format");
+
+					var encodedFormat = codec.EncodedFormat;
+
+					// Map Skia format → MIME type
+					imageType = encodedFormat switch
+					{
+						SKEncodedImageFormat.Jpeg => "image/jpeg",
+						SKEncodedImageFormat.Png => "image/png",
+						SKEncodedImageFormat.Gif => "image/gif",
+						SKEncodedImageFormat.Webp => "image/webp",
+						SKEncodedImageFormat.Bmp => "image/bmp",
+						SKEncodedImageFormat.Wbmp => "image/vnd.wap.wbmp",
+						SKEncodedImageFormat.Heif => "image/heif",
+						SKEncodedImageFormat.Avif => "image/avif",
+						_ => "application/octet-stream"
+					};
+
+					// Re‑encode into a MemoryStream
 					using var ms = new MemoryStream();
-					image.SaveAsync(ms, format, CancelToken).Wait();
+					using var encoded = skImage.Encode(encodedFormat, quality: 100);
+					encoded.SaveTo(ms);
+
 					imageData = ms.ToArray();
 				}
 				catch (Exception ex)
@@ -546,11 +575,11 @@ namespace CumulusMX.ThirdParty
 				{
 					imageData = File.ReadAllBytes(filepath);
 
-					imageType = filepath.Substring(filepath.LastIndexOf('.') + 1) switch
+					imageType = Path.GetExtension(filepath) switch
 					{
-						"jpg" => "image/jpeg",
-						"jpeg" => "image/jpeg",
-						"png" => "image/png",
+						".jpg" => "image/jpeg",
+						".jpeg" => "image/jpeg",
+						".png" => "image/png",
 						_ => string.Empty
 					};
 				}

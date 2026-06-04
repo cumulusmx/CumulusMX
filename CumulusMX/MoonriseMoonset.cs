@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Memory;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace CumulusMX
 {
@@ -1468,119 +1465,124 @@ namespace CumulusMX
 
 		public static bool CreateMoonImage(double phaseAngle, double latitude, int size, bool transparent)
 		{
-			if (!System.IO.File.Exists("./web/MoonBaseImage.png"))
+			const string basePath = "./web/MoonBaseImage.png";
+			const string outPath = "./web/moon.png";
+
+			if (!File.Exists(basePath))
 			{
 				Program.cumulus.LogMessage("CreateMoonImage: File not found - ./web/MoonBaseImage.png");
 				return false;
 			}
 
-			// Reduce the memory allocation in ImageSharp - we only have a small image
 			try
 			{
-				Configuration.Default.MemoryAllocator = MemoryAllocator.Create(new MemoryAllocatorOptions()
+				using var input = File.OpenRead(basePath);
+				using var bitmap = SKBitmap.Decode(input);
+
+				int srcSize = bitmap.Width;
+				int srcSize2 = srcSize / 2;
+
+				// Reverse settings beyond full moon
+				int corr = -1;
+				if (phaseAngle > 180)
 				{
-					MaximumPoolSizeMegabytes = 1
-				});
-			}
-			catch (Exception ex)
-			{
-				Program.cumulus.LogExceptionMessage(ex, "Error setting ImageSharp memory pool size");
-			}
+					corr = 1;
+					phaseAngle = -(phaseAngle - 360);
+				}
 
-			var success = true;
+				double phase = (1 - Math.Cos(phaseAngle * Math.PI / 180.0)) / 2.0;
 
-			try
-			{
-				using var bmp = Image.Load<Rgba32>("./web/MoonBaseImage.png");
-				bmp.ProcessPixelRows(accessor =>
+				int xPos = corr == -1 ? 0 : srcSize - 1;
+
+				// Direct pixel access
+				for (int yPos = 0; yPos <= srcSize2; yPos++)
 				{
-					// we need to reverse a couple of settings beyond full moon
-					int corr = -1;
+					double xe = 1 - (yPos / (double) srcSize2);
+					xe = Math.Sqrt(1 - (xe * xe));
+					int xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
 
-					if (phaseAngle > 180)
+					int start = Math.Min(xPos, xPos2);
+					int end = Math.Max(xPos, xPos2);
+
+					int y1 = yPos;
+					int y2 = srcSize - 1 - yPos;
+
+					for (int x = start; x <= end; x++)
 					{
-						corr = 1;
-						phaseAngle = -(phaseAngle - 360);
-					}
-
-					double phase = (1 - cosd(phaseAngle)) / 2;
-
-					int srcSize = bmp.Width;
-					int srcSize2 = srcSize / 2;
-					int xPos = corr == -1 ? 0 : srcSize - 1;
-
-					for (int yPos = 0; yPos <= srcSize2; yPos++)
-					{
-						// Determine the edges of the illuminated part of the moon
-						double xe = 1 - (yPos / (double) srcSize2);
-						xe = Math.Sqrt(1 - (xe * xe));
-						var xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
-
-						var pixels1 = accessor.GetRowSpan(yPos);
-						var pixels2 = accessor.GetRowSpan(srcSize - 1 - yPos);
-
-
-						var start = Math.Min(xPos, xPos2);
-						var end = Math.Max(xPos, xPos2);
-
-						for (int x = start; x <= end; x++)
+						if (transparent)
 						{
-							if (transparent)
-							{
-								pixels1[x] = Color.Transparent;
-								pixels2[x] = Color.Transparent;
-							}
-							else
-							{
-								var pixel = pixels1[x];
-								pixel.R = (byte) (pixel.R * 0.3);
-								pixel.G = (byte) (pixel.G * 0.3);
-								pixel.B = (byte) (pixel.B * 0.3);
-								pixels1[x] = pixel;
+							// Set transparent
+							var c1 = bitmap.GetPixel(x, y1);
+							bitmap.SetPixel(x, y1, c1.WithAlpha(0));
 
-								// suppress double drawing of the last line
-								if (yPos != srcSize2)
-								{
-									var pixel2 = pixels2[x];
-									pixel2.R = (byte) (pixel2.R * 0.3);
-									pixel2.G = (byte) (pixel2.G * 0.3);
-									pixel2.B = (byte) (pixel2.B * 0.3);
-									pixels2[x] = pixel2;
-								}
+							if (yPos != srcSize2)
+							{
+								var c2 = bitmap.GetPixel(x, y2);
+								bitmap.SetPixel(x, y2, c2.WithAlpha(0));
+							}
+						}
+						else
+						{
+							// Darken RGB by 0.3
+							var c1 = bitmap.GetPixel(x, y1);
+							var d1 = new SKColor(
+								(byte) (c1.Red * 0.3),
+								(byte) (c1.Green * 0.3),
+								(byte) (c1.Blue * 0.3),
+								c1.Alpha);
+							bitmap.SetPixel(x, y1, d1);
+
+							if (yPos != srcSize2)
+							{
+								var c2 = bitmap.GetPixel(x, y2);
+								var d2 = new SKColor(
+									(byte) (c2.Red * 0.3),
+									(byte) (c2.Green * 0.3),
+									(byte) (c2.Blue * 0.3),
+									c2.Alpha);
+								bitmap.SetPixel(x, y2, d2);
 							}
 						}
 					}
+				}
 
-					// Rotate for southern hemisphere
-					if (latitude < 0)
+				// Rotate for southern hemisphere
+				SKBitmap working = bitmap;
+				if (latitude < 0)
+				{
+					var rotated = new SKBitmap(srcSize, srcSize);
+					using (var canvas = new SKCanvas(rotated))
 					{
-						bmp.Mutate(x => x.Rotate(RotateMode.Rotate180));
+						canvas.Translate(srcSize / 2f, srcSize / 2f);
+						canvas.RotateDegrees(180);
+						canvas.Translate(-srcSize / 2f, -srcSize / 2f);
+						canvas.DrawBitmap(working, 0, 0);
 					}
+					working = rotated;
+				}
 
-					// resize to desired output size
-					bmp.Mutate(x => x.Resize(size, size));
+				// Resize to desired output size
+				var resized = new SKBitmap(size, size);
+				using (var canvas = new SKCanvas(resized))
+				{
+					canvas.Clear(SKColors.Transparent);
+					var destRect = new SKRect(0, 0, size, size);
+					canvas.DrawBitmap(working, destRect);
+				}
 
-					// add a bit of meta data
-					if (bmp.Metadata.ExifProfile == null)
-					{
-						bmp.Metadata.ExifProfile = new ExifProfile();
-					}
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPAuthor, "Cumulus MX");
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPTitle, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.Software, "Cumulus MX");
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.DateTimeOriginal, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
+				// Save as PNG
+				using var image = SKImage.FromBitmap(resized);
+				using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+				using var output = File.Open(outPath, FileMode.Create, FileAccess.Write);
+				data.SaveTo(output);
 
-					// finally save the image and clean-up
-					bmp.SaveAsPng("./web/moon.png");
-				});
+				return true;
 			}
 			catch (Exception ex)
 			{
-				Program.cumulus.LogExceptionMessage(ex, "Error creating the Moon image");
-				success = false;
+				Program.cumulus.LogExceptionMessage(ex, "Error creating the Moon image (SkiaSharp)");
+				return false;
 			}
-
-			return success;
 		}
 	}
 }
