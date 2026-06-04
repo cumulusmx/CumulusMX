@@ -18,15 +18,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can now map any sensor type from either the primary or secondary station to be used for your weather data
 	- Where multiple sensors are supported (eg extra temp/hum) you can now pick which sensor from each station is to be used
 	- If the secondary station supports historic catch-up then catch-up will be performed across both stations. Note this may slow the catch-up process slightly
-	- The sensor mapping between primary and secondary is provided on a new settings screen:
+	- The sensor mapping between primary and secondary is provided on a new settings screen: ***Settings | Sensor Maps***
 
 ### Changed
 
--
+- The station changes have required an extensive rewrite of much of the station code
 
 ### Fixed
 
--
+- Nothing
 
 ### Package Updates
 

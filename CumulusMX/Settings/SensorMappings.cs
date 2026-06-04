@@ -20,8 +20,6 @@ namespace CumulusMX.Settings
 		{
 			var data = new JsonSensorMaps()
 			{
-				primaryTH = cumulus.SensorMaps.PrimaryTempHum,
-				primaryInTH = cumulus.SensorMaps.PrimaryIndoorTempHum,
 				indoorTemp = cumulus.SensorMaps.IndoorTemp,
 				indoorHum = cumulus.SensorMaps.IndoorHum,
 				temperature = cumulus.SensorMaps.Temperature,
@@ -58,7 +56,12 @@ namespace CumulusMX.Settings
 				airQualEnabled = cumulus.SensorMaps.AirQualEnabled,
 				airQual = new JsonSensors { sensors = cumulus.SensorMaps.AirQual },
 				laserDistEnabled = cumulus.SensorMaps.LaserDistEnabled,
-				laserDist = new JsonSensors { sensors = cumulus.SensorMaps.LaserDist }
+				laserDist = new JsonSensors { sensors = cumulus.SensorMaps.LaserDist },
+				sourceTH = new JsonAltThSensors
+				{
+					primaryTH = cumulus.SensorMaps.PrimaryTempHum,
+					primaryInTH = cumulus.SensorMaps.PrimaryIndoorTempHum
+				}
 			};
 
 			return JsonSerializer.Serialize(data);
@@ -96,8 +99,6 @@ namespace CumulusMX.Settings
 			// process the settings
 			try
 			{
-				cumulus.SensorMaps.PrimaryTempHum = settings.primaryTH;
-				cumulus.SensorMaps.PrimaryIndoorTempHum = settings.primaryInTH;
 				cumulus.SensorMaps.IndoorTemp = settings.indoorTemp;
 				cumulus.SensorMaps.IndoorHum = settings.indoorHum;
 				cumulus.SensorMaps.Temperature = settings.temperature;
@@ -117,24 +118,46 @@ namespace CumulusMX.Settings
 				cumulus.SensorMaps.Camera = settings.camera;
 				cumulus.SensorMaps.CO2Enabled = settings.co2Enabled;
 				cumulus.SensorMaps.CO2 = settings.co2;
+
 				cumulus.SensorMaps.ExtraTempHumEnabled = settings.extraTempHumEnabled;
-				cumulus.SensorMaps.ExtraTempHum = settings.extraTempHum.sensors;
+				if (settings.extraTempHumEnabled)
+					cumulus.SensorMaps.ExtraTempHum = settings.extraTempHum.sensors;
+
 				cumulus.SensorMaps.UserTempEnabled = settings.userTempEnabled;
-				cumulus.SensorMaps.UserTemp = settings.userTemp.sensors;
+				if (settings.userTempEnabled)
+					cumulus.SensorMaps.UserTemp = settings.userTemp.sensors;
+
 				cumulus.SensorMaps.SoilTempEnabled = settings.soilTempEnabled;
-				cumulus.SensorMaps.SoilTemp = settings.soilTemp.sensors;
+				if (settings.soilTempEnabled)
+					cumulus.SensorMaps.SoilTemp = settings.soilTemp.sensors;
+
 				cumulus.SensorMaps.SoilMoistEnabled = settings.soilMoistEnabled;
-				cumulus.SensorMaps.SoilMoist = settings.soilMoist.sensors;
+				if (settings.soilMoistEnabled)
+					cumulus.SensorMaps.SoilMoist = settings.soilMoist.sensors;
+
 				cumulus.SensorMaps.SoilEcEnabled = settings.soilEcEnabled;
-				cumulus.SensorMaps.SoilEc = settings.soilEc.sensors;
+				if (settings.soilEcEnabled)
+					cumulus.SensorMaps.SoilEc = settings.soilEc.sensors;
+
 				cumulus.SensorMaps.LeafWetEnabled = settings.leafWetEnabled;
-				cumulus.SensorMaps.LeafWet = settings.leafWet.sensors;
+				if (settings.leafWetEnabled)
+					cumulus.SensorMaps.LeafWet = settings.leafWet.sensors;
+
 				cumulus.SensorMaps.LeakEnabled = settings.leakEnabled;
-				cumulus.SensorMaps.Leak = settings.leak.sensors;
+				if (settings.leakEnabled)
+					cumulus.SensorMaps.Leak = settings.leak.sensors;
+
 				cumulus.SensorMaps.AirQualEnabled = settings.airQualEnabled;
-				cumulus.SensorMaps.AirQual = settings.airQual.sensors;
+				if (settings.airQualEnabled)
+					cumulus.SensorMaps.AirQual = settings.airQual.sensors;
+
 				cumulus.SensorMaps.LaserDistEnabled = settings.laserDistEnabled;
-				cumulus.SensorMaps.LaserDist = settings.laserDist.sensors;
+				if (settings.laserDistEnabled)
+					cumulus.SensorMaps.LaserDist = settings.laserDist.sensors;
+
+				cumulus.SensorMaps.PrimaryTempHum = settings.sourceTH.primaryTH;
+				cumulus.SensorMaps.PrimaryIndoorTempHum = settings.sourceTH.primaryInTH;
+
 			}
 			catch (Exception ex)
 			{
@@ -166,16 +189,20 @@ namespace CumulusMX.Settings
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
+
+		private sealed class JsonAltThSensors
+		{
+			public int primaryTH { get; set; }
+			public int primaryInTH { get; set; }
+		}
+
 		private sealed class JsonSensors
 		{
 			public int[] sensors { get; set; }
 		}
 
-
 		private sealed class JsonSensorMaps
 		{
-			public int primaryTH { get; set; }
-			public int primaryInTH { get; set; }
 			public int indoorTemp { get; set; }
 			public int indoorHum { get; set; }
 			public int temperature { get; set; }
@@ -213,6 +240,7 @@ namespace CumulusMX.Settings
 			public JsonSensors airQual { get; set; }
 			public bool laserDistEnabled { get; set; }
 			public JsonSensors laserDist { get; set; }
+			public JsonAltThSensors sourceTH { get; set; }
 		}
 	}
 }
