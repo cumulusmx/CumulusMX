@@ -1355,6 +1355,12 @@ namespace CumulusMX
 						case "stationdata.json":
 							await writer.WriteAsync(stationSettings.GetAlpacaFormData());
 							break;
+						case "station1data.json":
+							await writer.WriteAsync(stationSettings.GetHardwareAlpacaFormData(1));
+							break;
+						case "station2data.json":
+							await writer.WriteAsync(stationSettings.GetHardwareAlpacaFormData(2));
+							break;
 						case "internetdata.json":
 							await writer.WriteAsync(internetSettings.GetAlpacaFormData());
 							break;
@@ -1438,6 +1444,12 @@ namespace CumulusMX
 							break;
 						case "updatestationconfig.json":
 							await writer.WriteAsync(stationSettings.UpdateConfig(HttpContext));
+							break;
+						case "updatestation1config.json":
+							await writer.WriteAsync(stationSettings.UpdateHardwareConfig(HttpContext, 1));
+							break;
+						case "updatestation2config.json":
+							await writer.WriteAsync(stationSettings.UpdateHardwareConfig(HttpContext, 2));
 							break;
 						case "updateinternetconfig.json":
 							await writer.WriteAsync(internetSettings.UpdateConfig(HttpContext));

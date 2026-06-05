@@ -54,7 +54,6 @@ namespace CumulusMX.Settings
 				calculateet = cumulus.StationOptions.CalculatedET,
 				calculateslp = cumulus.StationOptions.CalculateSLP,
 				cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
-				extrasensors = cumulus.StationOptions.LogExtraSensors,
 				ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
 				roundwindspeeds = cumulus.StationOptions.RoundWindSpeed,
 				nosensorcheck = cumulus.StationOptions.NoSensorCheck,
@@ -92,6 +91,129 @@ namespace CumulusMX.Settings
 				laser = cumulus.Units.LaserDistance,
 				advanced = unitsAdv
 			};
+
+			var logrollover = new JsonLogRollover()
+			{
+				time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
+				summer10am = cumulus.Use10amInSummer
+			};
+
+			int deg, min, sec;
+			string hem;
+
+			LatToDMS(cumulus.Latitude, out deg, out min, out sec, out hem);
+
+			var latitude = new JsonLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
+
+			LongToDMS(cumulus.Longitude, out deg, out min, out sec, out hem);
+
+			var longitude = new JsonLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
+
+			var location = new JsonLocation()
+			{
+				altitude = (int) cumulus.Altitude,
+				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
+				description = cumulus.LocationDesc,
+				Latitude = latitude,
+				Longitude = longitude,
+				sitename = cumulus.LocationName,
+				timeZone = cumulus.StationOptions.TimeZoneId
+			};
+
+			var forecast = new JsonForecast()
+			{
+				highpressureextreme = cumulus.FChighpress,
+				lowpressureextreme = cumulus.FClowpress,
+				pressureunit = "mb/hPa",
+				updatehourly = cumulus.HourlyForecast,
+				usecumulusforecast = cumulus.ForecastSource
+			};
+
+			if (!cumulus.FCpressinMB)
+			{
+				forecast.pressureunit = "inHg";
+			}
+
+			var solar = new JsonSolar()
+			{
+				solarmin = cumulus.SolarOptions.SolarMinimum,
+				sunthreshold = cumulus.SolarOptions.SunThreshold,
+				solarcalc = cumulus.SolarOptions.SolarCalc,
+				transfactorJun = cumulus.SolarOptions.RStransfactorJun,
+				transfactorDec = cumulus.SolarOptions.RStransfactorDec,
+				turbidityJun = cumulus.SolarOptions.BrasTurbidityJun,
+				turbidityDec = cumulus.SolarOptions.BrasTurbidityDec
+			};
+
+			var annualrainfall = new JsonAnnualRainfall()
+			{
+				rainseasonstart = cumulus.RainSeasonStart,
+				rainweekstart = cumulus.RainWeekStart,
+				ytdamount = cumulus.YTDrain,
+				ytdyear = cumulus.YTDrainyear
+			};
+
+			var growingdd = new JsonGrowingDDSettings()
+			{
+				basetemp1 = cumulus.GrowingBase1,
+				basetemp2 = cumulus.GrowingBase2,
+				starts = cumulus.GrowingYearStarts,
+				cap30C = cumulus.GrowingCap30C
+			};
+
+			var tempsum = new JsonTempSumSettings()
+			{
+				basetemp1 = cumulus.TempSumBase1,
+				basetemp2 = cumulus.TempSumBase2,
+				starts = cumulus.TempSumYearStarts
+			};
+
+			var chillhrs = new JsonChillHours()
+			{
+				threshold = cumulus.ChillHourThreshold,
+				basetemp = cumulus.ChillHourBase,
+				month = cumulus.ChillHourSeasonStart
+			};
+
+
+			var generalAdvanced = new JsonAdvanced()
+			{
+				recsbegandate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd")
+			};
+
+			var logging = new JsonLogging()
+			{
+				firstRun = cumulus.FirstRun,
+				beginDate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd"),
+				loginterval = cumulus.DataLogInterval,
+				extrasensors = cumulus.StationOptions.LogExtraSensors,
+				logrollover = logrollover
+			};
+
+
+			var data = new JsonData()
+			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
+				logging = logging,
+				units = units,
+				Location = location,
+				advanced = generalAdvanced,
+				Options = options,
+				Forecast = forecast,
+				Solar = solar,
+				AnnualRainfall = annualrainfall,
+				GrowingDD = growingdd,
+				TempSum = tempsum,
+				ChillHrs = chillhrs
+			};
+
+			return JsonSerializer.Serialize(data);
+		}
+
+		internal string GetHardwareAlpacaFormData(int stationId)
+		{
+			// TODO: Split in stations 1 & 2
+			// Build the settings data, convert to JSON, and return it
 
 			var tcpsettings = new JsonTCPsettings()
 			{
@@ -190,12 +312,6 @@ namespace CumulusMX.Settings
 				interval = cumulus.EcowittCloudDataUpdateInterval
 			};
 
-			var logrollover = new JsonLogRollover()
-			{
-				time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
-				summer10am = cumulus.Use10amInSummer
-			};
-
 			var fineoffsetadvanced = new JsonFineOffsetAdvanced()
 			{
 				readtime = cumulus.FineOffsetOptions.ReadTime,
@@ -240,83 +356,6 @@ namespace CumulusMX.Settings
 				comportname = cumulus.ComportName,
 				baudrate = cumulus.ImetOptions.BaudRate,
 				advanced = imetAdvanced
-			};
-
-			int deg, min, sec;
-			string hem;
-
-			LatToDMS(cumulus.Latitude, out deg, out min, out sec, out hem);
-
-			var latitude = new JsonLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
-
-			LongToDMS(cumulus.Longitude, out deg, out min, out sec, out hem);
-
-			var longitude = new JsonLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
-
-			var location = new JsonLocation()
-			{
-				altitude = (int) cumulus.Altitude,
-				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
-				description = cumulus.LocationDesc,
-				Latitude = latitude,
-				Longitude = longitude,
-				sitename = cumulus.LocationName,
-				timeZone = cumulus.StationOptions.TimeZoneId
-			};
-
-			var forecast = new JsonForecast()
-			{
-				highpressureextreme = cumulus.FChighpress,
-				lowpressureextreme = cumulus.FClowpress,
-				pressureunit = "mb/hPa",
-				updatehourly = cumulus.HourlyForecast,
-				usecumulusforecast = cumulus.ForecastSource
-			};
-
-			if (!cumulus.FCpressinMB)
-			{
-				forecast.pressureunit = "inHg";
-			}
-
-			var solar = new JsonSolar()
-			{
-				solarmin = cumulus.SolarOptions.SolarMinimum,
-				sunthreshold = cumulus.SolarOptions.SunThreshold,
-				solarcalc = cumulus.SolarOptions.SolarCalc,
-				transfactorJun = cumulus.SolarOptions.RStransfactorJun,
-				transfactorDec = cumulus.SolarOptions.RStransfactorDec,
-				turbidityJun = cumulus.SolarOptions.BrasTurbidityJun,
-				turbidityDec = cumulus.SolarOptions.BrasTurbidityDec
-			};
-
-			var annualrainfall = new JsonAnnualRainfall()
-			{
-				rainseasonstart = cumulus.RainSeasonStart,
-				rainweekstart = cumulus.RainWeekStart,
-				ytdamount = cumulus.YTDrain,
-				ytdyear = cumulus.YTDrainyear
-			};
-
-			var growingdd = new JsonGrowingDDSettings()
-			{
-				basetemp1 = cumulus.GrowingBase1,
-				basetemp2 = cumulus.GrowingBase2,
-				starts = cumulus.GrowingYearStarts,
-				cap30C = cumulus.GrowingCap30C
-			};
-
-			var tempsum = new JsonTempSumSettings()
-			{
-				basetemp1 = cumulus.TempSumBase1,
-				basetemp2 = cumulus.TempSumBase2,
-				starts = cumulus.TempSumYearStarts
-			};
-
-			var chillhrs = new JsonChillHours()
-			{
-				threshold = cumulus.ChillHourThreshold,
-				basetemp = cumulus.ChillHourBase,
-				month = cumulus.ChillHourSeasonStart
 			};
 
 			var wllNetwork = new JsonWllNetwork()
@@ -415,23 +454,12 @@ namespace CumulusMX.Settings
 				advanced = wllAdvanced
 			};
 
-			var generalAdvanced = new JsonAdvanced()
-			{
-				recsbegandate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd")
-			};
 
 			var general = new JsonGeneral()
 			{
 				manufacturer = (int) cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
-				loginterval = cumulus.DataLogInterval,
-				firstRun = cumulus.FirstRun,
-				beginDate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd"),
-				logrollover = logrollover,
-				units = units,
-				Location = location,
-				advanced = generalAdvanced
 			};
 
 			var jsonstnadv = new JsonJsonStationAdvanced()
@@ -470,18 +498,12 @@ namespace CumulusMX.Settings
 				easyw = easyweather,
 				imet = imet,
 				wmr928 = wmr928,
-				jsonstation = jsonstn,
-				Options = options,
-				Forecast = forecast,
-				Solar = solar,
-				AnnualRainfall = annualrainfall,
-				GrowingDD = growingdd,
-				TempSum = tempsum,
-				ChillHrs = chillhrs
+				jsonstation = jsonstn
 			};
 
 			return JsonSerializer.Serialize(data);
 		}
+
 
 		private static void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
 		{
@@ -540,7 +562,7 @@ namespace CumulusMX.Settings
 			// get the response
 			try
 			{
-				cumulus.LogMessage("Updating station settings");
+				cumulus.LogMessage("Updating station options settings");
 
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
@@ -552,9 +574,9 @@ namespace CumulusMX.Settings
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Station Options Settings JSON: " + ex.Message;
 				cumulus.LogErrorMessage(msg);
-				cumulus.LogDebugMessage("Station Data: " + json);
+				cumulus.LogDebugMessage("Station Options Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -687,34 +709,34 @@ namespace CumulusMX.Settings
 				// Location
 				try
 				{
-					cumulus.Altitude = settings.general.Location.altitude;
-					cumulus.AltitudeInFeet = settings.general.Location.altitudeunit == "feet";
-					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.general.Location.sitename) ? null : settings.general.Location.sitename.Trim();
-					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.general.Location.description) ? null : settings.general.Location.description.Trim();
+					cumulus.Altitude = settings.Location.altitude;
+					cumulus.AltitudeInFeet = settings.Location.altitudeunit == "feet";
+					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.Location.sitename) ? null : settings.Location.sitename.Trim();
+					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.Location.description) ? null : settings.Location.description.Trim();
 
-					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + settings.general.Location.Latitude.minutes / 60.0 + settings.general.Location.Latitude.seconds / 3600.0);
+					cumulus.Latitude = (decimal) (settings.Location.Latitude.degrees + settings.Location.Latitude.minutes / 60.0 + settings.Location.Latitude.seconds / 3600.0);
 					var northSouth = cumulus.Trans.compassp[0];
-					if (settings.general.Location.Latitude.hemisphere == "South")
+					if (settings.Location.Latitude.hemisphere == "South")
 					{
 						cumulus.Latitude = -cumulus.Latitude;
 						northSouth = cumulus.Trans.compassp[8];
 					}
 
-					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", northSouth, settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
-						settings.general.Location.Latitude.seconds);
+					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", northSouth, settings.Location.Latitude.degrees, settings.Location.Latitude.minutes,
+						settings.Location.Latitude.seconds);
 
 					var eastWest = cumulus.Trans.compassp[4];
-					cumulus.Longitude = (decimal) (settings.general.Location.Longitude.degrees + settings.general.Location.Longitude.minutes / 60.0 + settings.general.Location.Longitude.seconds / 3600.0);
-					if (settings.general.Location.Longitude.hemisphere == "West")
+					cumulus.Longitude = (decimal) (settings.Location.Longitude.degrees + settings.Location.Longitude.minutes / 60.0 + settings.Location.Longitude.seconds / 3600.0);
+					if (settings.Location.Longitude.hemisphere == "West")
 					{
 						cumulus.Longitude = -cumulus.Longitude;
 						eastWest = cumulus.Trans.compassp[12];
 					}
 
-					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", eastWest, settings.general.Location.Longitude.degrees, settings.general.Location.Longitude.minutes,
-						settings.general.Location.Longitude.seconds);
+					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", eastWest, settings.Location.Longitude.degrees, settings.Location.Longitude.minutes,
+						settings.Location.Longitude.seconds);
 
-					cumulus.StationOptions.TimeZoneId = settings.general.Location.timeZone;
+					cumulus.StationOptions.TimeZoneId = settings.Location.timeZone;
 				}
 				catch (Exception ex)
 				{
@@ -736,7 +758,6 @@ namespace CumulusMX.Settings
 					cumulus.StationOptions.CalculateSLP = settings.Options.calculateslp;
 					cumulus.StationOptions.CalculatedWBGT = settings.Options.calcwbgt;
 					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
-					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
 					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
 					cumulus.StationOptions.NoSensorCheck = settings.Options.nosensorcheck;
@@ -763,12 +784,26 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// logging
+				try
+				{
+					cumulus.DataLogInterval = settings.logging.loginterval;
+					cumulus.StationOptions.LogExtraSensors = settings.logging.extrasensors;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Log interval setting: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Log roll-over
 				try
 				{
-					cumulus.RolloverHour = settings.general.logrollover.time == "9am" ? 9 : 0;
+					cumulus.RolloverHour = settings.logging.logrollover.time == "9am" ? 9 : 0;
 					if (cumulus.RolloverHour == 9)
-						cumulus.Use10amInSummer = settings.general.logrollover.summer10am;
+						cumulus.Use10amInSummer = settings.logging.logrollover.summer10am;
 					else
 						cumulus.Use10amInSummer = false;
 				}
@@ -780,6 +815,232 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// Units
+				try
+				{
+					if (cumulus.Units.Wind != settings.units.wind)
+					{
+						cumulus.Limit.WindHigh = settings.units.wind switch
+						{
+							0 => ConvertUnits.UserWindToMS(cumulus.Limit.WindHigh),
+							1 => ConvertUnits.UserWindToMPH(cumulus.Limit.WindHigh),
+							2 => ConvertUnits.UserWindToKPH(cumulus.Limit.WindHigh),
+							3 => ConvertUnits.UserWindToKnots(cumulus.Limit.WindHigh),
+							_ => cumulus.Limit.WindHigh
+						};
+
+						cumulus.Units.Wind = settings.units.wind;
+						cumulus.ChangeWindUnits();
+						cumulus.WindDPlaces = cumulus.StationOptions.RoundWindSpeed ? 0 : cumulus.WindDPlaceDefaults[cumulus.Units.Wind];
+
+						settings.units.advanced.winddp = cumulus.WindDPlaces;
+					}
+					if (cumulus.Units.Press != settings.units.pressure)
+					{
+						switch (settings.units.pressure)
+						{
+							case 0:
+							case 1:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow);
+								break;
+							case 2:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToIN(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToIN(cumulus.Limit.PressLow);
+								break;
+							case 3:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToKpa(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToKpa(cumulus.Limit.PressLow);
+								break;
+						}
+
+						cumulus.Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh), ConvertUnits.AltitudeM(cumulus.Altitude)));
+						cumulus.Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow), ConvertUnits.AltitudeM(cumulus.Altitude)));
+
+						cumulus.Units.Press = settings.units.pressure;
+						cumulus.ChangePressureUnits();
+						settings.units.advanced.pressdp = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
+					}
+					if (cumulus.Units.Temp != settings.units.temp)
+					{
+						switch (settings.units.temp)
+						{
+							case 0:
+								cumulus.Limit.TempHigh = ConvertUnits.UserTempToC(cumulus.Limit.TempHigh);
+								cumulus.Limit.TempLow = ConvertUnits.UserTempToC(cumulus.Limit.TempLow);
+								cumulus.Limit.DewHigh = ConvertUnits.UserTempToC(cumulus.Limit.DewHigh);
+								break;
+							case 1:
+								cumulus.Limit.TempHigh = ConvertUnits.UserTempToF(cumulus.Limit.TempHigh);
+								cumulus.Limit.TempLow = ConvertUnits.UserTempToF(cumulus.Limit.TempLow);
+								cumulus.Limit.DewHigh = ConvertUnits.UserTempToF(cumulus.Limit.DewHigh);
+								break;
+						}
+						cumulus.Units.Temp = settings.units.temp;
+						cumulus.ChangeTempUnits();
+					}
+					if (cumulus.Units.Rain != settings.units.rain)
+					{
+						cumulus.Units.Rain = settings.units.rain;
+						cumulus.ChangeRainUnits();
+						settings.units.advanced.raindp = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
+					}
+					cumulus.Units.SnowDepth = settings.units.snow;
+					if (cumulus.Units.LaserDistance != settings.units.laser)
+					{
+						cumulus.Units.LaserDistance = settings.units.laser;
+					}
+					cumulus.SetupUnitText();
+
+					cumulus.CloudBaseInFeet = settings.units.cloudbaseft;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Units settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Units Advanced
+				try
+				{
+					cumulus.TempDPlaces = settings.units.advanced.tempdp;
+					cumulus.TempFormat = "F" + cumulus.TempDPlaces;
+
+					cumulus.WindDPlaces = settings.units.advanced.winddp;
+					cumulus.WindFormat = "F" + cumulus.WindDPlaces;
+
+					cumulus.WindAvgDPlaces = settings.units.advanced.windavgdp;
+					cumulus.WindAvgFormat = "F" + cumulus.WindAvgDPlaces;
+
+					cumulus.RainDPlaces = settings.units.advanced.raindp;
+					cumulus.RainFormat = "F" + cumulus.RainDPlaces;
+					cumulus.ETFormat = "F" + (cumulus.RainDPlaces + 1);
+
+					cumulus.PressDPlaces = settings.units.advanced.pressdp;
+					cumulus.PressFormat = "F" + cumulus.PressDPlaces;
+
+					cumulus.UVDPlaces = settings.units.advanced.uvdp;
+					cumulus.UVFormat = "F" + cumulus.UVDPlaces;
+
+					cumulus.SunshineDPlaces = settings.units.advanced.sunshinedp;
+					cumulus.SunFormat = "F" + cumulus.SunshineDPlaces;
+
+					cumulus.WindRunDPlaces = settings.units.advanced.windrundp;
+					cumulus.WindRunFormat = "F" + cumulus.WindRunDPlaces;
+
+					cumulus.AirQualityDPlaces = settings.units.advanced.airqulaitydp;
+					cumulus.AirQualityFormat = "F" + cumulus.AirQualityDPlaces;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Units settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// General Advanced
+				try
+				{
+					cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.advanced.recsbegandate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Records Began Date: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// BeginDate
+				try
+				{
+					if (settings.logging.firstRun)
+					{
+						cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.logging.beginDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+						var startDateTime = cumulus.RecordsBeganDateTime.AddHours(-cumulus.GetHourInc(cumulus.RecordsBeganDateTime));
+						using var today = new StreamWriter(cumulus.TodayIniFile);
+						today.WriteLine("[General]");
+						today.WriteLine("Timestamp=" + startDateTime.ToString("s"));
+						today.Close();
+
+						Cumulus.LogConsoleMessage("First run. Cumulus will attempt to backfill data from " + startDateTime.ToString(), ConsoleColor.Yellow, true);
+						cumulus.LogMessage("First run. Cumulus will attempt to backfill data from " + startDateTime.ToString());
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing first run date setting: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Accessible
+				try
+				{
+					cumulus.ProgramOptions.EnableAccessibility = settings.accessible;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Accessibility setting: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
+				// Save the settings
+				cumulus.WriteIniFile();
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error processing Station Options settings: " + ex.Message;
+				cumulus.LogErrorMessage(msg);
+				cumulus.LogDebugMessage("Station Options Data: " + json);
+				errorMsg += msg;
+				context.Response.StatusCode = 500;
+			}
+
+			return context.Response.StatusCode == 200 ? "success" : errorMsg;
+		}
+
+		internal string UpdateHardwareConfig(IHttpContext context, int stationId)
+		{
+			// TODO: Split in stations 1 & 2
+			var errorMsg = string.Empty;
+			var json = string.Empty;
+			context.Response.StatusCode = 200;
+			JsonData settings;
+
+			// get the response
+			try
+			{
+				cumulus.LogMessage("Updating station harware settings");
+
+				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+				// Start at char 5 to skip the "json=" prefix
+				json = WebUtility.UrlDecode(data[5..]);
+
+				// de-serialize it to the settings structure
+				settings = JsonSerializer.Deserialize<JsonData>(json);
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error de-serializing Station Hardware Settings JSON: " + ex.Message;
+				cumulus.LogErrorMessage(msg);
+				cumulus.LogDebugMessage("Station Hardware Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+			// process the settings
+			try
+			{
 				// Davis VP/VP2/Vue
 				try
 				{
@@ -901,19 +1162,6 @@ namespace CumulusMX.Settings
 				catch (Exception ex)
 				{
 					var msg = "Error processing WLL/Davis Cloud settings: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// log interval
-				try
-				{
-					cumulus.DataLogInterval = settings.general.loginterval;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Log interval setting: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1244,145 +1492,6 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
-				// Units
-				try
-				{
-					if (cumulus.Units.Wind != settings.general.units.wind)
-					{
-						cumulus.Limit.WindHigh = settings.general.units.wind switch
-						{
-							0 => ConvertUnits.UserWindToMS(cumulus.Limit.WindHigh),
-							1 => ConvertUnits.UserWindToMPH(cumulus.Limit.WindHigh),
-							2 => ConvertUnits.UserWindToKPH(cumulus.Limit.WindHigh),
-							3 => ConvertUnits.UserWindToKnots(cumulus.Limit.WindHigh),
-							_ => cumulus.Limit.WindHigh
-						};
-
-						cumulus.Units.Wind = settings.general.units.wind;
-						cumulus.ChangeWindUnits();
-						cumulus.WindDPlaces = cumulus.StationOptions.RoundWindSpeed ? 0 : cumulus.WindDPlaceDefaults[cumulus.Units.Wind];
-
-						settings.general.units.advanced.winddp = cumulus.WindDPlaces;
-					}
-					if (cumulus.Units.Press != settings.general.units.pressure)
-					{
-						switch (settings.general.units.pressure)
-						{
-							case 0:
-							case 1:
-								cumulus.Limit.PressHigh = ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh);
-								cumulus.Limit.PressLow = ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow);
-								break;
-							case 2:
-								cumulus.Limit.PressHigh = ConvertUnits.UserPressToIN(cumulus.Limit.PressHigh);
-								cumulus.Limit.PressLow = ConvertUnits.UserPressToIN(cumulus.Limit.PressLow);
-								break;
-							case 3:
-								cumulus.Limit.PressHigh = ConvertUnits.UserPressToKpa(cumulus.Limit.PressHigh);
-								cumulus.Limit.PressLow = ConvertUnits.UserPressToKpa(cumulus.Limit.PressLow);
-								break;
-						}
-
-						cumulus.Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh), ConvertUnits.AltitudeM(cumulus.Altitude)));
-						cumulus.Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow), ConvertUnits.AltitudeM(cumulus.Altitude)));
-
-						cumulus.Units.Press = settings.general.units.pressure;
-						cumulus.ChangePressureUnits();
-						settings.general.units.advanced.pressdp = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
-					}
-					if (cumulus.Units.Temp != settings.general.units.temp)
-					{
-						switch (settings.general.units.temp)
-						{
-							case 0:
-								cumulus.Limit.TempHigh = ConvertUnits.UserTempToC(cumulus.Limit.TempHigh);
-								cumulus.Limit.TempLow = ConvertUnits.UserTempToC(cumulus.Limit.TempLow);
-								cumulus.Limit.DewHigh = ConvertUnits.UserTempToC(cumulus.Limit.DewHigh);
-								break;
-							case 1:
-								cumulus.Limit.TempHigh = ConvertUnits.UserTempToF(cumulus.Limit.TempHigh);
-								cumulus.Limit.TempLow = ConvertUnits.UserTempToF(cumulus.Limit.TempLow);
-								cumulus.Limit.DewHigh = ConvertUnits.UserTempToF(cumulus.Limit.DewHigh);
-								break;
-						}
-						cumulus.Units.Temp = settings.general.units.temp;
-						cumulus.ChangeTempUnits();
-					}
-					if (cumulus.Units.Rain != settings.general.units.rain)
-					{
-						cumulus.Units.Rain = settings.general.units.rain;
-						cumulus.ChangeRainUnits();
-						settings.general.units.advanced.raindp = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
-					}
-					cumulus.Units.SnowDepth = settings.general.units.snow;
-					if (cumulus.Units.LaserDistance != settings.general.units.laser)
-					{
-						cumulus.Units.LaserDistance = settings.general.units.laser;
-					}
-					cumulus.SetupUnitText();
-
-					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// Units Advanced
-				try
-				{
-					cumulus.TempDPlaces = settings.general.units.advanced.tempdp;
-					cumulus.TempFormat = "F" + cumulus.TempDPlaces;
-
-					cumulus.WindDPlaces = settings.general.units.advanced.winddp;
-					cumulus.WindFormat = "F" + cumulus.WindDPlaces;
-
-					cumulus.WindAvgDPlaces = settings.general.units.advanced.windavgdp;
-					cumulus.WindAvgFormat = "F" + cumulus.WindAvgDPlaces;
-
-					cumulus.RainDPlaces = settings.general.units.advanced.raindp;
-					cumulus.RainFormat = "F" + cumulus.RainDPlaces;
-					cumulus.ETFormat = "F" + (cumulus.RainDPlaces + 1);
-
-					cumulus.PressDPlaces = settings.general.units.advanced.pressdp;
-					cumulus.PressFormat = "F" + cumulus.PressDPlaces;
-
-					cumulus.UVDPlaces = settings.general.units.advanced.uvdp;
-					cumulus.UVFormat = "F" + cumulus.UVDPlaces;
-
-					cumulus.SunshineDPlaces = settings.general.units.advanced.sunshinedp;
-					cumulus.SunFormat = "F" + cumulus.SunshineDPlaces;
-
-					cumulus.WindRunDPlaces = settings.general.units.advanced.windrundp;
-					cumulus.WindRunFormat = "F" + cumulus.WindRunDPlaces;
-
-					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
-					cumulus.AirQualityFormat = "F" + cumulus.AirQualityDPlaces;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// General Advanced
-				try
-				{
-					cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.general.advanced.recsbegandate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Records Began Date: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// Station type
 				try
 				{
@@ -1399,31 +1508,6 @@ namespace CumulusMX.Settings
 				catch (Exception ex)
 				{
 					var msg = "Error processing Station Type setting: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// BeginDate
-				try
-				{
-					if (settings.general.firstRun)
-					{
-						cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.general.beginDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-						var startDateTime = cumulus.RecordsBeganDateTime.AddHours(-cumulus.GetHourInc(cumulus.RecordsBeganDateTime));
-						using var today = new StreamWriter(cumulus.TodayIniFile);
-						today.WriteLine("[General]");
-						today.WriteLine("Timestamp=" + startDateTime.ToString("s"));
-						today.Close();
-
-						Cumulus.LogConsoleMessage("First run. Cumulus will attempt to backfill data from " + startDateTime.ToString(), ConsoleColor.Yellow, true);
-						cumulus.LogMessage("First run. Cumulus will attempt to backfill data from " + startDateTime.ToString());
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing first run date setting: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1448,15 +1532,16 @@ namespace CumulusMX.Settings
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error processing Station settings: " + ex.Message;
+				var msg = "Error processing Station Hardware settings: " + ex.Message;
 				cumulus.LogErrorMessage(msg);
-				cumulus.LogDebugMessage("Station Data: " + json);
+				cumulus.LogDebugMessage("Station Hardware Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
 			}
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
+
 
 		internal string UploadNow(IHttpContext context)
 		{
@@ -1688,6 +1773,10 @@ namespace CumulusMX.Settings
 			public bool accessible { get; set; }
 			public int stationid { get; set; }
 			public JsonGeneral general { get; set; }
+			public JsonLogging logging { get; set; }
+			public JsonUnits units { get; set; }
+			public JsonLocation Location { get; set; }
+			public JsonAdvanced advanced { get; set; }
 			public JsonDavisVp2 davisvp2 { get; set; }
 			public JsonGw1000Conn gw1000 { get; set; }
 			public JsonHttpApi ecowitthttpapi { get; set; }
@@ -1715,13 +1804,15 @@ namespace CumulusMX.Settings
 			public int manufacturer { get; set; }
 			public int stationtype { get; set; }
 			public string stationmodel { get; set; }
-			public int loginterval { get; set; }
+		}
+
+		private sealed class JsonLogging
+		{
 			public bool firstRun { get; set; }
 			public string beginDate { get; set; }
+			public int loginterval { get; set; }
+			public bool extrasensors { get; set; }
 			public JsonLogRollover logrollover { get; set; }
-			public JsonUnits units { get; set; }
-			public JsonLocation Location { get; set; }
-			public JsonAdvanced advanced { get; set; }
 		}
 
 		private sealed class JsonAdvanced
@@ -1782,7 +1873,6 @@ namespace CumulusMX.Settings
 			public bool cumuluspresstrendnames { get; set; }
 			public bool roundwindspeeds { get; set; }
 			public bool ignorelacrosseclock { get; set; }
-			public bool extrasensors { get; set; }
 			public bool debuglogging { get; set; }
 			public bool datalogging { get; set; }
 			public bool stopsecondinstance { get; set; }
