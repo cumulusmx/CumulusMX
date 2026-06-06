@@ -13,6 +13,8 @@ namespace CumulusMX
 {
 	public partial class Cumulus
 	{
+		private int cumulusIniFileVer = 1;
+
 		public void ReadIniFile()
 		{
 			var DavisBaudRates = new List<int> { 1200, 2400, 4800, 9600, 14400, 19200 };
@@ -22,17 +24,8 @@ namespace CumulusMX
 
 			LogMessage("Reading Cumulus.ini file");
 
-			IniFile ini = new IniFile("Cumulus.ini");
-
-			// check for Cumulus 1 [FTP Site] and correct it
-			if (ini.ValueExists("FTP Site", "Port"))
-			{
-				LogMessage("Cumulus.ini: Changing old [FTP Site] to [FTP site]");
-				var contents = File.ReadAllText("Cumulus.ini");
-				contents = contents.Replace("[FTP Site]", "[FTP site]");
-				File.WriteAllText("Cumulus.ini", contents);
-				ini.Refresh();
-			}
+			// Check for older settings, and correct if required
+			IniFile ini = Transforms();
 
 			#region Program Options
 			ProgramOptions.ProcessLogFilesLevel = ini.GetValue("Program", "ProcessLogFiles", 0, 0, 1);
@@ -391,27 +384,8 @@ namespace CumulusMX
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 			#endregion
 
-			if (ini.ValueExists("Station", "StartDate"))
-			{
-				var RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
-				try
-				{
-					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate, CultureInfo.CurrentCulture);
-					LogMessage($"Cumulus.ini: Changing old StartDate [{RecordsBeganDate}] to StartDateIso [{RecordsBeganDateTime:yyyy-MM-dd}]");
-					ini.DeleteValue("Station", "StartDate");
-					ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-					rewriteRequired = true;
-				}
-				catch (Exception ex)
-				{
-					LogErrorMessage($"Cumulus.ini: Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
-				}
-			}
-			else
-			{
-				var RecordsBeganDate = ini.GetValue("Station", "StartDateIso", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-				RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-			}
+			var RecordsBeganDate = ini.GetValue("Station", "StartDateIso", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+			RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
 			LogMessage($"Cumulus.ini: Start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}");
 
@@ -628,356 +602,55 @@ namespace CumulusMX
 			#region Sensor Maps
 			// Sensor Mapping Options
 			// Primary sensor remaps
-			if (ini.ValueExists("GW1000", "PrimaryTHSensor"))
-			{
-				SensorMaps.PrimaryTempHum = ini.GetValue("GW1000", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
-				ini.DeleteValue("GW1000", "PrimaryTHSensor");
-				ini.SetValue("SensorMaps", "PrimaryTHSensor", SensorMaps.PrimaryTempHum);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.PrimaryTempHum = ini.GetValue("SensorMaps", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-16=extra t/h sensor number, 99=use indoor sensor
-			}
-
-			if (ini.ValueExists("GW1000", "PrimaryIndoorTHSensor"))
-			{
-				SensorMaps.PrimaryIndoorTempHum = ini.GetValue("GW1000", "PrimaryIndoorTHSensor", 0, 0, 16);  // 0=default, 1-6=extra t/h sensor number
-				ini.DeleteValue("GW1000", "PrimaryIndoorTHSensor");
-				ini.SetValue("SensorMaps", "PrimaryIndoorTHSensor", SensorMaps.PrimaryIndoorTempHum);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.PrimaryIndoorTempHum = ini.GetValue("SensorMaps", "PrimaryIndoorTHSensor", 0, 0, 16);  // 0=default, 1-16=extra t/h sensor number
-			}
+			SensorMaps.PrimaryTempHum = ini.GetValue("SensorMaps", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-16=extra t/h sensor number, 99=use indoor sensor
+			SensorMaps.PrimaryIndoorTempHum = ini.GetValue("SensorMaps", "PrimaryIndoorTHSensor", 0, 0, 16);  // 0=default, 1-16=extra t/h sensor number
 
 			SensorMaps.StationForecast = ini.GetValue("SensorMaps", "StationForecast", 0, 0, 1);
 
-			// 0 = Main Station, 1 = Secondary Station
-			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseSolar", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
-				ini.SetValue("SensorMaps", "SolarEnabled", val == 1);
-				SensorMaps.Solar = val;
-				ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSolar"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", 0, 0, 1);
-				ini.SetValue("SensorMaps", "SolarEnabled", val == 1);
-				SensorMaps.Solar = val;
-				ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.SolarEnabled = ini.GetValue("SensorsMaps", "SolarEnabled", true);
-				SensorMaps.Solar = ini.GetValue("SensorsMaps", "Solar", 0, 0, 1);
-			}
+			SensorMaps.SolarEnabled = ini.GetValue("SensorsMaps", "SolarEnabled", true);
+			SensorMaps.Solar = ini.GetValue("SensorsMaps", "Solar", 0, 0, 1);
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseUv"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseUv", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
-				ini.SetValue("SensorMaps", "UVEnabled", val == 1);
-				SensorMaps.UV = val;
-				ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseUv"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", 0, 0, 1);
-				ini.SetValue("SensorMaps", "UVEnabled", val);
-				SensorMaps.UV = val;
-				ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.UVEnabled = ini.GetValue("SensorsMaps", "UVEnabled", true);
-				SensorMaps.UV = ini.GetValue("SensorsMaps", "UV", 0, 0, 1);
-			}
+			SensorMaps.UVEnabled = ini.GetValue("SensorsMaps", "UVEnabled", true);
+			SensorMaps.UV = ini.GetValue("SensorsMaps", "UV", 0, 0, 1);
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseTempHum"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseTempHum", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
-				ini.SetValue("SensorMaps", "ExtraTempHumEnabled", val == 1);
-				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
-				ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseTempHum"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", 0, 0, 1);
-				ini.SetValue("SensorMaps", "ExtraTempHumEnabled", val == 1);
-				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
-				ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.ExtraTempHumEnabled = ini.GetValue("SensorMaps", "ExtraTempHumEnabled", false);
-				SensorMaps.ExtraTempHum = ini.GetValue("SensorMaps", "ExtraTempHum", Enumerable.Repeat(0, SensorMaps.ExtraTempHum.Length).ToArray());
-			}
+			SensorMaps.ExtraTempHumEnabled = ini.GetValue("SensorMaps", "ExtraTempHumEnabled", false);
+			SensorMaps.ExtraTempHum = ini.GetValue("SensorMaps", "ExtraTempHum", Enumerable.Repeat(0, SensorMaps.ExtraTempHum.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilTemp"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseSoilTemp");
-				ini.SetValue("SensorMaps", "SoilTempEnabled", val == 1);
-				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
-				ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilTemp"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", 0, 0, 1);
-				ini.SetValue("SensorMaps", "SoilTempEnabled", val == 1);
-				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
-				ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.SoilTempEnabled = ini.GetValue("SensorMaps", "SoilTempEnabled", false);
-				SensorMaps.SoilTemp = ini.GetValue("SensorMaps", "SoilTemp", Enumerable.Repeat(0, SensorMaps.SoilTemp.Length).ToArray());
-			}
+			SensorMaps.SoilTempEnabled = ini.GetValue("SensorMaps", "SoilTempEnabled", false);
+			SensorMaps.SoilTemp = ini.GetValue("SensorMaps", "SoilTemp", Enumerable.Repeat(0, SensorMaps.SoilTemp.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilMoist"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
-				ini.SetValue("SensorMaps", "SoilMoistEnabled", val == 1);
-				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
-				ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilMoist"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", 0, 0, 1);
-				ini.SetValue("SensorMaps", "SoilMoistEnabled", val == 1);
-				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
-				ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.SoilMoistEnabled = ini.GetValue("SensorMaps", "SoilMoistEnabled", false);
-				SensorMaps.SoilMoist = ini.GetValue("SensorMaps", "SoilMoist", Enumerable.Repeat(0, SensorMaps.SoilMoist.Length).ToArray());
-			}
+			SensorMaps.SoilMoistEnabled = ini.GetValue("SensorMaps", "SoilMoistEnabled", false);
+			SensorMaps.SoilMoist = ini.GetValue("SensorMaps", "SoilMoist", Enumerable.Repeat(0, SensorMaps.SoilMoist.Length).ToArray());
 
-			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilEc"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilEc", 0, 0, 1);
-				ini.SetValue("SensorMaps", "SoilECEnabled", val == 1);
-				SensorMaps.SoilEc = Enumerable.Repeat(val, SensorMaps.SoilEc.Length).ToArray();
-				ini.SetValue("SensorMaps", "SoilEC", SensorMaps.SoilEc);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.SoilEcEnabled = ini.GetValue("SensorMaps", "SoilECEnabled", false);
-				SensorMaps.SoilEc = ini.GetValue("SensorMaps", "SoilEC", Enumerable.Repeat(0, SensorMaps.SoilEc.Length).ToArray());
-			}
+			SensorMaps.SoilEcEnabled = ini.GetValue("SensorMaps", "SoilECEnabled", false);
+			SensorMaps.SoilEc = ini.GetValue("SensorMaps", "SoilEC", Enumerable.Repeat(0, SensorMaps.SoilEc.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
-				ini.SetValue("SensorMaps", "LeafWetEnabled", val == 1);
-				SensorMaps.LeafWet = Enumerable.Repeat(val, SensorMaps.LeafWet.Length).ToArray();
-				ini.SetValue("SensorMaps", "LeafWet", SensorMaps.LeafWet);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLeafWet"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", 0, 0, 1);
-				SensorMaps.LeafWet = Enumerable.Repeat(val, SensorMaps.LeafWet.Length).ToArray();
-				ini.SetValue("SensorMaps", "LeafWet", SensorMaps.LeafWet);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.LeafWetEnabled = ini.GetValue("SensorMaps", "LeafWetEnabled", false);
-				SensorMaps.LeafWet = ini.GetValue("SensorMaps", "LeafWet", Enumerable.Repeat(0, SensorMaps.LeafWet.Length).ToArray());
-			}
+			SensorMaps.LeafWetEnabled = ini.GetValue("SensorMaps", "LeafWetEnabled", false);
+			SensorMaps.LeafWet = ini.GetValue("SensorMaps", "LeafWet", Enumerable.Repeat(0, SensorMaps.LeafWet.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseUserTemp"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
-				ini.SetValue("SensorMaps", "UserTempEnabled", val == 1);
-				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
-				ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseUserTemp"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", 0, 0, 1);
-				ini.SetValue("SensorMaps", "UserTempEnabled", val == 1);
-				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
-				ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.UserTempEnabled = ini.GetValue("SensorMaps", "UserTempEnabled", false);
-				SensorMaps.UserTemp = ini.GetValue("SensorMaps", "UserTemp", Enumerable.Repeat(0, SensorMaps.UserTemp.Length).ToArray());
-			}
+			SensorMaps.UserTempEnabled = ini.GetValue("SensorMaps", "UserTempEnabled", false);
+			SensorMaps.UserTemp = ini.GetValue("SensorMaps", "UserTemp", Enumerable.Repeat(0, SensorMaps.UserTemp.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseAQI"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseAQI", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
-				ini.SetValue("SensorMaps", "AirQualEnabled", val == 1);
-				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
-				ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseAQI"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", 0, 0, 1);
-				ini.SetValue("SensorMaps", "AirQualEnabled", val == 1);
-				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
-				ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.AirQualEnabled = ini.GetValue("SensorMaps", "AirQualEnabled", false);
-				SensorMaps.AirQual = ini.GetValue("SensorMaps", "AirQual", Enumerable.Repeat(0, SensorMaps.AirQual.Length).ToArray());
-			}
+			SensorMaps.AirQualEnabled = ini.GetValue("SensorMaps", "AirQualEnabled", false);
+			SensorMaps.AirQual = ini.GetValue("SensorMaps", "AirQual", Enumerable.Repeat(0, SensorMaps.AirQual.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseCo2"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseCo2", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseCo2");
-				ini.SetValue("SensorMaps", "CO2Enabled", val == 1);
-				SensorMaps.CO2 = val;
-				ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseCo2"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", 0, 0, 1);
-				ini.SetValue("SensorMaps", "CO2Enabled", val == 1);
-				SensorMaps.CO2 = val;
-				ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.CO2Enabled = ini.GetValue("SensorMaps", "CO2Enabled", false);
-				SensorMaps.CO2 = ini.GetValue("SensorMaps", "CO2", 0, 0, 1);
-			}
+			SensorMaps.CO2Enabled = ini.GetValue("SensorMaps", "CO2Enabled", false);
+			SensorMaps.CO2 = ini.GetValue("SensorMaps", "CO2", 0, 0, 1);
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseLightning"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseLightning", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
-				ini.SetValue("SensorMaps", "LightningEnabled", val == 1);
-				SensorMaps.Lightning = val;
-				ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLightning"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", 0, 0, 1);
-				ini.SetValue("SensorMaps", "LightningEnabled", val == 1);
-				SensorMaps.Lightning = val;
-				ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.LightningEnabled = ini.GetValue("SensorMaps", "LightningEnabled", false);
-				SensorMaps.Lightning = ini.GetValue("SensorMaps", "Lightning", 0, 0, 1);
-			}
+			SensorMaps.LightningEnabled = ini.GetValue("SensorMaps", "LightningEnabled", false);
+			SensorMaps.Lightning = ini.GetValue("SensorMaps", "Lightning", 0, 0, 1);
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseLeak"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseLeak", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
-				ini.SetValue("SensorMaps", "LeakEnabled", val == 1);
-				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
-				ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLeak"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", 0, 0, 1);
-				ini.SetValue("SensorMaps", "LeakEnabled", val == 1);
-				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
-				ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.LeakEnabled = ini.GetValue("SensorMaps", "LeakEnabled", false);
-				SensorMaps.Leak = ini.GetValue("SensorMaps", "Leak", Enumerable.Repeat(0, SensorMaps.Leak.Length).ToArray());
-			}
+			SensorMaps.LeakEnabled = ini.GetValue("SensorMaps", "LeakEnabled", false);
+			SensorMaps.Leak = ini.GetValue("SensorMaps", "Leak", Enumerable.Repeat(0, SensorMaps.Leak.Length).ToArray());
 
-			if (ini.ValueExists("GW1000", "ExtraSensorUseCamera"))
-			{
-				var val = ini.GetValue("GW1000", "ExtraSensorUseCamera", 0, 0, 1);
-				ini.DeleteValue("GW1000", "ExtraSensorUseCamera");
-				ini.SetValue("SensorMaps", "CameraEnabled", val == 1);
-				SensorMaps.Camera = val;
-				ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
-				rewriteRequired = true;
-			}
-			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseCamera"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", 0, 0, 1);
-				ini.SetValue("SensorMaps", "CameraEnabled", val == 1);
-				SensorMaps.Camera = val;
-				ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.CameraEnabled = ini.GetValue("SensorMaps", "CameraEnabled", false);
-				SensorMaps.Camera = ini.GetValue("SensorMaps", "Camera", 0, 0, 1);
-			}
+			SensorMaps.CameraEnabled = ini.GetValue("SensorMaps", "CameraEnabled", false);
+			SensorMaps.Camera = ini.GetValue("SensorMaps", "Camera", 0, 0, 1);
 
-			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLaserDist"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", 0, 0, 1);
-				ini.SetValue("SensorMaps", "LaserDistEnabled", val == 1);
-				SensorMaps.LaserDist = Enumerable.Repeat(val, SensorMaps.LaserDist.Length).ToArray();
-				ini.SetValue("SensorMaps", "LaserDist", SensorMaps.LaserDist);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.LaserDistEnabled = ini.GetValue("SensorMaps", "LaserDistEnabled", false);
-				SensorMaps.LaserDist = ini.GetValue("SensorMaps", "LaserDist", Enumerable.Repeat(0, SensorMaps.LaserDist.Length).ToArray());
-			}
+			SensorMaps.LaserDistEnabled = ini.GetValue("SensorMaps", "LaserDistEnabled", false);
+			SensorMaps.LaserDist = ini.GetValue("SensorMaps", "LaserDist", Enumerable.Repeat(0, SensorMaps.LaserDist.Length).ToArray());
 
-			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseBGT"))
-			{
-				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", 0, 0, 1);
-				ini.SetValue("SensorMaps", "BlackGlobeEnabled", val == 1);
-				SensorMaps.BlackGlobe = val;
-				ini.SetValue("SensorMaps", "BlackGlobe", SensorMaps.BlackGlobe);
-				rewriteRequired = true;
-			}
-			else
-			{
-				SensorMaps.BlackGlobeEnabled = ini.GetValue("SensorMaps", "BlackGlobeEnabled", false);
-				SensorMaps.BlackGlobe = ini.GetValue("SensorMaps", "BlackGlobe", 0, 0, 1);
-			}
-
-			// Remove the defunct ExtraSensors section
-			if (ini.SectionExists("ExtraSensors"))
-			{
-				ini.DeleteSection("ExtraSensors");
-				rewriteRequired = true;
-			}
+			SensorMaps.BlackGlobeEnabled = ini.GetValue("SensorMaps", "BlackGlobeEnabled", false);
+			SensorMaps.BlackGlobe = ini.GetValue("SensorMaps", "BlackGlobe", 0, 0, 1);
 
 			// Disable all the extra sensors if no extra Stations enabled (because the previous default was to enable all)
 			if (!AmbientExtraEnabled && !JsonExtraStationOptions.ExtraSensorsEnabled && !EcowittExtraEnabled && !EcowittCloudExtraEnabled)
@@ -1589,7 +1262,7 @@ namespace CumulusMX
 			MQTT.IpVersion = ini.GetValue("MQTT", "IPversion", 0, 0, 6); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
 			if (MQTT.IpVersion != 0 && MQTT.IpVersion != 4 && MQTT.IpVersion != 6)
 			{
-				LogMessage("Cumulus.ini: MQTT IP Version invalid, restting to unspecified");
+				LogMessage("Cumulus.ini: MQTT IP Version invalid, resetting to unspecified");
 				MQTT.IpVersion = 0;
 				ini.SetValue("MQTT", "IPversion", MQTT.IpVersion);
 				rewriteRequired = true;
@@ -1607,12 +1280,6 @@ namespace CumulusMX
 			LowTempAlarm.Enabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
 			LowTempAlarm.Sound = ini.GetValue("Alarms", "LowTempAlarmSound", false);
 			LowTempAlarm.SoundFile = ini.GetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile);
-			if (LowTempAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				LowTempAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			LowTempAlarm.Notify = ini.GetValue("Alarms", "LowTempAlarmNotify", false);
 			LowTempAlarm.Email = ini.GetValue("Alarms", "LowTempAlarmEmail", false);
 			LowTempAlarm.Latch = ini.GetValue("Alarms", "LowTempAlarmLatch", false);
@@ -1626,12 +1293,6 @@ namespace CumulusMX
 			HighTempAlarm.Enabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
 			HighTempAlarm.Sound = ini.GetValue("Alarms", "HighTempAlarmSound", false);
 			HighTempAlarm.SoundFile = ini.GetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile);
-			if (HighTempAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				HighTempAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			HighTempAlarm.Notify = ini.GetValue("Alarms", "HighTempAlarmNotify", false);
 			HighTempAlarm.Email = ini.GetValue("Alarms", "HighTempAlarmEmail", false);
 			HighTempAlarm.Latch = ini.GetValue("Alarms", "HighTempAlarmLatch", false);
@@ -1645,12 +1306,6 @@ namespace CumulusMX
 			TempChangeAlarm.Enabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
 			TempChangeAlarm.Sound = ini.GetValue("Alarms", "TempChangeAlarmSound", false);
 			TempChangeAlarm.SoundFile = ini.GetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile);
-			if (TempChangeAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				TempChangeAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			TempChangeAlarm.Notify = ini.GetValue("Alarms", "TempChangeAlarmNotify", false);
 			TempChangeAlarm.Email = ini.GetValue("Alarms", "TempChangeAlarmEmail", false);
 			TempChangeAlarm.Latch = ini.GetValue("Alarms", "TempChangeAlarmLatch", false);
@@ -1664,12 +1319,6 @@ namespace CumulusMX
 			LowPressAlarm.Enabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
 			LowPressAlarm.Sound = ini.GetValue("Alarms", "LowPressAlarmSound", false);
 			LowPressAlarm.SoundFile = ini.GetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile);
-			if (LowPressAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				LowPressAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			LowPressAlarm.Notify = ini.GetValue("Alarms", "LowPressAlarmNotify", false);
 			LowPressAlarm.Email = ini.GetValue("Alarms", "LowPressAlarmEmail", false);
 			LowPressAlarm.Latch = ini.GetValue("Alarms", "LowPressAlarmLatch", false);
@@ -1683,12 +1332,6 @@ namespace CumulusMX
 			HighPressAlarm.Enabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
 			HighPressAlarm.Sound = ini.GetValue("Alarms", "HighPressAlarmSound", false);
 			HighPressAlarm.SoundFile = ini.GetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile);
-			if (HighPressAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				HighPressAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			HighPressAlarm.Notify = ini.GetValue("Alarms", "HighPressAlarmNotify", false);
 			HighPressAlarm.Email = ini.GetValue("Alarms", "HighPressAlarmEmail", false);
 			HighPressAlarm.Latch = ini.GetValue("Alarms", "HighPressAlarmLatch", false);
@@ -1702,12 +1345,6 @@ namespace CumulusMX
 			PressChangeAlarm.Enabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
 			PressChangeAlarm.Sound = ini.GetValue("Alarms", "PressChangeAlarmSound", false);
 			PressChangeAlarm.SoundFile = ini.GetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile);
-			if (PressChangeAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				PressChangeAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			PressChangeAlarm.Notify = ini.GetValue("Alarms", "PressChangeAlarmNotify", false);
 			PressChangeAlarm.Email = ini.GetValue("Alarms", "PressChangeAlarmEmail", false);
 			PressChangeAlarm.Latch = ini.GetValue("Alarms", "PressChangeAlarmLatch", false);
@@ -1721,12 +1358,6 @@ namespace CumulusMX
 			HighRainTodayAlarm.Enabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
 			HighRainTodayAlarm.Sound = ini.GetValue("Alarms", "HighRainTodayAlarmSound", false);
 			HighRainTodayAlarm.SoundFile = ini.GetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile);
-			if (HighRainTodayAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				HighRainTodayAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			HighRainTodayAlarm.Notify = ini.GetValue("Alarms", "HighRainTodayAlarmNotify", false);
 			HighRainTodayAlarm.Email = ini.GetValue("Alarms", "HighRainTodayAlarmEmail", false);
 			HighRainTodayAlarm.Latch = ini.GetValue("Alarms", "HighRainTodayAlarmLatch", false);
@@ -1740,12 +1371,6 @@ namespace CumulusMX
 			HighRainRateAlarm.Enabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
 			HighRainRateAlarm.Sound = ini.GetValue("Alarms", "HighRainRateAlarmSound", false);
 			HighRainRateAlarm.SoundFile = ini.GetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile);
-			if (HighRainRateAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				HighRainRateAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			HighRainRateAlarm.Notify = ini.GetValue("Alarms", "HighRainRateAlarmNotify", false);
 			HighRainRateAlarm.Email = ini.GetValue("Alarms", "HighRainRateAlarmEmail", false);
 			HighRainRateAlarm.Latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
@@ -1771,12 +1396,6 @@ namespace CumulusMX
 			HighGustAlarm.Enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
 			HighGustAlarm.Sound = ini.GetValue("Alarms", "HighGustAlarmSound", false);
 			HighGustAlarm.SoundFile = ini.GetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile);
-			if (HighGustAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				HighGustAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			HighGustAlarm.Notify = ini.GetValue("Alarms", "HighGustAlarmNotify", false);
 			HighGustAlarm.Email = ini.GetValue("Alarms", "HighGustAlarmEmail", false);
 			HighGustAlarm.Latch = ini.GetValue("Alarms", "HighGustAlarmLatch", false);
@@ -1790,12 +1409,6 @@ namespace CumulusMX
 			HighWindAlarm.Enabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
 			HighWindAlarm.Sound = ini.GetValue("Alarms", "HighWindAlarmSound", false);
 			HighWindAlarm.SoundFile = ini.GetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile);
-			if (HighWindAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				HighWindAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			HighWindAlarm.Notify = ini.GetValue("Alarms", "HighWindAlarmNotify", false);
 			HighWindAlarm.Email = ini.GetValue("Alarms", "HighWindAlarmEmail", false);
 			HighWindAlarm.Latch = ini.GetValue("Alarms", "HighWindAlarmLatch", false);
@@ -1808,12 +1421,6 @@ namespace CumulusMX
 			SensorAlarm.Enabled = ini.GetValue("Alarms", "SensorAlarmSet", true);
 			SensorAlarm.Sound = ini.GetValue("Alarms", "SensorAlarmSound", false);
 			SensorAlarm.SoundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
-			if (SensorAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				SensorAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			SensorAlarm.Notify = ini.GetValue("Alarms", "SensorAlarmNotify", true);
 			SensorAlarm.Email = ini.GetValue("Alarms", "SensorAlarmEmail", false);
 			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", true);
@@ -1827,12 +1434,6 @@ namespace CumulusMX
 			DataStoppedAlarm.Enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", true);
 			DataStoppedAlarm.Sound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
 			DataStoppedAlarm.SoundFile = ini.GetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
-			if (DataStoppedAlarm.SoundFile.Contains(DefaultSoundFileOld))
-			{
-				SensorAlarm.SoundFile = DefaultSoundFile;
-				ini.SetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
-				rewriteRequired = true;
-			}
 			DataStoppedAlarm.Notify = ini.GetValue("Alarms", "DataStoppedAlarmNotify", true);
 			DataStoppedAlarm.Email = ini.GetValue("Alarms", "DataStoppedAlarmEmail", false);
 			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", true);
@@ -1843,7 +1444,6 @@ namespace CumulusMX
 			DataStoppedAlarm.ShowWindow = ini.GetValue("Alarms", "DataStoppedAlarmActionWindow", false);
 			DataStoppedAlarm.BskyFile = ini.GetValue("Alarms", "DataStoppedAlarmBlueskyFile", "none");
 
-			// Alarms below here were created after the change in default sound file, so no check required
 			BatteryLowAlarm.Enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
 			BatteryLowAlarm.Sound = ini.GetValue("Alarms", "BatteryLowAlarmSound", false);
 			BatteryLowAlarm.SoundFile = ini.GetValue("Alarms", "BatteryLowAlarmSoundFile", DefaultSoundFile);
@@ -2063,55 +1663,11 @@ namespace CumulusMX
 			SolarOptions.UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
 			SolarOptions.SolarCalc = ini.GetValue("Solar", "SolarCalc", 0, 0, 1);
 
-			// Migrate old single solar factors to the new dual scheme
-			if (ini.ValueExists("Solar", "RStransfactor"))
-			{
-				SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactor", 0.8, 0.1);
-				SolarOptions.RStransfactorDec = SolarOptions.RStransfactorJun;
-				ini.DeleteValue("Solar", "RStransfactor");
-				ini.SetValue("Solar", "RStransfactorJun", SolarOptions.RStransfactorJun);
-				ini.SetValue("Solar", "RStransfactorDec", SolarOptions.RStransfactorDec);
-				rewriteRequired = true;
-			}
-			else
-			{
-				if (ini.ValueExists("Solar", "RStransfactorJul"))
-				{
-					SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJul", 0.8, 0.1);
-					ini.DeleteValue("Solar", "RStransfactorJul");
-					ini.SetValue("Solar", "RStransfactorJun", SolarOptions.RStransfactorJun);
-					rewriteRequired = true;
-				}
-				else
-				{
-					SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJun", 0.8, 0.1);
-				}
-				SolarOptions.RStransfactorDec = ini.GetValue("Solar", "RStransfactorDec", 0.8, 0.1);
-			}
-			if (ini.ValueExists("Solar", "BrasTurbidity"))
-			{
-				SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidity", 2.0);
-				SolarOptions.BrasTurbidityDec = SolarOptions.BrasTurbidityJun;
-				ini.DeleteValue("Solar", "BrasTurbidity");
-				ini.SetValue("Solar", "BrasTurbidityJun", SolarOptions.BrasTurbidityJun);
-				ini.SetValue("Solar", "BrasTurbidityDec", SolarOptions.BrasTurbidityDec);
-				rewriteRequired = true;
-			}
-			else
-			{
-				if (ini.ValueExists("Solar", "BrasTurbidityJul"))
-				{
-					SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJul", 2.0);
-					ini.DeleteValue("Solar", "BrasTurbidityJul");
-					ini.SetValue("Solar", "BrasTurbidityJun", SolarOptions.BrasTurbidityJun);
-					rewriteRequired = true;
-				}
-				else
-				{
-					SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJun", 2.0);
-				}
-				SolarOptions.BrasTurbidityDec = ini.GetValue("Solar", "BrasTurbidityDec", 2.0);
-			}
+			SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJun", 0.8, 0.1);
+			SolarOptions.RStransfactorDec = ini.GetValue("Solar", "RStransfactorDec", 0.8, 0.1);
+
+			SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJun", 2.0);
+			SolarOptions.BrasTurbidityDec = ini.GetValue("Solar", "BrasTurbidityDec", 2.0);
 			#endregion
 
 			#region NOAA Settings
@@ -2198,14 +1754,6 @@ namespace CumulusMX
 			NOAAconf.AutoCopy = ini.GetValue("NOAA", "AutoCopy", false);
 			NOAAconf.CopyFolder = ini.GetValue("NOAA", "CopyDirectory", string.Empty);
 			NOAAconf.MonthFile = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
-			// Check for Cumulus 1 default format - and update
-			if (NOAAconf.MonthFile == "'NOAAMO'mmyy'.txt'" || NOAAconf.MonthFile == "\"NOAAMO\"mmyy\".txt\"")
-			{
-				LogMessage("Cumulus.ini: Updating old Cumulus 1 NOAA monthly file name");
-				NOAAconf.MonthFile = "'NOAAMO'MMyy'.txt'";
-				ini.SetValue("NOAA", "MonthFileFormat", NOAAconf.MonthFile);
-				rewriteRequired = true;
-			}
 			NOAAconf.YearFile = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAconf.UseUtf8 = ini.GetValue("NOAA", "NOAAUseUTF8", true);
 			NOAAconf.OutputText = ini.GetValue("NOAA", "NOAAUOutputText", true);
@@ -2625,6 +2173,8 @@ namespace CumulusMX
 			IniFile ini = new IniFile("Cumulus.ini");
 
 			#region Program Options
+			ini.SetValue("Program", "FileVersion", cumulusIniFileVer);
+
 			ini.SetValue("Program", "ProcessLogFiles", ProgramOptions.ProcessLogFilesLevel);
 
 			ini.SetValue("Program", "EnableAccessibility", ProgramOptions.EnableAccessibility);
@@ -4130,6 +3680,405 @@ namespace CumulusMX
 			ini.Flush();
 
 			LogMessage("Completed writing Cumulus.ini file");
+		}
+
+		private IniFile Transforms()
+		{
+			var rewriteRequired = false;
+
+			LogMessage("Checking Cumulus.ini file for required updates");
+
+			IniFile ini = new IniFile("Cumulus.ini");
+
+			// New install? Then nothing to do
+			if (!File.Exists("Cumulus.ini"))
+			{
+				return ini;
+			}
+
+			var ver = ini.GetValue("Program", "FileVersion", 0);
+
+			if (ver == 0)
+			{
+				LogMessage("Older version of Cumulus.ini detected, updating the contents...");
+				DoTransforms1(ini);
+				ini.SetValue("Program", "FileVersion", 1);
+				rewriteRequired = true;
+			}
+
+			if (rewriteRequired)
+			{
+				LogMessage("Some values in Cumulus.ini had invalid values, are obsolete, or new required entries have been created");
+				LogMessage("Rewriting Cumulus.ini to reflect the new configuration");
+				ini.Flush();
+				LogMessage("Cumulus.ini rewrite complete");
+			}
+
+			return ini;
+		}
+
+		private void DoTransforms1(IniFile ini)
+		{
+			// check for Cumulus 1 [FTP Site] and correct it
+			if (ini.ValueExists("FTP Site", "Port"))
+			{
+				LogMessage("Cumulus.ini: Changing old [FTP Site] to [FTP site]");
+				var contents = File.ReadAllText("Cumulus.ini");
+				contents = contents.Replace("[FTP Site]", "[FTP site]");
+				File.WriteAllText("Cumulus.ini", contents);
+				ini.Refresh();
+			}
+
+			// convert old dtart date format to new ISO format
+			if (ini.ValueExists("Station", "StartDate"))
+			{
+				var RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
+				try
+				{
+					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate, CultureInfo.CurrentCulture);
+					LogMessage($"Cumulus.ini: Changing old StartDate [{RecordsBeganDate}] to StartDateIso [{RecordsBeganDateTime:yyyy-MM-dd}]");
+					ini.DeleteValue("Station", "StartDate");
+					ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+				}
+				catch (Exception ex)
+				{
+					LogErrorMessage($"Cumulus.ini: Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
+				}
+			}
+
+			// Migrate Ecowitt sensor maps
+			if (ini.ValueExists("GW1000", "PrimaryTHSensor"))
+			{
+				SensorMaps.PrimaryTempHum = ini.GetValue("GW1000", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
+				ini.DeleteValue("GW1000", "PrimaryTHSensor");
+				ini.SetValue("SensorMaps", "PrimaryTHSensor", SensorMaps.PrimaryTempHum);
+			}
+
+			if (ini.ValueExists("GW1000", "PrimaryIndoorTHSensor"))
+			{
+				SensorMaps.PrimaryIndoorTempHum = ini.GetValue("GW1000", "PrimaryIndoorTHSensor", 0, 0, 16);  // 0=default, 1-6=extra t/h sensor number
+				ini.DeleteValue("GW1000", "PrimaryIndoorTHSensor");
+				ini.SetValue("SensorMaps", "PrimaryIndoorTHSensor", SensorMaps.PrimaryIndoorTempHum);
+			}
+
+			// 0 = Main Station, 1 = Secondary Station
+			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseSolar", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
+				ini.SetValue("SensorMaps", "SolarEnabled", val == 1);
+				SensorMaps.Solar = val;
+				ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSolar"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SolarEnabled", val == 1);
+				SensorMaps.Solar = val;
+				ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseUv"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseUv", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
+				ini.SetValue("SensorMaps", "UVEnabled", val == 1);
+				SensorMaps.UV = val;
+				ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseUv"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", 0, 0, 1);
+				ini.SetValue("SensorMaps", "UVEnabled", val);
+				SensorMaps.UV = val;
+				ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseTempHum"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseTempHum", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
+				ini.SetValue("SensorMaps", "ExtraTempHumEnabled", val == 1);
+				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
+				ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseTempHum"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", 0, 0, 1);
+				ini.SetValue("SensorMaps", "ExtraTempHumEnabled", val == 1);
+				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
+				ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilTemp"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseSoilTemp");
+				ini.SetValue("SensorMaps", "SoilTempEnabled", val == 1);
+				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
+				ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilTemp"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SoilTempEnabled", val == 1);
+				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
+				ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilMoist"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
+				ini.SetValue("SensorMaps", "SoilMoistEnabled", val == 1);
+				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
+				ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilMoist"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SoilMoistEnabled", val == 1);
+				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
+				ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
+			}
+
+			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilEc"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilEc", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SoilECEnabled", val == 1);
+				SensorMaps.SoilEc = Enumerable.Repeat(val, SensorMaps.SoilEc.Length).ToArray();
+				ini.SetValue("SensorMaps", "SoilEC", SensorMaps.SoilEc);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
+				ini.SetValue("SensorMaps", "LeafWetEnabled", val == 1);
+				SensorMaps.LeafWet = Enumerable.Repeat(val, SensorMaps.LeafWet.Length).ToArray();
+				ini.SetValue("SensorMaps", "LeafWet", SensorMaps.LeafWet);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLeafWet"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", 0, 0, 1);
+				SensorMaps.LeafWet = Enumerable.Repeat(val, SensorMaps.LeafWet.Length).ToArray();
+				ini.SetValue("SensorMaps", "LeafWet", SensorMaps.LeafWet);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseUserTemp"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
+				ini.SetValue("SensorMaps", "UserTempEnabled", val == 1);
+				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
+				ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseUserTemp"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", 0, 0, 1);
+				ini.SetValue("SensorMaps", "UserTempEnabled", val == 1);
+				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
+				ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseAQI"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseAQI", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
+				ini.SetValue("SensorMaps", "AirQualEnabled", val == 1);
+				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
+				ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseAQI"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", 0, 0, 1);
+				ini.SetValue("SensorMaps", "AirQualEnabled", val == 1);
+				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
+				ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseCo2"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseCo2", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseCo2");
+				ini.SetValue("SensorMaps", "CO2Enabled", val == 1);
+				SensorMaps.CO2 = val;
+				ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseCo2"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", 0, 0, 1);
+				ini.SetValue("SensorMaps", "CO2Enabled", val == 1);
+				SensorMaps.CO2 = val;
+				ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseLightning"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseLightning", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
+				ini.SetValue("SensorMaps", "LightningEnabled", val == 1);
+				SensorMaps.Lightning = val;
+				ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLightning"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", 0, 0, 1);
+				ini.SetValue("SensorMaps", "LightningEnabled", val == 1);
+				SensorMaps.Lightning = val;
+				ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseLeak"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseLeak", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
+				ini.SetValue("SensorMaps", "LeakEnabled", val == 1);
+				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
+				ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLeak"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", 0, 0, 1);
+				ini.SetValue("SensorMaps", "LeakEnabled", val == 1);
+				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
+				ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
+			}
+
+			if (ini.ValueExists("GW1000", "ExtraSensorUseCamera"))
+			{
+				var val = ini.GetValue("GW1000", "ExtraSensorUseCamera", 0, 0, 1);
+				ini.DeleteValue("GW1000", "ExtraSensorUseCamera");
+				ini.SetValue("SensorMaps", "CameraEnabled", val == 1);
+				SensorMaps.Camera = val;
+				ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
+			}
+			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseCamera"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", 0, 0, 1);
+				ini.SetValue("SensorMaps", "CameraEnabled", val == 1);
+				SensorMaps.Camera = val;
+				ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
+			}
+
+			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLaserDist"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", 0, 0, 1);
+				ini.SetValue("SensorMaps", "LaserDistEnabled", val == 1);
+				SensorMaps.LaserDist = Enumerable.Repeat(val, SensorMaps.LaserDist.Length).ToArray();
+				ini.SetValue("SensorMaps", "LaserDist", SensorMaps.LaserDist);
+			}
+
+			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseBGT"))
+			{
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", 0, 0, 1);
+				ini.SetValue("SensorMaps", "BlackGlobeEnabled", val == 1);
+				SensorMaps.BlackGlobe = val;
+				ini.SetValue("SensorMaps", "BlackGlobe", SensorMaps.BlackGlobe);
+			}
+
+			// Remove the defunct ExtraSensors section
+			if (ini.SectionExists("ExtraSensors"))
+			{
+				ini.DeleteSection("ExtraSensors");
+			}
+
+			// remove old alarm sounds
+			if (ini.GetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "IsRainingAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "IsRainingAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
+			}
+
+			if (ini.GetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile).Contains(DefaultSoundFileOld))
+			{
+				ini.SetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
+			}
+
+			// Migrate old single solar factors to the new dual scheme
+			if (ini.ValueExists("Solar", "RStransfactor"))
+			{
+				var val = ini.GetValue("Solar", "RStransfactor", 0.8, 0.1);
+				ini.DeleteValue("Solar", "RStransfactor");
+				ini.SetValue("Solar", "RStransfactorJun", val);
+				ini.SetValue("Solar", "RStransfactorDec", val);
+			}
+
+			if (ini.ValueExists("Solar", "BrasTurbidity"))
+			{
+				var val = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+				ini.DeleteValue("Solar", "BrasTurbidity");
+				ini.SetValue("Solar", "BrasTurbidityJun", val);
+				ini.SetValue("Solar", "BrasTurbidityDec", val);
+			}
+			else if (ini.ValueExists("Solar", "RStransfactorJul"))
+			{
+				var val = ini.GetValue("Solar", "RStransfactorJul", 0.8, 0.1);
+				ini.DeleteValue("Solar", "RStransfactorJul");
+				ini.SetValue("Solar", "RStransfactorJun", val);
+			}
+
+			// NOAA Files - Check for Cumulus 1 default format - and update
+			var noaaMonthFile = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
+			if (noaaMonthFile == "'NOAAMO'mmyy'.txt'" || noaaMonthFile == "\"NOAAMO\"mmyy\".txt\"")
+			{
+				LogMessage("Cumulus.ini: Updating old Cumulus 1 NOAA monthly file name");
+				ini.SetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
+			}
 		}
 	}
 }
