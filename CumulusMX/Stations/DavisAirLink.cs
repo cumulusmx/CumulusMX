@@ -57,9 +57,9 @@ namespace CumulusMX.Stations
 			standalone = !(
 				cumulus.StationType == StationTypes.WLL &&
 				cumulus.AirLinkIsNode &&
-				!string.IsNullOrEmpty(cumulus.WllApiKey) &&
-				!string.IsNullOrEmpty(cumulus.WllApiSecret) &&
-				cumulus.WllStationId >= 10
+				!string.IsNullOrEmpty(cumulus.WllSettings[0].WllApiKey) &&
+				!string.IsNullOrEmpty(cumulus.WllSettings[0].WllApiSecret) &&
+				cumulus.WllSettings[0].WllStationId >= 10
 			);
 
 			// If we are stand-alone, are we configured to read history data?
@@ -83,7 +83,7 @@ namespace CumulusMX.Stations
 				serviceBrowser.ServiceAdded += OnServiceAdded;
 				serviceBrowser.ServiceRemoved += OnServiceRemoved;
 				serviceBrowser.ServiceChanged += OnServiceChanged;
-				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
+				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllSettings[0].WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
 
 				serviceBrowser.StartBrowse(serviceType);
 
@@ -1076,14 +1076,14 @@ namespace CumulusMX.Stations
 			}
 			else
 			{
-				if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret) || cumulus.WllStationId < 10)
+				if (string.IsNullOrEmpty(cumulus.WllSettings[0].WllApiKey) || string.IsNullOrEmpty(cumulus.WllSettings[0].WllApiSecret) || cumulus.WllSettings[0].WllStationId < 10)
 				{
 					cumulus.LogWarningMessage("AirLinkHealth: Missing WLL WeatherLink API key/secret/station Id in the cumulus.ini file, aborting!");
 					return;
 				}
-				apiKey = cumulus.WllApiKey;
-				apiSecret = cumulus.WllApiSecret;
-				stationId = cumulus.WllStationId;
+				apiKey = cumulus.WllSettings[0].WllApiKey;
+				apiSecret = cumulus.WllSettings[0].WllApiSecret;
+				stationId = cumulus.WllSettings[0].WllStationId;
 			}
 
 			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");

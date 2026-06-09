@@ -58,23 +58,23 @@ namespace CumulusMX.Settings
 			{
 				network = new StationSettings.JsonWllNetwork()
 				{
-					autoDiscover = cumulus.WLLAutoUpdateIpAddress,
+					autoDiscover = cumulus.WllSettings[0].WLLAutoUpdateIpAddress,
 					ipaddress = cumulus.DavisOptions.IPAddr
 				},
 				api = new StationSettings.JsonWllApi()
 				{
-					apiKey = cumulus.WllApiKey,
-					apiSecret = cumulus.WllApiSecret,
-					apiStationId = cumulus.WllStationId,
-					apiStationUuid = cumulus.WllStationUuid
+					apiKey = cumulus.WllSettings[0].WllApiKey,
+					apiSecret = cumulus.WllSettings[0].WllApiSecret,
+					apiStationId = cumulus.WllSettings[0].WllStationId,
+					apiStationUuid = cumulus.WllSettings[0].WllStationUuid
 				},
 				primary = new StationSettings.JsonWllPrimary()
 				{
-					wind = cumulus.WllPrimaryWind,
-					temphum = cumulus.WllPrimaryTempHum,
-					rain = cumulus.WllPrimaryRain,
-					solar = cumulus.WllPrimarySolar,
-					uv = cumulus.WllPrimaryUV
+					wind = cumulus.WllSettings[0].WllPrimaryWind,
+					temphum = cumulus.WllSettings[0].WllPrimaryTempHum,
+					rain = cumulus.WllSettings[0].WllPrimaryRain,
+					solar = cumulus.WllSettings[0].WllPrimarySolar,
+					uv = cumulus.WllSettings[0].WllPrimaryUV
 				}
 			};
 
@@ -82,18 +82,18 @@ namespace CumulusMX.Settings
 			{
 				api = new StationSettings.JsonWllApi()
 				{
-					apiKey = cumulus.WllApiKey,
-					apiSecret = cumulus.WllApiSecret,
-					apiStationId = cumulus.WllStationId,
-					apiStationUuid = cumulus.WllStationUuid
+					apiKey = cumulus.WllSettings[0].WllApiKey,
+					apiSecret = cumulus.WllSettings[0].WllApiSecret,
+					apiStationId = cumulus.WllSettings[0].WllStationId,
+					apiStationUuid = cumulus.WllSettings[0].WllStationUuid
 				},
 				primary = new StationSettings.JsonWllPrimary()
 				{
-					wind = cumulus.WllPrimaryWind,
-					temphum = cumulus.WllPrimaryTempHum,
-					rain = cumulus.WllPrimaryRain,
-					solar = cumulus.WllPrimarySolar,
-					uv = cumulus.WllPrimaryUV
+					wind = cumulus.WllSettings[0].WllPrimaryWind,
+					temphum = cumulus.WllSettings[0].WllPrimaryTempHum,
+					rain = cumulus.WllSettings[0].WllPrimaryRain,
+					solar = cumulus.WllSettings[0].WllPrimarySolar,
+					uv = cumulus.WllSettings[0].WllPrimaryUV
 				}
 			};
 
@@ -583,19 +583,19 @@ namespace CumulusMX.Settings
 					if (settings.station.daviswll != null)
 					{
 						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
-						cumulus.WLLAutoUpdateIpAddress = settings.station.daviswll.network.autoDiscover;
+						cumulus.WllSettings[0].WLLAutoUpdateIpAddress = settings.station.daviswll.network.autoDiscover;
 						cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.station.daviswll.network.ipaddress) ? string.Empty : settings.station.daviswll.network.ipaddress.Trim();
 
-						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiKey) ? string.Empty : settings.station.daviswll.api.apiKey.Trim();
-						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiSecret) ? string.Empty : settings.station.daviswll.api.apiSecret.Trim();
-						cumulus.WllStationId = settings.station.daviswll.api.apiStationId;
-						cumulus.WllStationUuid = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiStationUuid) ? string.Empty : settings.station.daviswll.api.apiStationUuid.Trim();
+						cumulus.WllSettings[0].WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiKey) ? string.Empty : settings.station.daviswll.api.apiKey.Trim();
+						cumulus.WllSettings[0].WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiSecret) ? string.Empty : settings.station.daviswll.api.apiSecret.Trim();
+						cumulus.WllSettings[0].WllStationId = settings.station.daviswll.api.apiStationId;
+						cumulus.WllSettings[0].WllStationUuid = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiStationUuid) ? string.Empty : settings.station.daviswll.api.apiStationUuid.Trim();
 
-						cumulus.WllPrimaryRain = settings.station.daviswll.primary.rain;
-						cumulus.WllPrimarySolar = settings.station.daviswll.primary.solar;
-						cumulus.WllPrimaryTempHum = settings.station.daviswll.primary.temphum;
-						cumulus.WllPrimaryUV = settings.station.daviswll.primary.uv;
-						cumulus.WllPrimaryWind = settings.station.daviswll.primary.wind;
+						cumulus.WllSettings[0].WllPrimaryRain = settings.station.daviswll.primary.rain;
+						cumulus.WllSettings[0].WllPrimarySolar = settings.station.daviswll.primary.solar;
+						cumulus.WllSettings[0].WllPrimaryTempHum = settings.station.daviswll.primary.temphum;
+						cumulus.WllSettings[0].WllPrimaryUV = settings.station.daviswll.primary.uv;
+						cumulus.WllSettings[0].WllPrimaryWind = settings.station.daviswll.primary.wind;
 					}
 				}
 				catch (Exception ex)
@@ -611,18 +611,18 @@ namespace CumulusMX.Settings
 				{
 					if (settings.station.daviscloud != null)
 					{
-						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiKey) ? string.Empty : settings.station.daviscloud.api.apiKey.Trim();
-						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiSecret) ? string.Empty : settings.station.daviscloud.api.apiSecret.Trim();
-						cumulus.WllStationId = settings.station.daviscloud.api.apiStationId;
-						cumulus.WllStationUuid = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiStationUuid) ? string.Empty : settings.station.daviscloud.api.apiStationUuid.Trim();
+						cumulus.WllSettings[0].WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiKey) ? string.Empty : settings.station.daviscloud.api.apiKey.Trim();
+						cumulus.WllSettings[0].WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiSecret) ? string.Empty : settings.station.daviscloud.api.apiSecret.Trim();
+						cumulus.WllSettings[0].WllStationId = settings.station.daviscloud.api.apiStationId;
+						cumulus.WllSettings[0].WllStationUuid = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiStationUuid) ? string.Empty : settings.station.daviscloud.api.apiStationUuid.Trim();
 
 						if (settings.station.daviscloud.primary != null)
 						{
-							cumulus.WllPrimaryRain = settings.station.daviscloud.primary.rain;
-							cumulus.WllPrimarySolar = settings.station.daviscloud.primary.solar;
-							cumulus.WllPrimaryTempHum = settings.station.daviscloud.primary.temphum;
-							cumulus.WllPrimaryUV = settings.station.daviscloud.primary.uv;
-							cumulus.WllPrimaryWind = settings.station.daviscloud.primary.wind;
+							cumulus.WllSettings[0].WllPrimaryRain = settings.station.daviscloud.primary.rain;
+							cumulus.WllSettings[0].WllPrimarySolar = settings.station.daviscloud.primary.solar;
+							cumulus.WllSettings[0].WllPrimaryTempHum = settings.station.daviscloud.primary.temphum;
+							cumulus.WllSettings[0].WllPrimaryUV = settings.station.daviscloud.primary.uv;
+							cumulus.WllSettings[0].WllPrimaryWind = settings.station.daviscloud.primary.wind;
 						}
 					}
 				}

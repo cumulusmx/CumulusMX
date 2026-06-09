@@ -466,41 +466,40 @@ namespace CumulusMX
 
 			#region Get WLL Settings
 			// WeatherLink Live device settings
-			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", string.Empty);
-			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", string.Empty);
-			WllStationId = ini.GetValue("WLL", "WLStationId", -1, -1);
-			WllStationUuid = ini.GetValue("WLL", "WLStationUuid", "");
-			WllTriggerDataStoppedOnBroadcast = ini.GetValue("WLL", "DataStoppedOnBroadcast", true);
-			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
-			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", WllBroadcastDuration);
-			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", WllBroadcastPort);
-			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1, 1, 8);
-			WllPrimaryTempHum = ini.GetValue("WLL", "PrimaryTempHumTxId", 1, 1, 8);
-			WllPrimaryWind = ini.GetValue("WLL", "PrimaryWindTxId", 1, 1, 8);
-			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1, 1, 8);
-			WllPrimarySolar = ini.GetValue("WLL", "PrimarySolarTxId", 0, 0, 8);
-			WllPrimaryUV = ini.GetValue("WLL", "PrimaryUvTxId", 0, 0, 8);
-			WllPrimarySunshine = ini.GetValue("WLL", "PrimarySunshine", 0, 0, 8);
-			SolarOptions.UseSunshineSensor = WllPrimarySunshine > 0;
+			WllSettings[0].WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", string.Empty);
+			WllSettings[0].WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", string.Empty);
+			WllSettings[0].WllStationId = ini.GetValue("WLL", "WLStationId", -1, -1);
+			WllSettings[0].WllStationUuid = ini.GetValue("WLL", "WLStationUuid", "");
+			WllSettings[0].WllTriggerDataStoppedOnBroadcast = ini.GetValue("WLL", "DataStoppedOnBroadcast", true);
+			WllSettings[0].WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
+			WllSettings[0].WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", WllSettings[0].WllBroadcastDuration);
+			WllSettings[0].WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", WllSettings[0].WllBroadcastPort);
+			WllSettings[0].WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1, 1, 8);
+			WllSettings[0].WllPrimaryTempHum = ini.GetValue("WLL", "PrimaryTempHumTxId", 1, 1, 8);
+			WllSettings[0].WllPrimaryWind = ini.GetValue("WLL", "PrimaryWindTxId", 1, 1, 8);
+			WllSettings[0].WllPrimarySolar = ini.GetValue("WLL", "PrimarySolarTxId", 0, 0, 8);
+			WllSettings[0].WllPrimaryUV = ini.GetValue("WLL", "PrimaryUvTxId", 0, 0, 8);
+			WllSettings[0].WllPrimarySunshine = ini.GetValue("WLL", "PrimarySunshine", 0, 0, 8);
+			SolarOptions.UseSunshineSensor = WllSettings[0].WllPrimarySunshine > 0;
 			for (var i = 1; i <= 16; i++)
 			{
-				WllSoilTempTx[i] = ini.GetValue("WLL", "ExtraSoilTempTxId" + i, 0, 0, 8);
-				WllSoilTempIdx[i] = ini.GetValue("WLL", "ExtraSoilTempIdx" + i, ((i - 1) % 4) + 1, 1, 4);
+				WllSettings[0].WllSoilTempTx[i] = ini.GetValue("WLL", "ExtraSoilTempTxId" + i, 0, 0, 8);
+				WllSettings[0].WllSoilTempIdx[i] = ini.GetValue("WLL", "ExtraSoilTempIdx" + i, ((i - 1) % 4) + 1, 1, 4);
 			}
 			for (var i = 1; i <= 16; i++)
 			{
-				WllSoilMoistureTx[i] = ini.GetValue("WLL", "ExtraSoilMoistureTxId" + i, 0, 0, 8);
-				WllSoilMoistureIdx[i] = ini.GetValue("WLL", "ExtraSoilMoistureIdx" + i, ((i - 1) % 4) + 1, 1, 4);
+				WllSettings[0].WllSoilMoistureTx[i] = ini.GetValue("WLL", "ExtraSoilMoistureTxId" + i, 0, 0, 8);
+				WllSettings[0].WllSoilMoistureIdx[i] = ini.GetValue("WLL", "ExtraSoilMoistureIdx" + i, ((i - 1) % 4) + 1, 1, 4);
 			}
 			for (var i = 1; i <= 8; i++)
 			{
-				WllLeafWetTx[i] = ini.GetValue("WLL", "ExtraLeafTxId" + i, 0, 0, 8);
-				WllLeafWetIdx[i] = ini.GetValue("WLL", "ExtraLeafIdx" + i, ((i - 1) % 2) + 1, 1, 2);
+				WllSettings[0].WllLeafWetTx[i] = ini.GetValue("WLL", "ExtraLeafTxId" + i, 0, 0, 8);
+				WllSettings[0].WllLeafWetIdx[i] = ini.GetValue("WLL", "ExtraLeafIdx" + i, ((i - 1) % 2) + 1, 1, 2);
 			}
 			for (int i = 1; i <= 16; i++)
 			{
-				WllExtraTempTx[i] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0, 0, 8);
-				WllExtraTempIdx[i] = ini.GetValue("WLL", "ExtraTempIdx" + i, ((i - 1) % 4) + 1, 1, 4);
+				WllSettings[0].WllExtraTempTx[i] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0, 0, 8);
+				WllSettings[0].WllExtraTempIdx[i] = ini.GetValue("WLL", "ExtraTempIdx" + i, ((i - 1) % 4) + 1, 1, 4);
 			}
 			#endregion
 
@@ -691,9 +690,9 @@ namespace CumulusMX
 			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
 			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", -1, -1);
-			if (AirLinkInStationId == -1 && AirLinkIsNode && WllStationId != -1)
+			if (AirLinkInStationId == -1 && AirLinkIsNode && WllSettings[0].WllStationId != -1)
 			{
-				AirLinkInStationId = WllStationId;
+				AirLinkInStationId = WllSettings[0].WllStationId;
 				LogMessage("Cumulus.ini: No AirLinkInStationId supplied, but AirlinkIsNode, so using main station id");
 				ini.SetValue("AirLink", "In-WLStationId", AirLinkInStationId);
 				rewriteRequired = true;
@@ -703,9 +702,9 @@ namespace CumulusMX
 			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
 			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
 			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", -1, -1);
-			if (AirLinkOutStationId == -1 && AirLinkIsNode && WllStationId != -1)
+			if (AirLinkOutStationId == -1 && AirLinkIsNode && WllSettings[0].WllStationId != -1)
 			{
-				AirLinkOutStationId = WllStationId;
+				AirLinkOutStationId = WllSettings[0].WllStationId;
 				LogMessage("Cumulus.ini: No AirLinkOutStationId supplied, but AirlinkIsNode, so using main station id");
 				ini.SetValue("AirLink", "Out-WLStationId", AirLinkOutStationId);
 				rewriteRequired = true;
@@ -2079,11 +2078,11 @@ namespace CumulusMX
 
 				ProgramOptions.SettingsUsername = Crypto.DecryptString(ProgramOptions.SettingsUsername, Program.InstanceId, "SettingsUsername");
 				ProgramOptions.SettingsPassword = Crypto.DecryptString(ProgramOptions.SettingsPassword, Program.InstanceId, "SettingsPassword");
-				WllApiKey = Crypto.DecryptString(WllApiKey, Program.InstanceId, "WllApiKey");
+				WllSettings[0].WllApiKey = Crypto.DecryptString(WllSettings[0].WllApiKey, Program.InstanceId, "WllApiKey");
 				//PurpleAirApiKey = Crypto.DecryptString(PurpleAirApiKey, Program.InstanceId, "PurpleAirApiKey");
 				//PurpleAirReadKey = Crypto.DecryptString(PurpleAirReadKey, Program.InstanceId, "PurpleAirReadKey");
 
-				WllApiSecret = Crypto.DecryptString(WllApiSecret, Program.InstanceId, "WllApiSecret");
+				WllSettings[0].WllApiSecret = Crypto.DecryptString(WllSettings[0].WllApiSecret, Program.InstanceId, "WllApiSecret");
 				JsonStationOptions.MqttUsername = Crypto.DecryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername");
 				JsonStationOptions.MqttPassword = Crypto.DecryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword");
 				AirLinkApiKey = Crypto.DecryptString(AirLinkApiKey, Program.InstanceId, "AirLinkApiKey");
@@ -2398,62 +2397,61 @@ namespace CumulusMX
 
 			#region WLL Settings
 			// WeatherLink Live device settings
-			ini.SetValue("WLL", "AutoUpdateIpAddress", WLLAutoUpdateIpAddress);
-			ini.SetValue("WLL", "WLv2ApiKey", Crypto.EncryptString(WllApiKey, Program.InstanceId, "WllApiKey"));
-			ini.SetValue("WLL", "WLv2ApiSecret", Crypto.EncryptString(WllApiSecret, Program.InstanceId, "WllApiSecret"));
-			ini.SetValue("WLL", "WLStationId", WllStationId);
-			ini.SetValue("WLL", "WLStationUuid", WllStationUuid);
-			ini.SetValue("WLL", "DataStoppedOnBroadcast", WllTriggerDataStoppedOnBroadcast);
-			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
-			ini.SetValue("WLL", "PrimaryTempHumTxId", WllPrimaryTempHum);
-			ini.SetValue("WLL", "PrimaryWindTxId", WllPrimaryWind);
-			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
-			ini.SetValue("WLL", "PrimarySolarTxId", WllPrimarySolar);
-			ini.SetValue("WLL", "PrimaryUvTxId", WllPrimaryUV);
-			ini.SetValue("WLL", "PrimarySunshine", WllPrimarySunshine);
+			ini.SetValue("WLL", "AutoUpdateIpAddress", WllSettings[0].WLLAutoUpdateIpAddress);
+			ini.SetValue("WLL", "WLv2ApiKey", Crypto.EncryptString(WllSettings[0].WllApiKey, Program.InstanceId, "WllApiKey"));
+			ini.SetValue("WLL", "WLv2ApiSecret", Crypto.EncryptString(WllSettings[0].WllApiSecret, Program.InstanceId, "WllApiSecret"));
+			ini.SetValue("WLL", "WLStationId", WllSettings[0].WllStationId);
+			ini.SetValue("WLL", "WLStationUuid", WllSettings[0].WllStationUuid);
+			ini.SetValue("WLL", "DataStoppedOnBroadcast", WllSettings[0].WllTriggerDataStoppedOnBroadcast);
+			ini.SetValue("WLL", "PrimaryRainTxId", WllSettings[0].WllPrimaryRain);
+			ini.SetValue("WLL", "PrimaryTempHumTxId", WllSettings[0].WllPrimaryTempHum);
+			ini.SetValue("WLL", "PrimaryWindTxId", WllSettings[0].WllPrimaryWind);
+			ini.SetValue("WLL", "PrimarySolarTxId", WllSettings[0].WllPrimarySolar);
+			ini.SetValue("WLL", "PrimaryUvTxId", WllSettings[0].WllPrimaryUV);
+			ini.SetValue("WLL", "PrimarySunshine", WllSettings[0].WllPrimarySunshine);
 
 			for (var i = 1; i <= 16; i++)
 			{
-				if (WllSoilTempTx[i] == 0)
+				if (WllSettings[0].WllSoilTempTx[i] == 0)
 				{
 					ini.DeleteValue("WLL", "ExtraSoilTempTxId" + i);
 					ini.DeleteValue("WLL", "ExtraSoilTempIdx" + i);
 				}
 				else
 				{
-					ini.SetValue("WLL", "ExtraSoilTempTxId" + i, WllSoilTempTx[i]);
-					ini.SetValue("WLL", "ExtraSoilTempIdx" + i, WllSoilTempIdx[i]);
+					ini.SetValue("WLL", "ExtraSoilTempTxId" + i, WllSettings[0].WllSoilTempTx[i]);
+					ini.SetValue("WLL", "ExtraSoilTempIdx" + i, WllSettings[0].WllSoilTempIdx[i]);
 				}
 			}
 			for (var i = 1; i <= 16; i++)
 			{
-				if (WllSoilMoistureTx[i] == 0)
+				if (WllSettings[0].WllSoilMoistureTx[i] == 0)
 				{
 					ini.DeleteValue("WLL", "ExtraSoilMoistureTxId" + i);
 					ini.DeleteValue("WLL", "ExtraSoilMoistureIdx" + i);
 				}
 				else
 				{
-					ini.SetValue("WLL", "ExtraSoilMoistureTxId" + i, WllSoilMoistureTx[i]);
-					ini.SetValue("WLL", "ExtraSoilMoistureIdx" + i, WllSoilMoistureIdx[i]);
+					ini.SetValue("WLL", "ExtraSoilMoistureTxId" + i, WllSettings[0].WllSoilMoistureTx[i]);
+					ini.SetValue("WLL", "ExtraSoilMoistureIdx" + i, WllSettings[0].WllSoilMoistureIdx[i]);
 				}
 			}
 			for (var i = 1; i <= 8; i++)
 			{
-				if (WllLeafWetTx[i] == 0)
+				if (WllSettings[0].WllLeafWetTx[i] == 0)
 				{
 					ini.DeleteValue("WLL", "ExtraLeafTxId" + i);
 					ini.DeleteValue("WLL", "ExtraLeafIdx" + i);
 				}
 				else
 				{
-					ini.SetValue("WLL", "ExtraLeafTxId" + i, WllLeafWetTx[i]);
-					ini.SetValue("WLL", "ExtraLeafIdx" + i, WllSoilMoistureIdx[i]);
+					ini.SetValue("WLL", "ExtraLeafTxId" + i, WllSettings[0].WllLeafWetTx[i]);
+					ini.SetValue("WLL", "ExtraLeafIdx" + i, WllSettings[0].WllLeafWetIdx[i]);
 				}
 			}
 			for (int i = 1; i <= 8; i++)
 			{
-				if (WllExtraTempTx[i] == 0)
+				if (WllSettings[0].WllExtraTempTx[i] == 0)
 				{
 					ini.DeleteValue("WLL", "ExtraTempTxId" + i);
 					ini.DeleteValue("WLL", "ExtraTempIdx" + i);
@@ -2461,8 +2459,8 @@ namespace CumulusMX
 				}
 				else
 				{
-					ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i]);
-					ini.SetValue("WLL", "ExtraTempIdx" + i, WllExtraTempIdx[i]);
+					ini.SetValue("WLL", "ExtraTempTxId" + i, WllSettings[0].WllExtraTempTx[i]);
+					ini.SetValue("WLL", "ExtraTempIdx" + i, WllSettings[0].WllExtraTempIdx[i]);
 				}
 			}
 			#endregion WLL Settings

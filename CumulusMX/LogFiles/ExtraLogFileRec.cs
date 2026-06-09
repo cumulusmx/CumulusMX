@@ -89,7 +89,7 @@ namespace CumulusMX.LogFiles
 			// 113-118 Dew point 11-16
 			// 119-122 AQ PM10 1-4
 			// 123-126 AQ PM10 Avg
-			// 127-143 Soil EC 1-16
+			// 127-142 Soil EC 1-16
 
 
 			var inv = CultureInfo.InvariantCulture;

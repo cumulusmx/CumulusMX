@@ -79,7 +79,7 @@ namespace CumulusMX.Stations
 			CalcRecentMaxGust = true;
 
 			// Sanity check - do we have all the info we need?
-			if (string.IsNullOrEmpty(cumulus.WllApiKey) && string.IsNullOrEmpty(cumulus.WllApiSecret))
+			if (string.IsNullOrEmpty(cumulus.WllSettings[StationId].WllApiKey) && string.IsNullOrEmpty(cumulus.WllSettings[StationId].WllApiSecret))
 			{
 				// The basic API details have not been supplied
 				cumulus.LogWarningMessage("WLL - No WeatherLink.com API configuration supplied, just going to work locally");
@@ -87,10 +87,10 @@ namespace CumulusMX.Stations
 				Cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start historic downloads or retrieve health data", ConsoleColor.DarkCyan);
 				useWeatherLinkDotCom = false;
 			}
-			else if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret))
+			else if (string.IsNullOrEmpty(cumulus.WllSettings[StationId].WllApiKey) || string.IsNullOrEmpty(cumulus.WllSettings[StationId].WllApiSecret))
 			{
 				// One of the API details is missing
-				if (string.IsNullOrEmpty(cumulus.WllApiKey))
+				if (string.IsNullOrEmpty(cumulus.WllSettings[StationId].WllApiKey))
 				{
 					cumulus.LogWarningMessage("WLL - Missing WeatherLink.com API Key");
 					Cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start historic downloads or retrieve health data", ConsoleColor.Yellow);
@@ -111,9 +111,9 @@ namespace CumulusMX.Stations
 
 			// Perform Station ID checks - If we have API details!
 			// If the Station ID is missing, this will populate it if the user only has one Stations associated with the API key or the UUID is known
-			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
+			if (useWeatherLinkDotCom && cumulus.WllSettings[StationId].WllStationId < 10)
 			{
-				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")} in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
+				var msg = $"No WeatherLink API station ID {(cumulus.WllSettings[StationId].WllStationUuid == string.Empty ? "or UUID" : "")} in the cumulus.ini file" + (cumulus.WllSettings[StationId].WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
 				cumulus.LogMessage(msg);
 				Cumulus.LogConsoleMessage(msg);
 
@@ -125,7 +125,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Sanity check the Stations id
-			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
+			if (useWeatherLinkDotCom && cumulus.WllSettings[StationId].WllStationId < 10)
 			{
 				// API details supplied, but Station Id is still invalid - do not start the Stations up.
 				cumulus.LogErrorMessage("WLL - The WeatherLink.com API is enabled, but no Station Id has been configured, not starting the station. Please correct this and restart Cumulus");
@@ -142,14 +142,14 @@ namespace CumulusMX.Stations
 			// If it works - check IP address in config file and set/update if required
 			// If it fails - just use the IP address from config file
 
-			if (cumulus.WLLAutoUpdateIpAddress)
+			if (cumulus.WllSettings[StationId].WLLAutoUpdateIpAddress)
 			{
 				const string serviceType = "_weatherlinklive._tcp";
 				var serviceBrowser = new ServiceBrowser();
 				serviceBrowser.ServiceAdded += OnServiceAdded;
 				serviceBrowser.ServiceRemoved += OnServiceRemoved;
 				serviceBrowser.ServiceChanged += OnServiceChanged;
-				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
+				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllSettings[StationId].WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
 
 				serviceBrowser.StartBrowse(serviceType);
 
@@ -204,7 +204,7 @@ namespace CumulusMX.Stations
 				// Create a realtime thread to periodically restart broadcasts
 				GetWllRealtime(null, null);
 				tmrRealtime.Elapsed += GetWllRealtime;
-				tmrRealtime.Interval = cumulus.WllBroadcastDuration * 1000 / 3 * 2; // give the multi-casts a kick after 2/3 of the duration (default 200 secs)
+				tmrRealtime.Interval = cumulus.WllSettings[StationId].WllBroadcastDuration * 1000 / 3 * 2; // give the multi-casts a kick after 2/3 of the duration (default 200 secs)
 				tmrRealtime.AutoReset = true;
 				tmrRealtime.Start();
 
@@ -399,7 +399,7 @@ namespace CumulusMX.Stations
 							tmrRealtime.Start();
 						}
 
-						var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllBroadcastDuration;
+						var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllSettings[StationId].WllBroadcastDuration;
 
 						cumulus.LogDebugMessage($"GetWllRealtime: Sending GET real time request to WLL: {urlRealtime} ...");
 
@@ -418,14 +418,14 @@ namespace CumulusMX.Stations
 						port = respJson.data.broadcast_port;
 						duration = respJson.data.duration;
 						cumulus.LogDebugMessage($"GetWllRealtime: GET response Code: {err}, Port: {port}");
-						if (cumulus.WllBroadcastDuration != duration)
+						if (cumulus.WllSettings[StationId].WllBroadcastDuration != duration)
 						{
-							cumulus.LogMessage($"GetWllRealtime: WLL broadcast duration {duration} does not match requested duration {cumulus.WllBroadcastDuration}, continuing to use {cumulus.WllBroadcastDuration}");
+							cumulus.LogMessage($"GetWllRealtime: WLL broadcast duration {duration} does not match requested duration {cumulus.WllSettings[StationId].WllBroadcastDuration}, continuing to use {cumulus.WllSettings[StationId].WllBroadcastDuration}");
 						}
-						if (cumulus.WllBroadcastPort != port)
+						if (cumulus.WllSettings[StationId].WllBroadcastPort != port)
 						{
-							cumulus.LogMessage($"GetWllRealtime: WLL broadcast port {port} does not match default {cumulus.WllBroadcastPort}, resetting to {port}");
-							cumulus.WllBroadcastPort = port;
+							cumulus.LogMessage($"GetWllRealtime: WLL broadcast port {port} does not match default {cumulus.WllSettings[StationId].WllBroadcastPort}, resetting to {port}");
+							cumulus.WllSettings[StationId].WllBroadcastPort = port;
 						}
 					}
 					else
@@ -561,7 +561,7 @@ namespace CumulusMX.Stations
 						 * rec["wind_speed_hi_last_10_min"]
 						 * rec["wind_dir_at_hi_speed_last_10_min"]
 						 */
-						if (cumulus.WllPrimaryWind == rec.txid)
+						if (cumulus.WllSettings[StationId].WllPrimaryWind == rec.txid)
 						{
 							try
 							{
@@ -602,7 +602,7 @@ namespace CumulusMX.Stations
 						 * rec["rainfall_monthly"]
 						 * rec["rainfall_year"])
 						 */
-						if (cumulus.WllPrimaryRain == rec.txid)
+						if (cumulus.WllSettings[StationId].WllPrimaryRain == rec.txid)
 						{
 							try
 							{
@@ -622,7 +622,7 @@ namespace CumulusMX.Stations
 								cumulus.LogDebugMessage($"Broadcast: Exception: {ex.Message}");
 							}
 						}
-						else if (cumulus.WllPrimarySunshine == rec.txid)
+						else if (cumulus.WllSettings[StationId].WllPrimarySunshine == rec.txid)
 						{
 							try
 							{
@@ -721,7 +721,7 @@ namespace CumulusMX.Stations
 
 
 							// Temperature & Humidity
-							if (cumulus.WllPrimaryTempHum == data1.txid)
+							if (cumulus.WllSettings[StationId].WllPrimaryTempHum == data1.txid)
 							{
 								/* Available fields
 									* "temp": 62.7,                                  // most recent valid temperature **(°F)**
@@ -770,7 +770,7 @@ namespace CumulusMX.Stations
 							{   // Check for Extra temperature/humidity settings
 								for (var tempTxId = 1; tempTxId <= 16; tempTxId++)
 								{
-									if (cumulus.WllExtraTempTx[tempTxId] != data1.txid) continue;
+									if (cumulus.WllSettings[StationId].WllExtraTempTx[tempTxId] != data1.txid) continue;
 
 									try
 									{
@@ -799,7 +799,7 @@ namespace CumulusMX.Stations
 							}
 
 							// Wind
-							if (cumulus.WllPrimaryWind == data1.txid)
+							if (cumulus.WllSettings[StationId].WllPrimaryWind == data1.txid)
 							{
 								/*
 									* Available fields
@@ -900,7 +900,7 @@ namespace CumulusMX.Stations
 
 
 							// Rainfall
-							if (cumulus.WllPrimaryRain == data1.txid)
+							if (cumulus.WllSettings[StationId].WllPrimaryRain == data1.txid)
 							{
 								/*
 								* Available fields:
@@ -1014,7 +1014,7 @@ namespace CumulusMX.Stations
 								}
 							}
 
-							if (cumulus.WllPrimaryUV == data1.txid && cumulus.SensorMaps.UV == 0)
+							if (cumulus.WllSettings[StationId].WllPrimaryUV == data1.txid && cumulus.SensorMaps.UV == 0)
 							{
 								if (data1.uv_index.HasValue)
 								{
@@ -1035,7 +1035,7 @@ namespace CumulusMX.Stations
 								}
 							}
 
-							if (cumulus.WllPrimarySolar == data1.txid && cumulus.SensorMaps.Solar == 0)
+							if (cumulus.WllSettings[StationId].WllPrimarySolar == data1.txid && cumulus.SensorMaps.Solar == 0)
 							{
 								if (data1.solar_rad.HasValue)
 								{
@@ -1057,7 +1057,7 @@ namespace CumulusMX.Stations
 							}
 
 							// Sunshine - uses rain fields
-							if (cumulus.WllPrimarySunshine == data1.txid)
+							if (cumulus.WllSettings[StationId].WllPrimarySunshine == data1.txid)
 							{
 								/*
 								* Available fields:
@@ -1148,9 +1148,9 @@ namespace CumulusMX.Stations
 							{
 								try
 								{
-									if (cumulus.WllLeafWetTx[i] == data2.txid)
+									if (cumulus.WllSettings[StationId].WllLeafWetTx[i] == data2.txid)
 									{
-										idx = "wet_leaf_" + cumulus.WllLeafWetIdx[i];
+										idx = "wet_leaf_" + cumulus.WllSettings[StationId].WllLeafWetIdx[i];
 										var val = (double?) data2[idx];
 										if (val.HasValue)
 										{
@@ -1170,9 +1170,9 @@ namespace CumulusMX.Stations
 							{
 								try
 								{
-									if (cumulus.WllSoilMoistureTx[i] == data2.txid)
+									if (cumulus.WllSettings[StationId].WllSoilMoistureTx[i] == data2.txid)
 									{
-										idx = "moist_soil_" + cumulus.WllSoilMoistureIdx[i];
+										idx = "moist_soil_" + cumulus.WllSettings[StationId].WllSoilMoistureIdx[i];
 											var val = (double?) data2[idx];
 											if (val.HasValue)
 												DoSoilMoisture(val.Value, i);
@@ -1180,7 +1180,7 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"Current: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data2.txid}");
+									cumulus.LogErrorMessage($"Current: Error processing soil moisture #{cumulus.WllSettings[StationId].WllSoilMoistureIdx[i]} on TxId {data2.txid}");
 									cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 								}
 							}
@@ -1191,9 +1191,9 @@ namespace CumulusMX.Stations
 								try
 								{
 									// allocated to soil temp?
-									if (cumulus.WllSoilTempTx[i] == data2.txid)
+									if (cumulus.WllSettings[StationId].WllSoilTempTx[i] == data2.txid)
 									{
-										idx = "temp_" + cumulus.WllSoilTempIdx[i];
+										idx = "temp_" + cumulus.WllSettings[StationId].WllSoilTempIdx[i];
 										var val = (double?) data2[idx];
 										if (val.HasValue)
 										{
@@ -1202,9 +1202,9 @@ namespace CumulusMX.Stations
 									}
 
 									// allocated to extra temp?
-									else if (cumulus.WllExtraTempTx[i] == data2.txid)
+									else if (cumulus.WllSettings[StationId].WllExtraTempTx[i] == data2.txid)
 									{
-										idx = "temp_" + cumulus.WllExtraTempIdx[i];
+										idx = "temp_" + cumulus.WllSettings[StationId].WllExtraTempIdx[i];
 										var val = (double?) data2[idx];
 										if (val.HasValue)
 										{
@@ -1214,7 +1214,7 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"Current: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data2.txid}");
+									cumulus.LogErrorMessage($"Current: Error processing extra soil temp #{cumulus.WllSettings[StationId].WllSoilTempIdx[i]} on TxId {data2.txid}");
 									cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 								}
 							}
@@ -1364,7 +1364,7 @@ namespace CumulusMX.Stations
 				if (cumulus.DavisOptions.IPAddr != ipaddr)
 				{
 					cumulus.LogMessage($"ZeroConf Service: WLL IP address has changed from {cumulus.DavisOptions.IPAddr} to {ipaddr}");
-					if (cumulus.WLLAutoUpdateIpAddress)
+					if (cumulus.WllSettings[StationId].WLLAutoUpdateIpAddress)
 					{
 						cumulus.LogMessage($"ZeroConf Service: WLL changing Cumulus config to the new IP address {ipaddr}");
 						cumulus.DavisOptions.IPAddr = ipaddr;
@@ -1506,7 +1506,7 @@ namespace CumulusMX.Stations
 		{
 			cumulus.LogMessage("GetWlHistoricData: Get WL.com Historic Data");
 
-			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
+			if (cumulus.WllSettings[StationId].WllApiKey == string.Empty || cumulus.WllSettings[StationId].WllApiSecret == string.Empty)
 			{
 				cumulus.LogMessage("GetWlHistoricData: Missing WeatherLink API data in the configuration, aborting!");
 				lastHistoricData = DateTime.Now;
@@ -1514,7 +1514,7 @@ namespace CumulusMX.Stations
 				return;
 			}
 
-			if (cumulus.WllStationId < 10)
+			if (cumulus.WllSettings[StationId].WllStationId < 10)
 			{
 				const string msg = "No WeatherLink API station ID in the configuration";
 				cumulus.LogWarningMessage(msg);
@@ -1537,12 +1537,12 @@ namespace CumulusMX.Stations
 			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.LocalFromUnixTime():s}");
 			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.LocalFromUnixTime():s}");
 
-			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
-			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
+			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllSettings[StationId].WllStationId);
+			historicUrl.Append("?api-key=" + cumulus.WllSettings[StationId].WllApiKey);
 			historicUrl.Append("&start-timestamp=" + startTime.ToString());
 			historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
-			cumulus.LogDebugMessage($"WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
+			cumulus.LogDebugMessage($"WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllSettings[StationId].WllApiKey, "API_KEY")}");
 
 			LastDataReadTime = lastHistoricData;
 			int luhour = LastDataReadTime.Hour;
@@ -1567,7 +1567,7 @@ namespace CumulusMX.Stations
 				int responseCode;
 
 				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
-				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+				request.Headers.Add("X-Api-Secret", cumulus.WllSettings[StationId].WllApiSecret);
 
 				// we want to do this synchronously, so .Result
 				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
@@ -1904,7 +1904,7 @@ namespace CumulusMX.Stations
 						var recordTs = data11.ts;
 
 						// Temperature & Humidity
-						if (cumulus.WllPrimaryTempHum == data11.tx_id)
+						if (cumulus.WllSettings[StationId].WllPrimaryTempHum == data11.tx_id)
 						{
 							/*
 							 * Available fields
@@ -2117,7 +2117,7 @@ namespace CumulusMX.Stations
 						{   // Check for Extra temperature/humidity settings
 							for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
 							{
-								if (cumulus.WllExtraTempTx[tempTxId] != data11.tx_id) continue;
+								if (cumulus.WllSettings[StationId].WllExtraTempTx[tempTxId] != data11.tx_id) continue;
 
 								try
 								{
@@ -2153,7 +2153,7 @@ namespace CumulusMX.Stations
 						}
 
 						// Wind
-						if (cumulus.WllPrimaryWind == data11.tx_id)
+						if (cumulus.WllSettings[StationId].WllPrimaryWind == data11.tx_id)
 						{
 							/*
 							 * Available fields
@@ -2205,7 +2205,7 @@ namespace CumulusMX.Stations
 						}
 
 						// Rainfall
-						if (cumulus.WllPrimaryRain == data11.tx_id)
+						if (cumulus.WllSettings[StationId].WllPrimaryRain == data11.tx_id)
 						{
 							/*
 							 * Available fields:
@@ -2257,7 +2257,7 @@ namespace CumulusMX.Stations
 						}
 
 						// UV
-						if (cumulus.WllPrimaryUV == data11.tx_id && cumulus.SensorMaps.UV == 0)
+						if (cumulus.WllSettings[StationId].WllPrimaryUV == data11.tx_id && cumulus.SensorMaps.UV == 0)
 						{
 							/*
 							 * Available fields
@@ -2289,7 +2289,7 @@ namespace CumulusMX.Stations
 						}
 
 						// Solar
-						if (cumulus.WllPrimarySolar == data11.tx_id && cumulus.SensorMaps.Solar == 0)
+						if (cumulus.WllSettings[StationId].WllPrimarySolar == data11.tx_id && cumulus.SensorMaps.Solar == 0)
 						{
 							/*
 							 * Available fields
@@ -2309,7 +2309,7 @@ namespace CumulusMX.Stations
 									DoSolarRad((int) data11.solar_rad_avg, recordTs);
 
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
-									if (cumulus.WllPrimarySunshine == 0 && MetData.IsSunny)
+									if (cumulus.WllSettings[StationId].WllPrimarySunshine == 0 && MetData.IsSunny)
 									{
 										MetData.SunshineHours += data11.arch_int / 3600.0;
 									}
@@ -2338,7 +2338,7 @@ namespace CumulusMX.Stations
 						}
 
 						// Sunshine
-						if (cumulus.WllPrimarySunshine == data11.tx_id)
+						if (cumulus.WllSettings[StationId].WllPrimarySunshine == data11.tx_id)
 						{
 							/*
 							 * Available fields:
@@ -2415,9 +2415,9 @@ namespace CumulusMX.Stations
 								{
 									try
 									{
-										if (cumulus.WllLeafWetTx[i] == data13.tx_id)
+										if (cumulus.WllSettings[StationId].WllLeafWetTx[i] == data13.tx_id)
 										{
-											idx = "wet_leaf_last_" + cumulus.WllLeafWetIdx[i];
+											idx = "wet_leaf_last_" + cumulus.WllSettings[StationId].WllLeafWetIdx[i];
 											if (data13[idx] != null)
 											{
 												DoLeafWetness((double) data13[idx], i);
@@ -2463,12 +2463,12 @@ namespace CumulusMX.Stations
 								{
 									try
 									{
-										if (cumulus.WllSoilMoistureTx[i] == data13.tx_id)
+										if (cumulus.WllSettings[StationId].WllSoilMoistureTx[i] == data13.tx_id)
 										{
-											idx = "moist_soil_last_" + cumulus.WllSoilMoistureIdx[i];
+											idx = "moist_soil_last_" + cumulus.WllSettings[StationId].WllSoilMoistureIdx[i];
 											if (data13[idx] == null)
 											{
-												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data13.tx_id}");
+												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllSettings[StationId].WllSoilMoistureIdx[i]} on TxId {data13.tx_id}");
 											}
 											else
 											{
@@ -2515,12 +2515,12 @@ namespace CumulusMX.Stations
 									try
 									{
 										// allocated to soil temp?
-										if (cumulus.WllSoilTempTx[i] == data13.tx_id)
+										if (cumulus.WllSettings[StationId].WllSoilTempTx[i] == data13.tx_id)
 										{
-											idx = "temp_last_" + cumulus.WllSoilTempIdx[i];
+											idx = "temp_last_" + cumulus.WllSettings[StationId].WllSoilTempIdx[i];
 											if (data13[idx] == null)
 											{
-												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data13.tx_id}");
+												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllSettings[StationId].WllSoilTempIdx[i]} on TxId {data13.tx_id}");
 											}
 											else
 											{
@@ -2529,12 +2529,12 @@ namespace CumulusMX.Stations
 										}
 
 										// allocated to extra temp?
-										else if (cumulus.WllExtraTempTx[i] == data13.tx_id)
+										else if (cumulus.WllSettings[StationId].WllExtraTempTx[i] == data13.tx_id)
 										{
-											idx = "temp_last_" + cumulus.WllExtraTempIdx[i];
+											idx = "temp_last_" + cumulus.WllSettings[StationId].WllExtraTempIdx[i];
 											if (data13[idx] == null)
 											{
-												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data13.tx_id}");
+												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllSettings[StationId].WllSoilTempIdx[i]} on TxId {data13.tx_id}");
 											}
 											else
 											{
@@ -2899,13 +2899,13 @@ namespace CumulusMX.Stations
 		{
 			cumulus.LogMessage("WLL Health: Get WL.com Historic Data");
 
-			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
+			if (cumulus.WllSettings[StationId].WllApiKey == string.Empty || cumulus.WllSettings[StationId].WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("WLL Health: Missing WeatherLink API data in the cumulus.ini file, aborting!");
 				return;
 			}
 
-			if (cumulus.WllStationId < 10)
+			if (cumulus.WllSettings[StationId].WllStationId < 10)
 			{
 				const string msg = "No WeatherLink API station ID in the cumulus.ini file";
 				Cumulus.LogConsoleMessage("GetWlHistoricHealth: " + msg);
@@ -2925,12 +2925,12 @@ namespace CumulusMX.Stations
 
 			cumulus.LogDebugMessage($"WLL Health: Downloading the historic record from WL.com from: {startTime.LocalFromUnixTime():s} to: {endTime.LocalFromUnixTime():s}");
 
-			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
-			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
+			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllSettings[StationId].WllStationId);
+			historicUrl.Append("?api-key=" + cumulus.WllSettings[StationId].WllApiKey);
 			historicUrl.Append("&start-timestamp=" + startTime.ToString());
 			historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
-			cumulus.LogDebugMessage($"WLL Health: WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
+			cumulus.LogDebugMessage($"WLL Health: WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllSettings[StationId].WllApiKey, "API_KEY")}");
 
 			try
 			{
@@ -2939,7 +2939,7 @@ namespace CumulusMX.Stations
 				int responseCode;
 
 				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
-				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+				request.Headers.Add("X-Api-Secret", cumulus.WllSettings[StationId].WllApiSecret);
 
 				// we want to do this synchronously, so .Result
 				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
@@ -3097,15 +3097,15 @@ namespace CumulusMX.Stations
 		// Return true if only 1 result is found, else return false
 		private void GetAvailableStationIds(bool logToConsole = false)
 		{
-			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
+			if (cumulus.WllSettings[StationId].WllApiKey == string.Empty || cumulus.WllSettings[StationId].WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("WLLStations: Missing WeatherLink API data in the cumulus.ini file, aborting!");
 				return;
 			}
 
-			var stationsUrl = "https://api.weatherlink.com/v2/stations?api-key=" + cumulus.WllApiKey;
+			var stationsUrl = "https://api.weatherlink.com/v2/stations?api-key=" + cumulus.WllSettings[StationId].WllApiKey;
 
-			cumulus.LogDebugMessage($"WLLStations: URL = {stationsUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
+			cumulus.LogDebugMessage($"WLLStations: URL = {stationsUrl.ToString().Replace(cumulus.WllSettings[StationId].WllApiKey, "API_KEY")}");
 
 			try
 			{
@@ -3113,7 +3113,7 @@ namespace CumulusMX.Stations
 				int responseCode;
 
 				var request = new HttpRequestMessage(HttpMethod.Get, stationsUrl.ToString());
-				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+				request.Headers.Add("X-Api-Secret", cumulus.WllSettings[StationId].WllApiSecret);
 
 				// We want to do this synchronously
 				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
@@ -3150,23 +3150,23 @@ namespace CumulusMX.Stations
 					{
 						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}, subscription = {station.subscription_type}");
 					}
-					if (station.station_id == cumulus.WllStationId || cumulus.WllStationUuid == station.station_id_uuid)
+					if (station.station_id == cumulus.WllSettings[StationId].WllStationId || cumulus.WllSettings[StationId].WllStationUuid == station.station_id_uuid)
 					{
 						cumulus.LogDebugMessage($"WLLStations: Setting WLL parent ID = {station.gateway_id}");
-						cumulus.WllParentId = station.gateway_id;
+						cumulus.WllSettings[StationId].WllParentId = station.gateway_id;
 
 						if (station.recording_interval != Cumulus.logints[cumulus.DataLogInterval])
 						{
 							cumulus.LogMessage($"WLLStations: - Cumulus log interval {Cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 						}
 
-						if (cumulus.WllStationId < 10)
+						if (cumulus.WllSettings[StationId].WllStationId < 10)
 						{
-							cumulus.WllStationId = station.station_id;
+							cumulus.WllSettings[StationId].WllStationId = station.station_id;
 						}
-						else if (cumulus.WllStationUuid == string.Empty)
+						else if (cumulus.WllSettings[StationId].WllStationUuid == string.Empty)
 						{
-							cumulus.WllStationUuid = station.station_id_uuid;
+							cumulus.WllSettings[StationId].WllStationUuid = station.station_id_uuid;
 						}
 
 						subscriptionLevel = station.subscription_type.ToLower();
@@ -3174,25 +3174,25 @@ namespace CumulusMX.Stations
 						cumulus.WriteIniFile();
 					}
 				}
-				if (stationsObj.stations.Count > 1 && cumulus.WllStationId < 10 && cumulus.WllStationUuid == string.Empty)
+				if (stationsObj.stations.Count > 1 && cumulus.WllSettings[StationId].WllStationId < 10 && cumulus.WllSettings[StationId].WllStationUuid == string.Empty)
 				{
 					if (logToConsole)
 						Cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
 				}
-				else if (stationsObj.stations.Count == 1 && cumulus.WllStationId != stationsObj.stations[0].station_id)
+				else if (stationsObj.stations.Count == 1 && cumulus.WllSettings[StationId].WllStationId != stationsObj.stations[0].station_id)
 				{
-					var usedId = cumulus.WllStationId < 10 ? cumulus.WllStationId.ToString() : cumulus.WllStationUuid;
+					var usedId = cumulus.WllSettings[StationId].WllStationId < 10 ? cumulus.WllSettings[StationId].WllStationId.ToString() : cumulus.WllSettings[StationId].WllStationUuid;
 
 					cumulus.LogMessage($"WLLStations: Only found 1 WeatherLink station, using id = {usedId}");
-					cumulus.WllStationId = stationsObj.stations[0].station_id;
-					cumulus.WllStationUuid = stationsObj.stations[0].station_id_uuid;
+					cumulus.WllSettings[StationId].WllStationId = stationsObj.stations[0].station_id;
+					cumulus.WllSettings[StationId].WllStationUuid = stationsObj.stations[0].station_id_uuid;
 					subscriptionLevel = stationsObj.stations[0].subscription_type.ToLower();
 
 					// And save it to the config file
 					cumulus.WriteIniFile();
 
 					cumulus.LogDebugMessage($"WLLStations: Setting WLL parent ID = {stationsObj.stations[0].gateway_id}");
-					cumulus.WllParentId = stationsObj.stations[0].gateway_id;
+					cumulus.WllSettings[StationId].WllParentId = stationsObj.stations[0].gateway_id;
 					return;
 				}
 			}
@@ -3204,21 +3204,21 @@ namespace CumulusMX.Stations
 
 		private void GetAvailableSensors()
 		{
-			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
+			if (cumulus.WllSettings[StationId].WllApiKey == string.Empty || cumulus.WllSettings[StationId].WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("GetAvailableSensors: WeatherLink API data is missing in the configuration, aborting!");
 				return;
 			}
 
-			if (cumulus.WllStationId < 10)
+			if (cumulus.WllSettings[StationId].WllStationId < 10)
 			{
 				cumulus.LogWarningMessage("GetAvailableSensors: No WeatherLink API station ID has been configured, aborting!");
 				return;
 			}
 
-			var stationsUrl = "https://api.weatherlink.com/v2/sensors?api-key=" + cumulus.WllApiKey;
+			var stationsUrl = "https://api.weatherlink.com/v2/sensors?api-key=" + cumulus.WllSettings[StationId].WllApiKey;
 
-			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {stationsUrl.Replace(cumulus.WllApiKey, "API_KEY")}");
+			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {stationsUrl.Replace(cumulus.WllSettings[StationId].WllApiKey, "API_KEY")}");
 
 			WlSensorList sensorsObj;
 
@@ -3227,7 +3227,7 @@ namespace CumulusMX.Stations
 				string responseBody;
 				int responseCode;
 				var request = new HttpRequestMessage(HttpMethod.Get, stationsUrl);
-				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+				request.Headers.Add("X-Api-Secret", cumulus.WllSettings[StationId].WllApiSecret);
 
 				// We want to do this synchronously
 				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
@@ -3306,7 +3306,7 @@ namespace CumulusMX.Stations
 			else
 			{
 				cumulus.LogWarningMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
-				if (cumulus.WllTriggerDataStoppedOnBroadcast && !DataStopped)
+				if (cumulus.WllSettings[StationId].WllTriggerDataStoppedOnBroadcast && !DataStopped)
 				{
 					DataStoppedTime = DateTime.UtcNow;
 				}
@@ -3551,5 +3551,38 @@ namespace CumulusMX.Stations
 
 		[System.Text.RegularExpressions.GeneratedRegex("user_email\":\"[^\"]*\"")]
 		private static partial System.Text.RegularExpressions.Regex regexUserEmail();
+	}
+
+	internal class WLLSettings
+	{
+		public string WllApiKey { get; set; }
+		public string WllApiSecret { get; set; }
+		public int WllStationId { get; set; }
+		public string WllStationUuid { get; set; }
+		public int WllParentId { get; set; }
+		public bool WllTriggerDataStoppedOnBroadcast { get; set; } // trigger a data stopped state if broadcasts stop being received but current data is OK
+		/// <value>Read-only setting, default 20 minutes (1200 sec)</value>
+		public int WllBroadcastDuration { get; set; } = 1200;
+		/// <value>Read-only setting, default 22222</value>
+		public int WllBroadcastPort { get; set; } = 22222;
+		public bool WLLAutoUpdateIpAddress { get; set; } = true;
+		public int WllPrimaryWind { get; set; } = 1;
+		public int WllPrimaryTempHum { get; set; } = 1;
+		public int WllPrimaryRain { get; set; } = 1;
+		public int WllPrimarySolar { get; set; }
+		public int WllPrimaryUV { get; set; }
+		public int WllPrimarySunshine { get; set; }
+
+		public int[] WllSoilTempTx { get; set; } = new int[17];
+		public int[] WllSoilTempIdx { get; set; } = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+
+		public int[] WllSoilMoistureTx { get; set; } = new int[17];
+		public int[] WllSoilMoistureIdx { get; set; } = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+
+		public int[] WllLeafWetTx { get; set; } = new int[9];
+		public int[] WllLeafWetIdx { get; set; } = [0, 1, 2, 1, 2, 1, 2, 1, 2];
+
+		public int[] WllExtraTempTx { get; set; } = new int[17];
+		public int[] WllExtraTempIdx { get; set; } = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 	}
 }

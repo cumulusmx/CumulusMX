@@ -972,7 +972,7 @@ namespace CumulusMX
 			if (ProgramOptions.StartupDelaySecs > 0)
 			{
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
-				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > ts))
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > uptime.TotalSeconds))
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
 					var msg2 = $"Start-up delay complete, continuing...";
@@ -1735,7 +1735,7 @@ namespace CumulusMX
 					break;
 
 				default:
-					var prefix = (id == 1 ? "Primary" : "Secondary");
+					var prefix = (id == 0 ? "Primary" : "Secondary");
 					LogConsoleMessage(prefix + " Station type not set", ConsoleColor.Red);
 					LogMessage(prefix + " Station type not set = " + type);
 					break;
@@ -4187,36 +4187,37 @@ namespace CumulusMX
 		public int GraphHours { get; set; }
 
 		// WeatherLink Live transmitter Ids and indexes
-		internal string WllApiKey;
-		internal string WllApiSecret;
-		internal int WllStationId;
-		internal string WllStationUuid;
-		internal int WllParentId;
-		internal bool WllTriggerDataStoppedOnBroadcast; // trigger a data stopped state if broadcasts stop being received but current data is OK
+		internal WLLSettings[] WllSettings { get; set; } = { new WLLSettings(), new WLLSettings() };
+		//internal string WllApiKey;
+		//internal string WllApiSecret;
+		//internal int WllStationId;
+		//internal string WllStationUuid;
+		//internal int WllParentId;
+		//internal bool WllTriggerDataStoppedOnBroadcast; // trigger a data stopped state if broadcasts stop being received but current data is OK
 		/// <value>Read-only setting, default 20 minutes (1200 sec)</value>
-		internal int WllBroadcastDuration = 1200;
+		//internal int WllBroadcastDuration = 1200;
 		/// <value>Read-only setting, default 22222</value>
-		internal int WllBroadcastPort = 22222;
-		internal bool WLLAutoUpdateIpAddress = true;
-		internal int WllPrimaryWind = 1;
-		internal int WllPrimaryTempHum = 1;
-		internal int WllPrimaryRain = 1;
-		internal int WllPrimarySolar;
-		internal int WllPrimaryUV;
-		internal int WllPrimarySunshine;
+		//internal int WllBroadcastPort = 22222;
+		//internal bool WLLAutoUpdateIpAddress = true;
+		//internal int WllPrimaryWind = 1;
+		//internal int WllPrimaryTempHum = 1;
+		//internal int WllPrimaryRain = 1;
+		//internal int WllPrimarySolar;
+		//internal int WllPrimaryUV;
+		//internal int WllPrimarySunshine;
 
-		internal int[] WllSoilTempTx = new int[17];
-		internal int[] WllSoilTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+		//internal int[] WllSoilTempTx = new int[17];
+		//internal int[] WllSoilTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 
-		internal int[] WllSoilMoistureTx = new int[17];
-		internal int[] WllSoilMoistureIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+		//internal int[] WllSoilMoistureTx = new int[17];
+		//internal int[] WllSoilMoistureIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 
-		internal int[] WllLeafWetTx = new int[9];
-		internal int[] WllLeafWetIdx = [0, 1, 2, 1, 2, 1, 2, 1, 2];
+		//internal int[] WllLeafWetTx = new int[9];
+		//internal int[] WllLeafWetIdx = [0, 1, 2, 1, 2, 1, 2, 1, 2];
 
 
-		internal int[] WllExtraTempTx = new int[17];
-		internal int[] WllExtraTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+		//internal int[] WllExtraTempTx = new int[17];
+		//internal int[] WllExtraTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 
 		// WeatherLink Live transmitter Ids and indexes
 		internal bool AirLinkIsNode;

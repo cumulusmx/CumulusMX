@@ -210,7 +210,7 @@ namespace CumulusMX.Settings
 			return JsonSerializer.Serialize(data);
 		}
 
-		internal string GetHardwareAlpacaFormData(int stationId)
+		internal string GetHardwareAlpacaFormData(int id)
 		{
 			// TODO: Split in stations 1 & 2
 			// Build the settings data, convert to JSON, and return it
@@ -360,7 +360,7 @@ namespace CumulusMX.Settings
 
 			var wllNetwork = new JsonWllNetwork()
 			{
-				autoDiscover = cumulus.WLLAutoUpdateIpAddress,
+				autoDiscover = cumulus.WllSettings[id].WLLAutoUpdateIpAddress,
 				ipaddress = cumulus.DavisOptions.IPAddr
 			};
 
@@ -368,25 +368,25 @@ namespace CumulusMX.Settings
 			{
 				raingaugetype = cumulus.DavisOptions.RainGaugeType,
 				tcpport = cumulus.DavisOptions.TCPPort,
-				datastopped = cumulus.WllTriggerDataStoppedOnBroadcast,
-				sunshine = cumulus.WllPrimarySunshine
+				datastopped = cumulus.WllSettings[id].WllTriggerDataStoppedOnBroadcast,
+				sunshine = cumulus.WllSettings[id].WllPrimarySunshine
 			};
 
 			var wllApi = new JsonWllApi()
 			{
-				apiKey = cumulus.WllApiKey,
-				apiSecret = cumulus.WllApiSecret,
-				apiStationId = cumulus.WllStationId,
-				apiStationUuid = cumulus.WllStationUuid
+				apiKey = cumulus.WllSettings[id].WllApiKey,
+				apiSecret = cumulus.WllSettings[id].WllApiSecret,
+				apiStationId = cumulus.WllSettings[id].WllStationId,
+				apiStationUuid = cumulus.WllSettings[id].WllStationUuid
 			};
 
 			var wllPrimary = new JsonWllPrimary()
 			{
-				wind = cumulus.WllPrimaryWind,
-				temphum = cumulus.WllPrimaryTempHum,
-				rain = cumulus.WllPrimaryRain,
-				solar = cumulus.WllPrimarySolar,
-				uv = cumulus.WllPrimaryUV
+				wind = cumulus.WllSettings[id].WllPrimaryWind,
+				temphum = cumulus.WllSettings[id].WllPrimaryTempHum,
+				rain = cumulus.WllSettings[id].WllPrimaryRain,
+				solar = cumulus.WllSettings[id].WllPrimarySolar,
+				uv = cumulus.WllSettings[id].WllPrimaryUV
 			};
 
 			var wllExtraSoilTemp = new JsonWllSensor[16];
@@ -396,8 +396,8 @@ namespace CumulusMX.Settings
 				wllExtraSoilTemp[i - 1] = new JsonWllSensor()
 				{
 					name = "Sensor " + i,
-					tx = cumulus.WllSoilTempTx[i],
-					idx = cumulus.WllSoilTempIdx[i]
+					tx = cumulus.WllSettings[id].WllSoilTempTx[i],
+					idx = cumulus.WllSettings[id].WllSoilTempIdx[i]
 				};
 			}
 
@@ -408,8 +408,8 @@ namespace CumulusMX.Settings
 				wllExtraSoilMoist[i - 1] = new JsonWllSensor()
 				{
 					name = "Sensor " + i,
-					tx = cumulus.WllSoilMoistureTx[i],
-					idx = cumulus.WllSoilMoistureIdx[i]
+					tx = cumulus.WllSettings[id].WllSoilMoistureTx[i],
+					idx = cumulus.WllSettings[id].WllSoilMoistureIdx[i]
 				};
 			}
 
@@ -420,8 +420,8 @@ namespace CumulusMX.Settings
 				wllExtraLeaf[i - 1] = new JsonWllSensor()
 				{
 					name = "Sensor " + i,
-					tx = cumulus.WllLeafWetTx[i],
-					idx = cumulus.WllLeafWetIdx[i]
+					tx = cumulus.WllSettings[id].WllLeafWetTx[i],
+					idx = cumulus.WllSettings[id].WllLeafWetIdx[i]
 				};
 			}
 
@@ -439,8 +439,8 @@ namespace CumulusMX.Settings
 				wllExtraTemp[i - 1] = new JsonWllSensor()
 				{
 					name = "Sensor " + i,
-					tx = cumulus.WllExtraTempTx[i],
-					idx = cumulus.WllExtraTempIdx[i]
+					tx = cumulus.WllSettings[id].WllExtraTempTx[i],
+					idx = cumulus.WllSettings[id].WllExtraTempIdx[i]
 				};
 			}
 
@@ -1008,7 +1008,7 @@ namespace CumulusMX.Settings
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		internal string UpdateHardwareConfig(IHttpContext context, int stationId)
+		internal string UpdateHardwareConfig(IHttpContext context, int id)
 		{
 			// TODO: Split in stations 1 & 2
 			var errorMsg = string.Empty;
@@ -1089,49 +1089,49 @@ namespace CumulusMX.Settings
 						if (settings.general.stationtype == 11) // WLL only
 						{
 							cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
-							cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
+							cumulus.WllSettings[id].WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
 							cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
 
 							cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
-							cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
-							cumulus.WllPrimarySunshine = settings.daviswll.advanced.sunshine;
+							cumulus.WllSettings[id].WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
+							cumulus.WllSettings[id].WllPrimarySunshine = settings.daviswll.advanced.sunshine;
 						}
 
-						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
-						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
-						cumulus.WllStationId = settings.daviswll.api.apiStationId;
-						cumulus.WllStationUuid = settings.daviswll.api.apiStationUuid;
+						cumulus.WllSettings[id].WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
+						cumulus.WllSettings[id].WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
+						cumulus.WllSettings[id].WllStationId = settings.daviswll.api.apiStationId;
+						cumulus.WllSettings[id].WllStationUuid = settings.daviswll.api.apiStationUuid;
 
 						if (settings.general.stationtype == 11 || settings.general.stationtype == 19) // WLL & Cloud WLL/WLC only
 						{
-							cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
-							cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
-							cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
-							cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
-							cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
+							cumulus.WllSettings[id].WllPrimaryRain = settings.daviswll.primary.rain;
+							cumulus.WllSettings[id].WllPrimarySolar = settings.daviswll.primary.solar;
+							cumulus.WllSettings[id].WllPrimaryTempHum = settings.daviswll.primary.temphum;
+							cumulus.WllSettings[id].WllPrimaryUV = settings.daviswll.primary.uv;
+							cumulus.WllSettings[id].WllPrimaryWind = settings.daviswll.primary.wind;
 
 							for (var i = 0; i < settings.daviswll.soilLeaf.extraLeaf.Length; i++)
 							{
-								cumulus.WllLeafWetTx[i + 1] = settings.daviswll.soilLeaf.extraLeaf[i].tx;
-								cumulus.WllLeafWetIdx[i + 1] = settings.daviswll.soilLeaf.extraLeaf[i].idx;
+								cumulus.WllSettings[id].WllLeafWetTx[i + 1] = settings.daviswll.soilLeaf.extraLeaf[i].tx;
+								cumulus.WllSettings[id].WllLeafWetIdx[i + 1] = settings.daviswll.soilLeaf.extraLeaf[i].idx;
 							}
 
 							for (var i = 0; i < settings.daviswll.soilLeaf.extraSoilMoist.Length; i++)
 							{
-								cumulus.WllSoilMoistureTx[i + 1] = settings.daviswll.soilLeaf.extraSoilMoist[i].tx;
-								cumulus.WllSoilMoistureIdx[i + 1] = settings.daviswll.soilLeaf.extraSoilMoist[i].idx;
+								cumulus.WllSettings[id].WllSoilMoistureTx[i + 1] = settings.daviswll.soilLeaf.extraSoilMoist[i].tx;
+								cumulus.WllSettings[id].WllSoilMoistureIdx[i + 1] = settings.daviswll.soilLeaf.extraSoilMoist[i].idx;
 							}
 
 							for (var i = 0; i < settings.daviswll.soilLeaf.extraSoilTemp.Length; i++)
 							{
-								cumulus.WllSoilTempTx[i + 1] = settings.daviswll.soilLeaf.extraSoilTemp[i].tx;
-								cumulus.WllSoilTempIdx[i + 1] = settings.daviswll.soilLeaf.extraSoilTemp[i].idx;
+								cumulus.WllSettings[id].WllSoilTempTx[i + 1] = settings.daviswll.soilLeaf.extraSoilTemp[i].tx;
+								cumulus.WllSettings[id].WllSoilTempIdx[i + 1] = settings.daviswll.soilLeaf.extraSoilTemp[i].idx;
 							}
 
 							for (var i = 0; i < settings.daviswll.extraTemp.Length; i++)
 							{
-								cumulus.WllExtraTempTx[i + 1] = settings.daviswll.extraTemp[i].tx;
-								cumulus.WllExtraTempIdx[i + 1] = settings.daviswll.extraTemp[i].idx;
+								cumulus.WllSettings[id].WllExtraTempTx[i + 1] = settings.daviswll.extraTemp[i].tx;
+								cumulus.WllSettings[id].WllExtraTempIdx[i + 1] = settings.daviswll.extraTemp[i].idx;
 							}
 						}
 

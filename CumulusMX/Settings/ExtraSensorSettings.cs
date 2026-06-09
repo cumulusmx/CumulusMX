@@ -275,7 +275,7 @@ namespace CumulusMX.Settings
 						cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
 						if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkIsNode)
 						{
-							cumulus.AirLinkInStationId = cumulus.WllStationId;
+							cumulus.AirLinkInStationId = cumulus.WllSettings[0].WllStationId;
 						}
 					}
 					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
@@ -286,7 +286,7 @@ namespace CumulusMX.Settings
 						cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
 						if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkIsNode)
 						{
-							cumulus.AirLinkOutStationId = cumulus.WllStationId;
+							cumulus.AirLinkOutStationId = cumulus.WllSettings[0].WllStationId;
 						}
 					}
 				}
