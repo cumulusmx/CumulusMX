@@ -29,6 +29,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Error decoding Windy error responses
 - Fix inconsistent error responses from wl.com causing an exception
 - Fix reversion error in FTP Watchdog where the test file was being created in the root FTP folder
+- The station forecast string being blanked periodically
+- Fix system uptime comparison against the Cumulus Max system uptime for start-up delay
 
 ---
 

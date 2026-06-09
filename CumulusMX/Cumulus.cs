@@ -971,7 +971,7 @@ namespace CumulusMX
 			if (ProgramOptions.StartupDelaySecs > 0)
 			{
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
-				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > ts))
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > uptime.TotalSeconds))
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
 					var msg2 = $"Start-up delay complete, continuing...";
