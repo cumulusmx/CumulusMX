@@ -6503,7 +6503,7 @@ namespace CumulusMX
 				else
 				{
 					ini.SetValue("WLL", "ExtraLeafTxId" + i, WllLeafWetTx[i]);
-					ini.SetValue("WLL", "ExtraLeafIdx" + i, WllSoilMoistureIdx[i]);
+					ini.SetValue("WLL", "ExtraLeafIdx" + i, WllLeafWetIdx[i]);
 				}
 			}
 			for (int i = 1; i <= 8; i++)

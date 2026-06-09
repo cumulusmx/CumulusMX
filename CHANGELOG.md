@@ -31,6 +31,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix reversion error in FTP Watchdog where the test file was being created in the root FTP folder
 - The station forecast string being blanked periodically
 - Fix system uptime comparison against the Cumulus Max system uptime for start-up delay
+- Fix storing Davis WLL soil moisture tx ids in place of leaf wetness ids in Cumulus.ini
 
 ---
 
