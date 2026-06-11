@@ -17,6 +17,7 @@ namespace CumulusMX.Stations
 		private string deviceModel;
 		private Version deviceFirmware;
 		private int lastHour = -1;
+		private const string soilMoistUnit = "%";
 
 		public EcowittCloudStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -107,10 +108,6 @@ namespace CumulusMX.Stations
 			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
-			}
-			if (mainStation)
-			{
-				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
 			if (mainStation || cumulus.ExtraSensorUseLeafWet)
 			{
@@ -804,7 +801,7 @@ namespace CumulusMX.Stations
 				if (data["soil_ch" + i] != null)
 				{
 					var sensor = (EcowittApi.CurrentSoil) data["soil_ch" + i];
-					station.DoSoilMoisture(sensor.soilmoisture.value, i);
+					station.DoSoilMoisture(sensor.soilmoisture.value, i, soilMoistUnit);
 				}
 			}
 		}
@@ -817,11 +814,7 @@ namespace CumulusMX.Stations
 				{
 					var sensor = (EcowittApi.CurrentSoilEc) data["ch_soil_ec_temp_hum" + i];
 
-					station.DoSoilMoisture(sensor.soilmoisture.value, i);
-					if (!mainStation)
-					{
-						cumulus.Units.SoilMoistureUnitText[0] = "%";
-					}
+					station.DoSoilMoisture(sensor.soilmoisture.value, i, soilMoistUnit);
 					station.DoSoilTemp(sensor.temperature.value, i);
 					station.DoSoilEc(sensor.ec.value, i);
 				}

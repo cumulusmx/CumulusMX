@@ -11,6 +11,7 @@ namespace CumulusMX.Stations
 		private bool stopping = false;
 		private double previousRainCount = -1;
 		private double rainCount = 0;
+		private const string soilMoistUnit = "%";
 
 		public HttpStationWund(Cumulus cumulus) : base(cumulus)
 		{
@@ -18,7 +19,6 @@ namespace CumulusMX.Stations
 
 			cumulus.StationOptions.CalculatedWC = true;
 			cumulus.Units.AirQualityUnitText = "µg/m³";
-			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// Wunderground does not send the rain rate, so we will calculate it
@@ -422,7 +422,7 @@ namespace CumulusMX.Stations
 					var str1 = data["soilmoisture"];
 					if (str1 != null && str1 != "-9999")
 					{
-						DoSoilMoisture(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
+						DoSoilMoisture(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1, soilMoistUnit);
 					}
 
 					for (var i = 2; i <= 4; i++)
@@ -430,7 +430,7 @@ namespace CumulusMX.Stations
 						var str = data["soilmoisture" + i];
 						if (str != null && str != "-9999")
 						{
-							DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), i);
+							DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), i, soilMoistUnit);
 						}
 					}
 				}

@@ -28,6 +28,7 @@ namespace CumulusMX.Stations
 		internal static readonly string[] commaSpace = [", "];
 		private string deviceModel;
 		private Version deviceFirmware;
+		private const string soilMoistUnit = "%";
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -142,10 +143,6 @@ namespace CumulusMX.Stations
 			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
-			}
-			if (mainStation)
-			{
-				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
 			if (mainStation || cumulus.ExtraSensorUseLeafWet)
 			{
@@ -1387,11 +1384,7 @@ namespace CumulusMX.Stations
 			{
 				if (data["soilmoisture" + i] != null)
 				{
-					station.DoSoilMoisture(Convert.ToDouble(data["soilmoisture" + i], invNum), i);
-					if (!mainStation)
-					{
-						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
-					}
+					station.DoSoilMoisture(Convert.ToDouble(data["soilmoisture" + i], invNum), i, soilMoistUnit);
 				}
 			}
 		}
@@ -1402,11 +1395,7 @@ namespace CumulusMX.Stations
 			{
 				if (data["soil_ec_hum" + i] != null)
 				{
-					station.DoSoilMoisture(Convert.ToDouble(data["soil_ec_hum" + i], invNum), i);
-					if (!mainStation)
-					{
-						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
-					}
+					station.DoSoilMoisture(Convert.ToDouble(data["soil_ec_hum" + i], invNum), i, soilMoistUnit);
 				}
 			}
 		}

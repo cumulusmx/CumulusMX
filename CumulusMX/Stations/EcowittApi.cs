@@ -39,6 +39,7 @@ namespace CumulusMX.Stations
 		private static readonly Dictionary<string, string> DefaultCameraUrl = [];
 		private static readonly Dictionary<string, string> DefaultVideoUrl = [];
 
+		private const string soilMoistUnit = "%";
 
 		private int delayTime = 10;
 
@@ -2332,7 +2333,7 @@ namespace CumulusMX.Stations
 				{
 					if (rec.Value.SoilMoist[i].HasValue)
 					{
-						station.DoSoilMoisture((double) rec.Value.SoilMoist[i], i);
+						station.DoSoilMoisture((double) rec.Value.SoilMoist[i], i, soilMoistUnit);
 					}
 				}
 				catch (Exception ex)

@@ -31,6 +31,7 @@ namespace CumulusMX.Stations
 		private int maxArchiveRuns = 2;
 		private bool stop;
 		private int loggerInterval;
+		private const string soilMoistUnit = "cb";
 
 		private readonly int[,] ForecastLookup =
 		{
@@ -2809,22 +2810,22 @@ namespace CumulusMX.Stations
 
 									if (archiveData.SoilMoisture1 >= 0 && archiveData.SoilMoisture1 <= 250)
 									{
-										DoSoilMoisture(archiveData.SoilMoisture1, 1);
+										DoSoilMoisture(archiveData.SoilMoisture1, 1, soilMoistUnit);
 									}
 
 									if (archiveData.SoilMoisture2 >= 0 && archiveData.SoilMoisture2 <= 250)
 									{
-										DoSoilMoisture(archiveData.SoilMoisture2, 2);
+										DoSoilMoisture(archiveData.SoilMoisture2, 2, soilMoistUnit);
 									}
 
 									if (archiveData.SoilMoisture3 >= 0 && archiveData.SoilMoisture3 <= 250)
 									{
-										DoSoilMoisture(archiveData.SoilMoisture3, 3);
+										DoSoilMoisture(archiveData.SoilMoisture3, 3, soilMoistUnit);
 									}
 
 									if (archiveData.SoilMoisture4 >= 0 && archiveData.SoilMoisture4 <= 250)
 									{
-										DoSoilMoisture(archiveData.SoilMoisture4, 4);
+										DoSoilMoisture(archiveData.SoilMoisture4, 4, soilMoistUnit);
 									}
 
 									if (archiveData.SoilTemp1 < 255 && archiveData.SoilTemp1 > 0)

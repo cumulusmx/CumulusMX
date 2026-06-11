@@ -35,11 +35,11 @@ namespace CumulusMX.Stations
 		private Version fwVersion;
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
+		private const string soilMoistUnit = "%";
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Units.AirQualityUnitText = "µg/m³";
-			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// GW1000 does not provide 10 min average wind speeds
@@ -1186,7 +1186,7 @@ namespace CumulusMX.Stations
 									   // figure out the channel number
 								chan = data[idx - 1] - 0x2C + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
-								DoSoilMoisture(data[idx], chan);
+								DoSoilMoisture(data[idx], chan, soilMoistUnit);
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char

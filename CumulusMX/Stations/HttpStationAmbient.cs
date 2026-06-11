@@ -13,6 +13,7 @@ namespace CumulusMX.Stations
 		private bool starting = true;
 		private bool stopping = false;
 		private readonly bool mainStation = true;
+		private static readonly string soilMoistUnit = "%";
 
 		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -39,10 +40,6 @@ namespace CumulusMX.Stations
 			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
-			}
-			if (mainStation)
-			{
-				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
@@ -692,8 +689,7 @@ namespace CumulusMX.Stations
 			{
 				if (data["soilhum" + i] != null && station != null)
 				{
-					station.DoSoilMoisture(Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture), i);
-					cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					station.DoSoilMoisture(Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture), i, soilMoistUnit);
 				}
 			}
 		}

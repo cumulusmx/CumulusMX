@@ -44,6 +44,7 @@ namespace CumulusMX.Stations
 		private readonly bool[] sensorContactLost = new bool[9];
 		private DateTime lastHistoricData;
 		private string subscriptionLevel = string.Empty;
+		private const string soilMoistUnit = "cb";
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -1174,7 +1175,7 @@ namespace CumulusMX.Stations
 										idx = "moist_soil_" + cumulus.WllSoilMoistureIdx[i];
 											var val = (double?) data2[idx];
 											if (val.HasValue)
-												DoSoilMoisture(val.Value, i);
+												DoSoilMoisture(val.Value, i, soilMoistUnit);
 									}
 								}
 								catch (Exception ex)
@@ -2472,7 +2473,7 @@ namespace CumulusMX.Stations
 											}
 											else
 											{
-												DoSoilMoisture((double) data13[idx], i);
+												DoSoilMoisture((double) data13[idx], i, soilMoistUnit);
 											}
 										}
 									}

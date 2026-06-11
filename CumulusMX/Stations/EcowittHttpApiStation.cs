@@ -32,6 +32,8 @@ namespace CumulusMX.Stations
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
 
+		private const string soilMoistUnit = "%";
+
 		// local variables to hold data until all sensors have been read. Then they are set and derived values calculated
 		double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
 		int windDirLast = -999;
@@ -47,7 +49,6 @@ namespace CumulusMX.Stations
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Units.AirQualityUnitText = "µg/m³";
-			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// GW1000 does not provide 10 min average wind speeds
@@ -1918,7 +1919,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel, soilMoistUnit);
 					}
 					catch (Exception ex)
 					{
@@ -1953,7 +1954,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel, soilMoistUnit);
 						DoSoilTemp(sensor.temp.Value, sensor.channel);
 						DoSoilEc(sensor.ecVal.Value, sensor.channel);
 					}

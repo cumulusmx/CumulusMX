@@ -11081,10 +11081,13 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public void DoSoilMoisture(double? value, int index)
+		public void DoSoilMoisture(double? value, int index, string unit)
 		{
 			if (index > 0 && index < SoilMoisture.Length)
+			{
 				SoilMoisture[index] = (int?) value;
+				cumulus.Units.SoilMoistureUnitText[index - 1] = unit;
+			}
 		}
 
 		public void DoSoilTemp(double? value, int index)

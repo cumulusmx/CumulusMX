@@ -28,6 +28,7 @@ namespace CumulusMX.Stations
 		private int numLeafWetnessSensors = 8;
 		private int numSoilMoistureSensors = 16;
 		private int numSoiltempSensors = 16;
+		private const string soilMoistUnit = "cb";
 
 		private readonly bool isVp2Station = false;
 
@@ -950,7 +951,7 @@ namespace CumulusMX.Stations
 												var val = (double?) rec[idx];
 												if (val.HasValue)
 												{
-													DoSoilMoisture(val.Value, i);
+													DoSoilMoisture(val.Value, i, soilMoistUnit);
 												}
 											}
 										}
@@ -1578,21 +1579,22 @@ namespace CumulusMX.Stations
 										// Soil Moisture
 										try
 										{
+											
 											if (data.moist_soil_1.HasValue)
 											{
-												DoSoilMoisture(data.moist_soil_1.Value, 1);
+												DoSoilMoisture(data.moist_soil_1.Value, 1, soilMoistUnit);
 											}
 											if (data.moist_soil_2.HasValue)
 											{
-												DoSoilMoisture(data.moist_soil_2.Value, 2);
+												DoSoilMoisture(data.moist_soil_2.Value, 2, soilMoistUnit);
 											}
 											if (data.moist_soil_3.HasValue)
 											{
-												DoSoilMoisture(data.moist_soil_3.Value, 3);
+												DoSoilMoisture(data.moist_soil_3.Value, 3, soilMoistUnit);
 											}
 											if (data.moist_soil_4.HasValue)
 											{
-												DoSoilMoisture(data.moist_soil_4.Value, 4);
+												DoSoilMoisture(data.moist_soil_4.Value, 4, soilMoistUnit);
 											}
 										}
 										catch (Exception ex)
@@ -1606,19 +1608,19 @@ namespace CumulusMX.Stations
 										{
 											if (data.temp_soil_1.HasValue)
 											{
-												DoSoilMoisture(ConvertUnits.TempFToUser(data.temp_soil_1.Value), 1);
+												DoSoilTemp(ConvertUnits.TempFToUser(data.temp_soil_1.Value), 1);
 											}
 											if (data.temp_soil_2.HasValue)
 											{
-												DoSoilMoisture(ConvertUnits.TempFToUser(data.temp_soil_2.Value), 2);
+												DoSoilTemp(ConvertUnits.TempFToUser(data.temp_soil_2.Value), 2);
 											}
 											if (data.temp_soil_3.HasValue)
 											{
-												DoSoilMoisture(ConvertUnits.TempFToUser(data.temp_soil_3.Value), 3);
+												DoSoilTemp(ConvertUnits.TempFToUser(data.temp_soil_3.Value), 3);
 											}
 											if (data.temp_soil_4.HasValue)
 											{
-												DoSoilMoisture(ConvertUnits.TempFToUser(data.temp_soil_4.Value), 4);
+												DoSoilTemp(ConvertUnits.TempFToUser(data.temp_soil_4.Value), 4);
 											}
 										}
 										catch (Exception ex)
@@ -2567,7 +2569,7 @@ namespace CumulusMX.Stations
 
 									if (data[idx] != null)
 									{
-										DoSoilMoisture((double) data[idx], i);
+										DoSoilMoisture((double) data[idx], i, soilMoistUnit);
 									}
 								}
 							}
@@ -3177,7 +3179,7 @@ namespace CumulusMX.Stations
 											}
 											else
 											{
-												DoSoilMoisture((double) data[idx], i);
+												DoSoilMoisture((double) data[idx], i, soilMoistUnit);
 											}
 										}
 									}

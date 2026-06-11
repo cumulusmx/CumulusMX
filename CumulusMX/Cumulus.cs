@@ -14801,7 +14801,7 @@ namespace CumulusMX
 		public StationUnits()
 		{
 			AirQualityUnitText = "µg/m³";
-			Array.Fill(SoilMoistureUnitText, "cb");
+			Array.Fill(SoilMoistureUnitText, string.Empty);
 			CO2UnitText = "ppm";
 			LeafWetnessUnitText = string.Empty;  // Davis is unitless, Ecowitt uses %
 		}

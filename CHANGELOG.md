@@ -10,6 +10,23 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.1.5 \[b5012\]][35] - 2026-06-30
+
+### New
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Fixed
+
+- Soil moisture units now set per sensor per station
+- Davis Cloud Station saving soil temperature values as soil moisture!
+
+---
+
 ## [5.1.4 \[b5011\]][34] - 2026-06-10
 
 ### New
@@ -1505,3 +1522,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5008
 [33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
+[35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
