@@ -444,14 +444,12 @@ namespace CumulusMX
 				else
 					bartrend = 1;
 
-				string windDir;
-				if (MetData.WindAverage < 0.1)
+				// get one hour average wind direction
+				var avgDir = GetWindDirAvgFromArray(DateTime.Now.AddHours(-1));
+
+				if (avgDir == "-")
 				{
-					windDir = "calm";
-				}
-				else
-				{
-					windDir = MetData.AvgBearingText;
+					avgDir = "calm";
 				}
 
 				double lp;
@@ -467,7 +465,7 @@ namespace CumulusMX
 					hp = cumulus.FChighpress / 0.0295333727;
 				}
 
-				MetData.CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(MetData.Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+				MetData.CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(MetData.Pressure), DateTime.Now.Month, avgDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
 				// user wants to display Cumulus forecast
 				if (cumulus.ForecastSource == 1)

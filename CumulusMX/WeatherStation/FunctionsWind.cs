@@ -304,6 +304,56 @@ namespace CumulusMX
 			return avg;
 		}
 
+		public string GetWindDirAvgFromArray(DateTime fromTime)
+		{
+			// Now add up all the values within the required period
+			double totalwindX = 0;
+			double totalwindY = 0;
+			double avgDir = 0;
+
+			lock (recentwindLock)
+			{
+
+				for (var i = 0; i < MaxWindRecent; i++)
+				{
+					if (WindVec[i].Timestamp >= fromTime)
+					{
+						totalwindX += WindVec[i].X;
+						totalwindY += WindVec[i].Y;
+					}
+				}
+				if (Math.Abs(totalwindX) < 0.001 && Math.Abs(totalwindY) < 0.001)
+				{
+					avgDir = 0;
+				}
+				else
+				{
+					avgDir = (int) Math.Round(Trig.RadToDeg(Math.Atan(totalwindY / totalwindX)));
+
+					if (totalwindX < 0)
+					{
+						avgDir = 270 - avgDir;
+					}
+					else
+					{
+						avgDir = 90 - avgDir;
+					}
+
+					if (avgDir == 0)
+					{
+						avgDir = 360;
+					}
+				}
+
+				if (Math.Abs(MetData.WindAverage) < 0.01)
+				{
+					avgDir = 0;
+				}
+			}
+
+			return cumulus.CompassPoint((int) avgDir);
+		}
+
 		public double GetWindGustFromArray(DateTime fromTime)
 		{
 			double maxgust = 0;
