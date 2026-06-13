@@ -14049,7 +14049,7 @@ namespace CumulusMX
 					{
 						var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
 						LogConsoleMessage(msg, ConsoleColor.Cyan);
-						LogWarningMessage(msg);
+						LogMessage(msg, UpgradeAlarm.Triggered ? MxLogLevel.Info : MxLogLevel.Warning);
 						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
 						LatestBuild = latestLive.tag_name[1..];
@@ -14078,7 +14078,7 @@ namespace CumulusMX
 					{
 						var msg = $"You are not running the latest version of Cumulus MX, {latestLive.name} is available.";
 						LogConsoleMessage(msg, ConsoleColor.Cyan);
-						LogWarningMessage(msg);
+						LogMessage(msg, UpgradeAlarm.Triggered ? MxLogLevel.Info : MxLogLevel.Warning);
 						UpgradeAlarm.LastMessage = $"Release {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
 						LatestBuild = latestLive.tag_name[1..];
