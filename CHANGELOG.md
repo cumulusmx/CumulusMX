@@ -18,7 +18,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-- Nothing
+- The daily Cumulus upgrade check now only issues a warning message when the alarm is triggered rather than every time the check is performed and a new version is found
+- The Cumulus forecast now uses the average wind direction for the last hour rather than the last 10 minutes
 
 ### Fixed
 

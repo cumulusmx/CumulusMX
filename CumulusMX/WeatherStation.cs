@@ -7742,14 +7742,12 @@ namespace CumulusMX
 				else
 					bartrend = 1;
 
-				string windDir;
-				if (WindAverage < 0.1)
+				// get one hour average wind direction
+				var avgDir = GetWindDirAvgFromArray(DateTime.Now.AddHours(-1));
+
+				if (avgDir == "-")
 				{
-					windDir = "calm";
-				}
-				else
-				{
-					windDir = AvgBearingText;
+					avgDir = "calm";
 				}
 
 				double lp;
@@ -7765,7 +7763,7 @@ namespace CumulusMX
 					hp = cumulus.FChighpress / 0.0295333727;
 				}
 
-				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, avgDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
 				// user wants to display Cumulus forecast
 				if (cumulus.ForecastSource == 1)
@@ -8090,6 +8088,56 @@ namespace CumulusMX
 			}
 
 			return avg;
+		}
+
+		public string GetWindDirAvgFromArray(DateTime fromTime)
+		{
+			// Now add up all the values within the required period
+			double totalwindX = 0;
+			double totalwindY = 0;
+			double avgDir = 0;
+
+			lock (recentwindLock)
+			{
+
+				for (var i = 0; i < MaxWindRecent; i++)
+				{
+					if (WindVec[i].Timestamp >= fromTime)
+					{
+						totalwindX += WindVec[i].X;
+						totalwindY += WindVec[i].Y;
+					}
+				}
+				if (Math.Abs(totalwindX) < 0.001 && Math.Abs(totalwindY) < 0.001)
+				{
+					avgDir = 0;
+				}
+				else
+				{
+					avgDir = (int) Math.Round(RadToDeg(Math.Atan(totalwindY / totalwindX)));
+
+					if (totalwindX < 0)
+					{
+						avgDir = 270 - avgDir;
+					}
+					else
+					{
+						avgDir = 90 - avgDir;
+					}
+
+					if (avgDir == 0)
+					{
+						avgDir = 360;
+					}
+				}
+
+				if (Math.Abs(WindAverage) < 0.01)
+				{
+					avgDir = 0;
+				}
+			}
+
+			return CompassPoint((int) avgDir);
 		}
 
 		public double GetWindGustFromArray(DateTime fromTime)
