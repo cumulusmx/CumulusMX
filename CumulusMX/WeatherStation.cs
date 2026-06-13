@@ -7750,14 +7750,10 @@ namespace CumulusMX
 					avgDir = "calm";
 				}
 
-				double lp;
-				double hp;
-				if (cumulus.FCpressinMB)
-				{
-					lp = cumulus.FClowpress;
-					hp = cumulus.FChighpress;
-				}
-				else
+				var lp = cumulus.FClowpress;
+				var hp = cumulus.FChighpress;
+
+				if (!cumulus.FCpressinMB)
 				{
 					lp = cumulus.FClowpress / 0.0295333727;
 					hp = cumulus.FChighpress / 0.0295333727;
