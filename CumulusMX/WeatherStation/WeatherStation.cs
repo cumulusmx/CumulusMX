@@ -1299,6 +1299,11 @@ namespace CumulusMX
 				}
 			}
 
+			if (!cumulus.HourlyForecast)
+			{
+				DoForecast(string.Empty, false);
+			}
+
 			// Check for a new version of Cumulus once a day
 			if (now.Minute == versionCheckTime.Minute && now.Hour == versionCheckTime.Hour)
 			{

@@ -2139,9 +2139,6 @@ namespace CumulusMX.Stations
 				}
 			}
 
-
-			DoForecast(string.Empty, false);
-
 			UpdateStatusPanel(DateTime.UtcNow);
 			UpdateMQTT();
 

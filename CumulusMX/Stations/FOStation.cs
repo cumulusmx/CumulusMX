@@ -1401,7 +1401,6 @@ namespace CumulusMX.Stations
 
 					UpdateStatusPanel(now.ToUniversalTime());
 					UpdateMQTT();
-					DoForecast(string.Empty, false);
 				}
 
 				if (cumulus.SensorAlarm.Enabled)

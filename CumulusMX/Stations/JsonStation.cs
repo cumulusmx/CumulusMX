@@ -983,8 +983,6 @@ namespace CumulusMX.Stations
 						station.DoFeelsLike(data.lastupdated);
 					}
 				}
-
-				station.DoForecast(string.Empty, false);
 			}
 
 			station.UpdateStatusPanel(data.lastupdated.ToUniversalTime());

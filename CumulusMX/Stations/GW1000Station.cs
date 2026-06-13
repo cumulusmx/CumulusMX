@@ -1446,8 +1446,6 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					DoForecast(string.Empty, false);
-
 					cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
 					UpdateStatusPanel(dateTime.ToUniversalTime());

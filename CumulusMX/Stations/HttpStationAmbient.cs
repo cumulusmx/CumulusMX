@@ -578,11 +578,6 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage($"{procName}: Error calculating extra sensor dew points - " + ex.Message);
 				}
 
-				if (StationId == 0)
-				{
-					DoForecast(string.Empty, false);
-				}
-
 				UpdateStatusPanel(recDate.ToUniversalTime());
 				UpdateMQTT();
 				LastDataReadTime = recDate;

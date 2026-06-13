@@ -1304,8 +1304,6 @@ namespace CumulusMX.Stations
 				DoHumidex(dateTime);
 				DoCloudBaseHeatIndex(dateTime);
 
-				DoForecast(string.Empty, false);
-
 				UpdateStatusPanel(DateTime.UtcNow);
 				UpdateMQTT();
 
