@@ -703,8 +703,6 @@ namespace CumulusMX.Stations
 						DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
 					}
 
-					station.DoForecast(string.Empty, false);
-
 					var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).LocalFromUnixTime();
 					station.UpdateStatusPanel(updateTime.ToUniversalTime());
 					station.UpdateMQTT();

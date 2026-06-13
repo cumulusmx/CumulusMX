@@ -613,9 +613,6 @@ namespace CumulusMX.Stations
 					}
 				}
 
-
-				thisStation.DoForecast(string.Empty, false);
-
 				thisStation.UpdateStatusPanel(recDate.ToUniversalTime());
 				thisStation.UpdateMQTT();
 				thisStation.LastDataReadTime = recDate;

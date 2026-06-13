@@ -376,7 +376,6 @@ namespace CumulusMX.Stations
 
 						UpdateStatusPanel(ts.ToUniversalTime());
 						UpdateMQTT();
-						DoForecast(string.Empty, false);
 
 						cumulus.BatteryLowAlarm.Triggered = wp.Observation.BatteryVoltage <= 2.355M;
 

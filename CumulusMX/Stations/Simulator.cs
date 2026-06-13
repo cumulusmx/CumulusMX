@@ -51,8 +51,6 @@ namespace CumulusMX.Stations
 
 					applyData(now);
 
-					DoForecast(string.Empty, false);
-
 					UpdateStatusPanel(now.ToUniversalTime());
 					UpdateMQTT();
 

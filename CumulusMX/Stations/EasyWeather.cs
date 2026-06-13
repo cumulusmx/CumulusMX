@@ -159,8 +159,6 @@ namespace CumulusMX.Stations
 					DoHumidex(now);
 					DoCloudBaseHeatIndex(now);
 
-					DoForecast(string.Empty, false);
-
 					if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 					{
 						var lightReading = GetConvertedValue(st[EW_LIGHT]);

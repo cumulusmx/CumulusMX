@@ -942,8 +942,6 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				DoForecast(string.Empty, false);
-
 				UpdateStatusPanel(now.ToUniversalTime());
 				UpdateMQTT();
 			}

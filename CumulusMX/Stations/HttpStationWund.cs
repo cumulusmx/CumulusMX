@@ -327,9 +327,6 @@ namespace CumulusMX.Stations
 					cumulus.LogWarningMessage("ProcessData: Insufficient data to calculate Humidex");
 				}
 
-				DoForecast(string.Empty, false);
-
-
 				// === Extra Temperature ===
 				try
 				{
