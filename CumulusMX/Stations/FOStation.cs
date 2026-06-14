@@ -441,8 +441,18 @@ namespace CumulusMX.Stations
 				}
 				else
 				{
-					DoPressure(ConvertUnits.PressMBToUser(historydata.pressure), timestamp);
 					DoStationPressure(historydata.stationPress);
+
+					if (cumulus.StationOptions.CalculateSLP)
+					{
+						var avgTemp = CalculateBaro12hAvgTemp(timestamp);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+						DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
+					}
+					else
+					{
+						DoPressure(ConvertUnits.PressMBToUser(historydata.pressure), timestamp);
+					}
 				}
 
 				if (historydata.SensorContactLost)
@@ -1238,14 +1248,15 @@ namespace CumulusMX.Stations
 				{
 					DoStationPressure(ConvertUnits.PressMBToUser(stnPress));
 
-					if (!cumulus.StationOptions.CalculateSLP)
+					if (cumulus.StationOptions.CalculateSLP)
 					{
-						DoPressure(ConvertUnits.PressMBToUser(pressure), now);
+						var avgTemp = CalculateBaro12hAvgTemp(now);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+						DoPressure(ConvertUnits.PressMBToUser(slp), now);
 					}
 					else
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-						DoPressure(slp, now);
+						DoPressure(ConvertUnits.PressMBToUser(pressure), now);
 					}
 				}
 

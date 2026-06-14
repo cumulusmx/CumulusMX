@@ -502,6 +502,12 @@ namespace CumulusMX.Stations
 
 			DoStationPressure(ConvertUnits.PressMBToUser(num));
 
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				var avgTemp = CalculateBaro12hAvgTemp(DataDateTime);
+				slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+				slp = ConvertUnits.PressMBToUser(slp);
+			}
 			DoPressure(slp, DateTime.Now);
 
 			var forecast = packetBuffer[3] / 16;

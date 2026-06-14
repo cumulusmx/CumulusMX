@@ -327,7 +327,16 @@ namespace CumulusMX.Stations
 			var pressure = ConvertUnits.PressMBToUser((double) (BCDchartoint(buff[3]) / 10) + BCDchartoint(buff[4]) * 10 +
 				BCDchartoint(buff[5]) % 10 * 1000);
 
-			DoPressure(pressure, DateTime.Now);
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				var avgTemp = CalculateBaro12hAvgTemp(DataDateTime);
+				var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+				DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
+			}
+			else
+			{
+				DoPressure(pressure, DateTime.Now);
+			}
 
 			var forecast = string.Empty;
 

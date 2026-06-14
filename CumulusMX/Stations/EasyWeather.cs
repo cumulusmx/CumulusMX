@@ -142,9 +142,18 @@ namespace CumulusMX.Stations
 
 					DoOutdoorDewpoint(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_DEW_POINT])), now);
 
-					DoPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
-
 					DoStationPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE])));
+
+					if (cumulus.StationOptions.CalculateSLP)
+					{
+						var avgTemp = CalculateBaro12hAvgTemp(now);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+						DoPressure(ConvertUnits.PressMBToUser(slp), now);
+					}
+					else
+					{
+						DoPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
+					}
 
 					DoIndoorTemp(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
 

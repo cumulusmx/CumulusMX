@@ -145,7 +145,8 @@ namespace CumulusMX.Stations
 
 				// Pressure =============================================================
 				DoStationPressure(ConvertUnits.PressMBToUser((double) historydata.StationPressure));
-				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), (double) historydata.Temperature, cumulus.Latitude)), timestamp);
+				var avgTemp = CalculateBaro12hAvgTemp(timestamp);
+				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude)), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);
@@ -348,7 +349,8 @@ namespace CumulusMX.Stations
 							ts);
 
 						var alt = ConvertUnits.AltitudeM(cumulus.Altitude);
-						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, (double) wp.Observation.Temperature, cumulus.Latitude);
+						var avgTemp = CalculateBaro12hAvgTemp(ts);
+						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
 						if (!cumulus.ExtraSensorUseSolar)

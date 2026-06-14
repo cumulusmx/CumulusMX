@@ -10300,6 +10300,26 @@ namespace CumulusMX
 				RainLast24Hour = 0;
 			}
 		}
+		
+		public double CalculateBaro12hAvgTemp(DateTime ts)
+		{
+			double avgTemp;
+			try
+			{
+				// Do 12 hour values
+				var val12h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? and Timestamp < ? order by Timestamp", ts.AddHours(-12).ToUnixTime(), ts.AddHours(-12).AddMinutes(10).ToUnixTime());
+				var val0h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? order by Timestamp", ts.AddMinutes(-10).ToUnixTime());
+
+				// Calculate "average" Temperature for the last 12 hours		
+				avgTemp = (val0h ?? OutdoorTemperature + val12h ?? OutdoorTemperature) / 2;
+			}
+			catch
+			{
+				avgTemp = OutdoorTemperature;
+			}
+
+			return avgTemp;
+		}
 
 		public void CalculateDominantWindBearing(int averageBearing, double averageSpeed, int minutes)
 		{

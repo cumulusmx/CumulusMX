@@ -1882,7 +1882,8 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+					var avgTemp = station.CalculateBaro12hAvgTemp(recDateTime);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
 				}
@@ -2060,19 +2061,6 @@ namespace CumulusMX.Stations
 			// = avg for period
 			try
 			{
-				if (rec.Value.Pressure.HasValue)
-				{
-					if (!cumulus.StationOptions.CalculateSLP)
-					{
-						var pressVal = (double) rec.Value.Pressure;
-						station.DoPressure(pressVal, recDateTime);
-					}
-				}
-				else
-				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Missing relative pressure data");
-				}
-
 				if (rec.Value.StationPressure.HasValue)
 				{
 					station.DoStationPressure((double) rec.Value.StationPressure);
@@ -2082,6 +2070,23 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogWarningMessage("ApplyHistoricData: Missing absolute pressure data");
 				}
+
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var avgTemp = station.CalculateBaro12hAvgTemp(recDateTime);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(station.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
+				}
+				else if (rec.Value.Pressure.HasValue)
+				{
+					var pressVal = (double) rec.Value.Pressure;
+					station.DoPressure(pressVal, recDateTime);
+				}
+				else
+				{
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing relative pressure data");
+				}
+
 			}
 			catch (Exception ex)
 			{

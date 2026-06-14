@@ -638,19 +638,6 @@ namespace CumulusMX.Stations
 						var press = data["baromrelin"];
 						var stnPress = data["baromabsin"];
 
-						if (press == null)
-						{
-							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
-						}
-						else
-						{
-							if (!cumulus.StationOptions.CalculateSLP)
-							{
-								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
-								DoPressure(pressVal, recDate);
-							}
-						}
-
 						if (stnPress == null)
 						{
 							cumulus.LogWarningMessage($"{procName}: Error, missing absolute baro pressure");
@@ -661,9 +648,22 @@ namespace CumulusMX.Stations
 
 							if (cumulus.StationOptions.CalculateSLP)
 							{
-								var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-
+								var avgTemp = CalculateBaro12hAvgTemp(recDate);
+								var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
+							}
+						}
+
+						if (press == null)
+						{
+							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
+						}
+						else
+						{
+							if (!cumulus.StationOptions.CalculateSLP)
+							{
+								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
+								DoPressure(pressVal, recDate);
 							}
 						}
 					}
