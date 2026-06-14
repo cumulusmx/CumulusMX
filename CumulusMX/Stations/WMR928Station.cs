@@ -507,7 +507,16 @@ namespace CumulusMX.Stations
 			double num = BCDchartoint(buff[10] / 10) + BCDchartoint(buff[11]) * 10 + BCDchartoint(buff[12]) * 1000;
 			var slcorr = num / 10.0 - 600;
 
-			DoPressure(ConvertUnits.PressMBToUser(loc + slcorr), DateTime.Now);
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				var avgTemp = CalculateBaro12hAvgTemp(DateTime.Now);
+				var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+				DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
+			}
+			else
+			{
+				DoPressure(ConvertUnits.PressMBToUser(loc + slcorr), DateTime.Now);
+			}
 
 			var forecast = string.Empty;
 
@@ -554,9 +563,18 @@ namespace CumulusMX.Stations
 			// local pressure (not BCD); byte 8, with 795mb offset
 			double loc = buff[8] + 795;
 			DoStationPressure(ConvertUnits.PressMBToUser(loc));
-			// SL pressure correction; bytes 10 (LSB) and 11 (MSB)
-			double num = BCDchartoint(buff[10] / 10) + BCDchartoint(buff[11]) * 10 + buff[8];
-			DoPressure(num, DateTime.Now);
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				var avgTemp = CalculateBaro12hAvgTemp(DateTime.Now);
+				var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+				DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
+			}
+			else
+			{
+				// SL pressure correction; bytes 10 (LSB) and 11 (MSB)
+				double num = BCDchartoint(buff[10] / 10) + BCDchartoint(buff[11]) * 10 + buff[8];
+				DoPressure(num, DateTime.Now);
+			}
 
 			// forecast - bottom 4 bits of byte 9
 			var forecast = string.Empty;

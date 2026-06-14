@@ -928,10 +928,17 @@ namespace CumulusMX.Stations
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
 
+			DoStationPressure(ConvertUnits.PressMBToUser((double) (packetBuffer[8] & 0xF) * 256 + packetBuffer[7]));
+
 			double slp = (packetBuffer[10] & 0xF) * 256 + packetBuffer[9];
+
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				var avgTemp = CalculateBaro12hAvgTemp(DataDateTime);
+				slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+			}
 			DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
 
-			DoStationPressure(ConvertUnits.PressMBToUser((double) (packetBuffer[8] & 0xF) * 256 + packetBuffer[7]));
 
 			var forecast = packetBuffer[8] / 16;
 			var fcstr = forecast switch
@@ -1426,6 +1433,12 @@ namespace CumulusMX.Stations
 			// pressure
 			DoStationPressure(ConvertUnits.PressMBToUser((double) (packetBuffer[29] & 0xF) * 256 + packetBuffer[28]));
 			double num = (packetBuffer[31] & 0xF) * 256 + packetBuffer[30];
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				var avgTemp = CalculateBaro12hAvgTemp(timestamp);
+				num = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+			}
+
 			DoPressure(ConvertUnits.PressMBToUser(num), timestamp);
 
 			// bearing

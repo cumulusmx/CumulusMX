@@ -5579,7 +5579,7 @@ namespace CumulusMX
 				sensor = val;
 			}
 
-			var vpd = station.VapourPressureDeficit(sensor);
+			var vpd = WeatherStation.VapourPressureDeficit(sensor);
 
 			return vpd.HasValue ? CheckRcDp(CheckPressUnit(vpd.Value, tagParams), tagParams, cumulus.PressDPlaces) : tagParams.Get("nv") ?? "-";
 		}

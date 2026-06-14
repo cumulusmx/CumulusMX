@@ -244,19 +244,6 @@ namespace CumulusMX.Stations
 						var press = data["baromrelin"];
 						var stnPress = data["baromabsin"];
 
-						if (press == null)
-						{
-							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
-						}
-						else
-						{
-							if (!cumulus.StationOptions.CalculateSLP)
-							{
-								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
-								DoPressure(pressVal, recDate);
-							}
-						}
-
 						if (stnPress == null)
 						{
 							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
@@ -270,6 +257,19 @@ namespace CumulusMX.Stations
 								var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
+							}
+						}
+
+						if (press == null)
+						{
+							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
+						}
+						else
+						{
+							if (!cumulus.StationOptions.CalculateSLP)
+							{
+								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
+								DoPressure(pressVal, recDate);
 							}
 						}
 					}

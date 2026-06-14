@@ -309,7 +309,8 @@ namespace CumulusMX.Stations
 
 								if (cumulus.StationOptions.CalculateSLP)
 								{
-									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
+									var avgTemp = CalculateBaro12hAvgTemp(dataLastRead);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
 								}
 							}
@@ -730,7 +731,8 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
+					var avgTemp = CalculateBaro12hAvgTemp(DataDateTime);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), DataDateTime);
 				}
 
@@ -1297,25 +1299,6 @@ namespace CumulusMX.Stations
 				// Pressure
 				try
 				{
-					if (sensor.rel != null && !cumulus.StationOptions.CalculateSLP)
-					{
-						var arr = sensor.rel.Split(' ');
-						if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
-						{
-							var slp = arr[1].ToLower() switch
-							{
-								"hpa" => ConvertUnits.PressMBToUser(val),
-								"inhg" => ConvertUnits.PressINHGToUser(val),
-								"mmhg" => ConvertUnits.PressMMHGToUser(val),
-								_ => val,
-							};
-
-							if (slp > 0)
-							{
-								DoPressure(slp, dateTime);
-							}
-						}
-					}
 					if (sensor.abs != null)
 					{
 						var arr = sensor.abs.Split(' ');
@@ -1333,6 +1316,26 @@ namespace CumulusMX.Stations
 							{
 								DoStationPressure(abs);
 								// Leave calculate SLP until the end as it depends on temperature
+							}
+						}
+					}
+
+					if (sensor.rel != null && !cumulus.StationOptions.CalculateSLP)
+					{
+						var arr = sensor.rel.Split(' ');
+						if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
+						{
+							var slp = arr[1].ToLower() switch
+							{
+								"hpa" => ConvertUnits.PressMBToUser(val),
+								"inhg" => ConvertUnits.PressINHGToUser(val),
+								"mmhg" => ConvertUnits.PressMMHGToUser(val),
+								_ => val,
+							};
+
+							if (slp > 0)
+							{
+								DoPressure(slp, dateTime);
 							}
 						}
 					}

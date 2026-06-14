@@ -1881,7 +1881,8 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
+					var avgTemp = station.CalculateBaro12hAvgTemp(recDateTime);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
 				}
@@ -2058,7 +2059,23 @@ namespace CumulusMX.Stations
 			// = avg for period
 			try
 			{
-				if (rec.Value.Pressure.HasValue)
+				if (rec.Value.StationPressure.HasValue)
+				{
+					station.DoStationPressure((double) rec.Value.StationPressure);
+					// Leave CMX calculated SLP until the end as it uses Temperature
+				}
+				else
+				{
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing absolute pressure data");
+				}
+
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var avgTemp = station.CalculateBaro12hAvgTemp(recDateTime);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
+				}
+				else if (rec.Value.Pressure.HasValue)
 				{
 					if (!cumulus.StationOptions.CalculateSLP)
 					{
@@ -2069,16 +2086,6 @@ namespace CumulusMX.Stations
 				else
 				{
 					cumulus.LogWarningMessage("ApplyHistoricData: Missing relative pressure data");
-				}
-
-				if (rec.Value.StationPressure.HasValue)
-				{
-					station.DoStationPressure((double) rec.Value.StationPressure);
-					// Leave CMX calculated SLP until the end as it uses Temperature
-				}
-				else
-				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Missing absolute pressure data");
 				}
 			}
 			catch (Exception ex)

@@ -1234,12 +1234,21 @@ namespace CumulusMX.Stations
 							try
 							{
 								var data3 = JsonSerializer.Deserialize<WllCurrentType3>(rec);
-								if (data3.bar_sea_level.HasValue)
-									DoPressure(ConvertUnits.PressINHGToUser(data3.bar_sea_level.Value), dateTime);
 								// Altimeter from absolute
 								if (data3.bar_absolute.HasValue)
 								{
 									DoStationPressure(ConvertUnits.PressINHGToUser(data3.bar_absolute.Value));
+								}
+
+								if (cumulus.StationOptions.CalculateSLP)
+								{
+									var avgTemp = CalculateBaro12hAvgTemp(dateTime);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+									DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
+								}
+								else if (data3.bar_sea_level.HasValue)
+								{
+									DoPressure(ConvertUnits.PressINHGToUser(data3.bar_sea_level.Value), dateTime);
 								}
 							}
 							catch (Exception ex)
@@ -2565,41 +2574,51 @@ namespace CumulusMX.Stations
 								{
 									var data13baro = json.Deserialize<WlHistorySensorDataType13Baro>();
 									DateTime ts;
-									// check the high
-									if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
-									{
-										ts = data13baro.bar_hi_at.LocalFromUnixTime();
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("WL.com historic: Warning, no valid Baro data (high)");
-									}
-									// check the low
-									if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
-									{
-										ts = data13baro.bar_lo_at.LocalFromUnixTime();
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("WL.com historic: Warning, no valid Baro data (high)");
-									}
-
-									if (data13baro.bar_sea_level != null)
-									{
-										// leave it at current value
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), data13baro.ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("WL.com historic: Warning, no valid Baro data (high)");
-									}
 
 									// Altimeter from absolute
 									if (data13baro.bar_absolute != null)
 									{
 										DoStationPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute));
+									}
+
+									if (cumulus.StationOptions.CalculateSLP)
+									{
+										var avgTemp = CalculateBaro12hAvgTemp(data13baro.ts);
+										var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+										DoPressure(ConvertUnits.PressMBToUser(slp), data13baro.ts);
+									}
+									else
+									{
+										// check the high
+										if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
+										{
+											ts = data13baro.bar_hi_at.LocalFromUnixTime();
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("WL.com historic: Warning, no valid Baro data (high)");
+										}
+										// check the low
+										if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
+										{
+											ts = data13baro.bar_lo_at.LocalFromUnixTime();
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("WL.com historic: Warning, no valid Baro data (high)");
+										}
+
+										if (data13baro.bar_sea_level != null)
+										{
+											// leave it at current value
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), data13baro.ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("WL.com historic: Warning, no valid Baro data (high)");
+										}
 									}
 								}
 								catch (Exception ex)

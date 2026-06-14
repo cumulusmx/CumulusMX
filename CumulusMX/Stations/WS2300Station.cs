@@ -387,9 +387,17 @@ namespace CumulusMX.Stations
 				CheckForWindrunHighLow(timestamp);
 
 				// Pressure ======================================================================
+				DoStationPressure(historydata.pressure);
+
 				var slpress = historydata.pressure + pressureoffset;
 
-				if (slpress > ConvertUnits.PressMBToUser(900.0) && slpress < ConvertUnits.PressMBToUser(1200.0))
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var avgTemp = CalculateBaro12hAvgTemp(timestamp);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+					DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
+				}
+				else if (slpress > ConvertUnits.PressMBToUser(900.0) && slpress < ConvertUnits.PressMBToUser(1200.0))
 				{
 					DoPressure(slpress, timestamp);
 				}
@@ -689,18 +697,27 @@ namespace CumulusMX.Stations
 			// Pressure ==========================================================================
 			if (!stop)
 			{
-				var pressure = Ws2300RelativePressure();
-				if (pressure > 900 && pressure < 1200 && (previouspress == 9999 || Math.Abs(pressure - previouspress) < ConvertUnits.UserPressToHpa(cumulus.Spike.PressDiff)))
-				{
-					previouspress = pressure;
-					DoPressure(ConvertUnits.PressMBToUser(pressure), now);
-				}
-
-				pressure = Ws2300AbsolutePressure();
+				var pressure = Ws2300AbsolutePressure();
 
 				if (MetData.Pressure > 850 && MetData.Pressure < 1200)
 				{
 					DoStationPressure(ConvertUnits.PressMBToUser(pressure));
+				}
+
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var avgTemp = CalculateBaro12hAvgTemp(now);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+					DoPressure(ConvertUnits.PressMBToUser(slp), now);
+				}
+				else
+				{
+					pressure = Ws2300RelativePressure();
+					if (pressure > 900 && pressure < 1200 && (previouspress == 9999 || Math.Abs(pressure - previouspress) < ConvertUnits.UserPressToHpa(cumulus.Spike.PressDiff)))
+					{
+						previouspress = pressure;
+						DoPressure(ConvertUnits.PressMBToUser(pressure), now);
+					}
 				}
 			}
 

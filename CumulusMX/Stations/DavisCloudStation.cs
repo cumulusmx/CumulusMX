@@ -771,7 +771,8 @@ namespace CumulusMX.Stations
 
 					if (cumulus.StationOptions.CalculateSLP && MetData.StationPressure > 0)
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
+						var avgTemp = CalculateBaro12hAvgTemp(timestamp);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
 					}
 
@@ -1060,25 +1061,11 @@ namespace CumulusMX.Stations
 										lsidLastUpdate[sensor.lsid] = rec.ts;
 										var ts = rec.ts;
 
-										if (!cumulus.StationOptions.CalculateSLP)
-										{
-											if (rec.bar_sea_level.HasValue)
-											{
-												// leave it at current value
-												DoPressure(ConvertUnits.PressINHGToUser(rec.bar_sea_level.Value), ts);
-											}
-											else
-											{
-												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (slp)");
-											}
-										}
-
 										// Altimeter from absolute
 										if (rec.bar_absolute.HasValue)
 										{
 											DoStationPressure(ConvertUnits.PressINHGToUser(rec.bar_absolute.Value));
 										}
-
 									}
 								}
 								catch (Exception ex)
@@ -2130,7 +2117,8 @@ namespace CumulusMX.Stations
 			{
 				if (MetData.StationPressure > 0)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
+					var avgTemp = CalculateBaro12hAvgTemp(dateTime);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 				}
 				else
@@ -2438,7 +2426,19 @@ namespace CumulusMX.Stations
 							cumulus.LogDebugMessage("DecodeHistoric: found Baro data");
 							try
 							{
-								if (data.bar != null)
+								// Altimeter from absolute
+								if (data.abs_press != null)
+								{
+									DoStationPressure(ConvertUnits.PressINHGToUser((double) data.abs_press));
+								}
+
+								if (cumulus.StationOptions.CalculateSLP)
+								{
+									var avgTemp = CalculateBaro12hAvgTemp(lastRecordTime);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+									DoPressure(ConvertUnits.PressMBToUser(slp), lastRecordTime);
+								}
+								else if (data.bar != null)
 								{
 									// leave it at current value
 									DoPressure(ConvertUnits.PressINHGToUser((double) data.bar), lastRecordTime);
@@ -2448,11 +2448,6 @@ namespace CumulusMX.Stations
 									cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data");
 								}
 
-								// Altimeter from absolute
-								if (data.abs_press != null)
-								{
-									DoStationPressure(ConvertUnits.PressINHGToUser((double) data.abs_press));
-								}
 							}
 							catch (Exception ex)
 							{
@@ -3273,8 +3268,25 @@ namespace CumulusMX.Stations
 									var data13baro = JsonSerializer.Deserialize<WlHistorySensorDataType13Baro>(json);
 									DateTime ts;
 
+									// Altimeter from absolute
+									if (data13baro.bar_absolute != null)
+									{
+										// leave possible calculation of SLP until later when we have temp and humidity
+										DoStationPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute));
+									}
+										else
+									{
+										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (absolute)");
+									}
+
 									// Only check hi/lo if we are using the Davis SLP
-									if (!cumulus.StationOptions.CalculateSLP)
+									if (cumulus.StationOptions.CalculateSLP)
+									{
+										var avgTemp = CalculateBaro12hAvgTemp(data13baro.ts);
+										var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+										DoPressure(ConvertUnits.PressMBToUser(slp), data13baro.ts);
+									}
+									else
 									{
 										// check the high
 										if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
@@ -3306,17 +3318,6 @@ namespace CumulusMX.Stations
 										{
 											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (sea level)");
 										}
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (absolute)");
-									}
-
-									// Altimeter from absolute
-									if (data13baro.bar_absolute != null)
-									{
-										// leave possible calculation of SLP until later when we have temp and humidity
-										DoStationPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute));
 									}
 								}
 								catch (Exception ex)

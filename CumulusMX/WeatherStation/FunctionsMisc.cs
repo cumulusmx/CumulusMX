@@ -303,7 +303,7 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public double? VapourPressureDeficit(int sensor)
+		public static double? VapourPressureDeficit(int sensor)
 		{
 			int hum;
 			double tempC;
@@ -472,6 +472,26 @@ namespace CumulusMX
 
 			FirstForecastDone = true;
 			HaveReadData = true;
+		}
+
+		public double CalculateBaro12hAvgTemp(DateTime ts)
+		{
+			double avgTemp;
+			try
+			{
+				// Do 12 hour values
+				var val12h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? and Timestamp < ? order by Timestamp", ts.AddHours(-12).ToUnixTime(), ts.AddHours(-12).AddMinutes(10).ToUnixTime());
+				var val0h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? order by Timestamp", ts.AddMinutes(-10).ToUnixTime());
+
+				// Calculate "average" Temperature for the last 12 hours		
+				avgTemp = (val0h ?? MetData.Temperature + val12h ?? MetData.Temperature) / 2;
+			}
+			catch
+			{
+				avgTemp = MetData.Temperature;
+			}
+
+			return avgTemp;
 		}
 	}
 }
