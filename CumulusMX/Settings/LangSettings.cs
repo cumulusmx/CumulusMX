@@ -181,6 +181,13 @@ namespace CumulusMX.Settings
 				snow24h = cumulus.Trans.Snow24h
 			};
 
+			var lightning = new Lightning()
+			{
+				count = cumulus.Trans.LightningCount,
+				distance = cumulus.Trans.LightningDistance,
+				time = cumulus.Trans.LightningTime
+			};
+
 			var highLowList = new List<HighLow>();
 			foreach (var key in cumulus.Trans.DataCaptions.Keys)
 			{
@@ -217,6 +224,7 @@ namespace CumulusMX.Settings
 				webtags = webtags,
 				snow = snow,
 				laser = cumulus.Trans.LaserCaptions,
+				lightning = lightning,
 				highlow = highLowList.ToArray()
 			};
 
@@ -544,6 +552,21 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// lightning
+				try
+				{
+					cumulus.Trans.LightningCount = settings.lightning.count;
+					cumulus.Trans.LightningDistance = settings.lightning.distance;
+					cumulus.Trans.LightningTime = settings.lightning.time;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Lightning settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// high/low captions
 				try
 				{
@@ -715,6 +738,13 @@ namespace CumulusMX.Settings
 			public string snow24h { get; set; }
 		}
 
+		private sealed class Lightning
+		{
+			public string count { get; set; }
+			public string distance { get; set; }
+			public string time { get; set; }
+		}
+
 		private sealed class HighLow
 		{
 			public string key { get; set; }
@@ -745,8 +775,8 @@ namespace CumulusMX.Settings
 			public WebTags webtags { get; set; }
 			public Snow snow { get; set; }
 			public string[] laser { get; set; }
+			public Lightning lightning { get; set; }
 			public HighLow[] highlow { get; set; }
-
 		}
 	}
 }
