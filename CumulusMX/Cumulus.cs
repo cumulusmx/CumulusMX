@@ -7838,6 +7838,11 @@ namespace CumulusMX
 			Trans.SnowDepth = ini.GetValue("Snow", "SnowDepth", "Snow Depth");
 			Trans.Snow24h = ini.GetValue("Snow", "Snow24h", "Snowfall 24h");
 
+			// Lightning
+			Trans.LightningCount = ini.GetValue("Lightning", "Count", "Number of strikes today");
+			Trans.LightningDistance = ini.GetValue("Lightning", "Distance", "Distance to last strike");
+			Trans.LightningTime = ini.GetValue("Lightning", "Time", "Time of last strike");
+
 			Trans.thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
 			Trans.thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
 
@@ -8068,6 +8073,11 @@ namespace CumulusMX
 			// Snow
 			ini.SetValue("Snow", "SnowDepth", Trans.SnowDepth);
 			ini.SetValue("Snow", "Snow24h", Trans.Snow24h);
+
+			// Lightning
+			ini.SetValue("Lightning", "Count", Trans.LightningCount);
+			ini.SetValue("Lightning", "Distance", Trans.LightningDistance);
+			ini.SetValue("Lightning", "Time", Trans.LightningTime);
 
 			ini.SetValue("Solar", "LessDaylightTomorrow", Trans.thereWillBeMinSLessDaylightTomorrow);
 			ini.SetValue("Solar", "MoreDaylightTomorrow", Trans.thereWillBeMinSMoreDaylightTomorrow);

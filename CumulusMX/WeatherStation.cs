@@ -13423,9 +13423,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"Distance to last strike\",\"{(LightningDistance < 0 ? "-" : LightningDistance.ToString(cumulus.WindRunFormat))}\",\"{cumulus.Units.WindRunText}\"],");
-			json.Append($"[\"Time of last strike\",\"{(DateTime.Equals(LightningTime, DateTime.MinValue) ? "-" : LightningTime.ToString("g"))}\",\"\"],");
-			json.Append($"[\"Number of strikes today\",\"{LightningStrikesToday}\",\"\"]");
+			json.Append($"[\"{cumulus.Trans.LightningDistance}\",\"{(LightningDistance < 0 ? "-" : LightningDistance.ToString(cumulus.WindRunFormat))}\",\"{cumulus.Units.WindRunText}\"],");
+			json.Append($"[\"{cumulus.Trans.LightningTime}\",\"{(DateTime.Equals(LightningTime, DateTime.MinValue) ? "-" : LightningTime.ToString("g"))}\",\"\"],");
+			json.Append($"[\"{cumulus.Trans.LightningCount}\",\"{LightningStrikesToday}\",\"\"]");
 			json.Append("]}");
 			return json.ToString();
 		}

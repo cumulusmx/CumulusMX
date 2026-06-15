@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Nothing
+- Adds translations for the lightning fields on the Extra Sensors page
 
 ### Changed
 

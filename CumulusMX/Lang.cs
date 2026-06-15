@@ -273,6 +273,10 @@ namespace CumulusMX
 		public string Snow24h { get; set; }
 		// Laser
 		public string[] LaserCaptions { get; set; }
+		// Lightning
+		public string LightningDistance { get; set; }
+		public string LightningTime { get; set; }
+		public string LightningCount { get; set; }
 		// Hi/Lo captions
 		public Dictionary<string, string> DataCaptions { get; set; }	
 	}
