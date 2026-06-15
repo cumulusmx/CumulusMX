@@ -2491,10 +2491,15 @@ namespace CumulusMX
 
 			if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 			{
-				if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+				if (RealtimeFtpWatchDogTokenSource.IsCancellationRequested)
 				{
 					// we cannot get the lock - abort
-					LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
+					LogMessage($"Realtime[{cycle}]: Warning, the realtime watchdog has already been triggered, aborting upload for this cycle");
+				}
+				else if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+				{
+					// we cannot get the lock - abort
+					LogMessage($"Realtime[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
 				}
 				else
 				{
@@ -2575,9 +2580,6 @@ namespace CumulusMX
 			var watchdogCts = new CancellationTokenSource();
 			RealtimeFtpWatchDogTaskTokenSource = watchdogCts;
 
-			// Reconnect trigger CTS (replaced, never disposed)
-			RealtimeFtpWatchDogTokenSource = new CancellationTokenSource();
-
 			RealtimeFtpWatchDogTask = Task.Run(async () =>
 			{
 				bool connected = false;
@@ -2638,6 +2640,9 @@ namespace CumulusMX
 					// Connected — sleep until next test
 					LogDebugMessage($"RealtimeFtpWatchDog: Sleeping {realtimeFtpWdInterval} seconds");
 
+					// Replace the reconnect CTS with a fresh one (replaced, never disposed)
+					RealtimeFtpWatchDogTokenSource = new CancellationTokenSource();
+
 					using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
 						Program.ExitSystemToken,
 						watchdogCts.Token,
@@ -2668,9 +2673,6 @@ namespace CumulusMX
 						if (RealtimeFtpWatchDogTokenSource.IsCancellationRequested)
 						{
 							LogMessage("RealtimeFtpWatchDog: FTP error detected — reconnect requested");
-
-							// Replace the reconnect CTS with a fresh one
-							RealtimeFtpWatchDogTokenSource = new CancellationTokenSource();
 
 							// Force reconnect on next loop
 							reinit = true;
@@ -11844,13 +11846,15 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}", realtime);
 
-				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
-				FtpAlarm.Triggered = true;
-
 				if (ex.InnerException != null)
 				{
 					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}", realtime);
+					LogExceptionMessage(ex, $"FTP[{cycleStr}]: Exception dump", false);
 				}
+
+
+				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				return false;
 			}
