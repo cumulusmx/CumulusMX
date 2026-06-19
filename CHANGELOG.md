@@ -30,6 +30,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Soil moisture units now set per sensor per station
 - Davis Cloud Station saving soil temperature values as soil moisture!
 - Fix occasional "System.objectDisposedException" during real-time FTP operations
+- Re-fix the `<#daylength>` and `<#Tagdaylightlength>` tag outputs when the value is 24 hours
 
 ---
 

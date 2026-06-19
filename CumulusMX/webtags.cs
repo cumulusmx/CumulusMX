@@ -3681,6 +3681,11 @@ namespace CumulusMX
 
 		private string Tagdaylength(Dictionary<string, string> tagParams)
 		{
+			// If the sun is up all day the total hours = 24, which outputs as "00"!
+			if (cumulus.DayLength.TotalHours == 24)
+			{
+				return "24:00";
+			}
 			return GetFormattedTimeSpan(cumulus.DayLength, "{0:%h}:{0:mm}", tagParams);
 		}
 
@@ -3696,6 +3701,11 @@ namespace CumulusMX
 
 		private string Tagdaylightlength(Dictionary<string, string> tagParams)
 		{
+			// If there is no darkness the total hours = 24, which outputs as "00"!
+			if (cumulus.DaylightLength.TotalHours == 24)
+			{
+				return "24:00";
+			}
 			return GetFormattedTimeSpan(cumulus.DaylightLength, "{0:%h}:{0:mm}", tagParams);
 		}
 
