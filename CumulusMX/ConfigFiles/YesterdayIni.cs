@@ -178,6 +178,12 @@ namespace CumulusMX
 			// Humidex
 			ini.SetValue("Humidex", "High", DailyHighLow.Yest.HighHumidex);
 			ini.SetValue("Humidex", "HTime", DailyHighLow.Yest.HighHumidexTime);
+			// BGT
+			ini.SetValue("BGT", "High", DailyHighLow.Yest.HighBgt);
+			ini.SetValue("BGT", "HTime", DailyHighLow.Yest.HighBgtTime);
+			// WBGT
+			ini.SetValue("WBGT", "High", DailyHighLow.Yest.HighWbgt);
+			ini.SetValue("WBGT", "HTime", DailyHighLow.Yest.HighWbgtTime);
 
 			ini.Flush();
 
