@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading;
@@ -62,6 +63,7 @@ namespace CumulusMX.Settings
 				userainforisraining = cumulus.StationOptions.UseRainForIsRaining,
 				snowseasonstart = cumulus.SnowSeasonStart,
 				calcwbgt = cumulus.StationOptions.CalculatedWBGT,
+				wbgtthresholds = string.Concat(cumulus.StationOptions.WbgtThresholds.Select((x, i) => x.ToString(CultureInfo.InvariantCulture) + (i < cumulus.StationOptions.WbgtThresholds.Length - 1 ? ", " : ""))),
 				advanced = optionsAdv
 			};
 
@@ -757,6 +759,14 @@ namespace CumulusMX.Settings
 					cumulus.StationOptions.CalculatedET = settings.Options.calculateet;
 					cumulus.StationOptions.CalculateSLP = settings.Options.calculateslp;
 					cumulus.StationOptions.CalculatedWBGT = settings.Options.calcwbgt;
+					var wbgtThres = settings.Options.wbgtthresholds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+					if (wbgtThres.Length == 4)
+					{
+						cumulus.StationOptions.WbgtThresholds[0] = decimal.Parse(wbgtThres[0], CultureInfo.InvariantCulture);
+						cumulus.StationOptions.WbgtThresholds[1] = decimal.Parse(wbgtThres[1], CultureInfo.InvariantCulture);
+						cumulus.StationOptions.WbgtThresholds[2] = decimal.Parse(wbgtThres[2], CultureInfo.InvariantCulture);
+						cumulus.StationOptions.WbgtThresholds[3] = decimal.Parse(wbgtThres[3], CultureInfo.InvariantCulture);
+					}
 					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
 					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
@@ -1870,6 +1880,7 @@ namespace CumulusMX.Settings
 			public bool calculateet { get; set; }
 			public bool calculateslp { get; set; }
 			public bool calcwbgt { get; set; }
+			public string wbgtthresholds { get; set; }
 			public bool cumuluspresstrendnames { get; set; }
 			public bool roundwindspeeds { get; set; }
 			public bool ignorelacrosseclock { get; set; }

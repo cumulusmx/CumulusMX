@@ -491,6 +491,38 @@ namespace CumulusMX
 			return ret;
 		}
 
+		private static string EncodeDecimalArray(decimal[] Value)
+		{
+			if (Value == null) return null;
+
+			var sb = new StringBuilder();
+
+			for (var i = 0; i < Value.Length; i++)
+			{
+				sb.Append(Value[i].ToString(CultureInfo.InvariantCulture) + ',');
+			}
+
+			if (Value.Length > 0)
+				sb.Length--;
+
+			return sb.ToString();
+		}
+
+		// *** Decode string array - very basic, no escaped quotes allowed
+		private static decimal[] DecodeDecimalArray(string Value, decimal[] Default)
+		{
+			if (Value == null) return [];
+
+			var arr = Value.Split(',');
+			var ret = new decimal[Default.Length];
+			for (var i = 0; i < ret.Length; i++)
+			{
+				ret[i] = arr.Length > i ? Convert.ToDecimal(arr[i], CultureInfo.InvariantCulture) : Default[i];
+			}
+
+			return ret;
+		}
+
 		// *** Getters for various types ***
 		internal string GetValue(string SectionName, string Key, string DefaultValue)
 		{
@@ -653,6 +685,19 @@ namespace CumulusMX
 			}
 		}
 
+		internal decimal[] GetValue(string SectionName, string Key, decimal[] DefaultValue)
+		{
+			string StringValue = GetValue(SectionName, Key, EncodeDecimalArray(DefaultValue));
+			try
+			{
+				return DecodeDecimalArray(StringValue, DefaultValue);
+			}
+			catch (FormatException)
+			{
+				return DefaultValue;
+			}
+		}
+
 
 		internal DateTime GetValue(string SectionName, string Key, DateTime DefaultValue)
 		{
@@ -740,6 +785,11 @@ namespace CumulusMX
 		internal void SetValue(string SectionName, string Key, int[] Value)
 		{
 			SetValue(SectionName, Key, EncodeIntArray(Value));
+		}
+
+		internal void SetValue(string SectionName, string Key, decimal[] Value)
+		{
+			SetValue(SectionName, Key, EncodeDecimalArray(Value));
 		}
 
 		internal void SetValue(string SectionName, string Key, DateTime Value)

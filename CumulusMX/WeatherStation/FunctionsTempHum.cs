@@ -147,6 +147,12 @@ namespace CumulusMX
 				CheckForDewpointHighLow(timestamp);
 			}
 
+			// Does the WBGT need updating?
+			if (cumulus.StationOptions.CalculatedWBGT)
+			{
+				CalculateWBGT(timestamp);
+			}
+
 			TempReadyToPlot = true;
 			HaveReadData = true;
 		}
