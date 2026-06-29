@@ -4362,6 +4362,8 @@ namespace CumulusMX
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", Units.Temp == 0 ? 7 : 45);
 			ChillHourBase = ini.GetValue("Station", "ChillHourBase", -99);
 
+			StationOptions.WbgtThresholds = ini.GetValue("Station", "WBGTthresholds", [25.0m, 28.0m, 30.0m, 32.5m]);
+
 			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
 			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
 			RG11TBRmode = ini.GetValue("Station", "RG11TBRmode", false);
@@ -6423,6 +6425,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "ChillHourSeasonStart", ChillHourSeasonStart);
 			ini.SetValue("Station", "ChillHourThreshold", ChillHourThreshold);
 			ini.SetValue("Station", "ChillHourBase", ChillHourBase);
+
+			ini.SetValue("Station", "WBGTthresholds", StationOptions.WbgtThresholds);
 
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
@@ -14835,6 +14839,7 @@ namespace CumulusMX
 		public int ClockSettingHour { get; set; }
 		public bool CalculateSLP { get; set; }
 		public bool CalculatedWBGT { get; set; }
+		public decimal[] WbgtThresholds { get; set; }
 		public bool UseCumulusPresstrendstr { get; set; }
 		public bool LogExtraSensors { get; set; }
 		public bool WS2300IgnoreStationClock { get; set; }

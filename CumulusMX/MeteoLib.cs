@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CumulusMX
 {
@@ -679,6 +680,35 @@ namespace CumulusMX
 			var wetBulbC = CalculateWetBulbC(tempC, dewPointC, pressHpa);
 
 			return 0.7 * wetBulbC + 0.3 * globeTempC;
+		}
+
+		private static readonly decimal[] cat1 = [24.5m, 27.2m, 28.9m, 30.0m];
+		private static readonly decimal[] cat2 = [26.5m, 29.2m, 30.9m, 32.0m];
+		private static readonly decimal[] cat3 = [27.8m, 30.5m, 32.2m, 33.3m];
+
+		/// <summary>
+		/// Given a WBGT temperature and a index category, gets the corresponding index level
+		/// </summary>
+		/// <param name="wbgtC">WBGT value (Celsius)</param>
+		/// <param name="thresholds">Array of thresholds for each level</param>
+		/// <returns>The WGBT level index</returns>
+		public static int WBGTlevel(double wbgtC, int category, decimal[] thresholds)
+		{
+			var cats = new List<decimal[]> { thresholds, cat1, cat2, cat3 };
+
+			var temp = (decimal) Math.Truncate(wbgtC * 10) / 10;
+
+			// upper levels for each category
+			if (temp < cats[category][0])
+				return 1;
+			else if (temp < cats[category][1])
+				return 2;
+			else if (temp < cats[category][2])
+				return 3;
+			else if (temp < cats[category][3])
+				return 4;
+			else
+				return 5;
 		}
 	}
 }

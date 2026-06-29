@@ -15,6 +15,19 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Adds translations for the lightning fields on the Extra Sensors page
+- A new web tag to provide the WBGT exposure level 1-5 `<#WBGTlevel>`, the tag takes an optional parameter `cat=N` (where N = 0 to 3) - invalid cat=N returns 0
+	- The "cat" parameter specifies which category scale to use for the exposure level (see below), it defaults to "cat=0"
+	- Categories 1-3 correspond to the US National Weather Service
+	- Category 0 is user defined. The user defined range must be specified in Celsius
+	- Category 0 default values correspond to ACGIH TLV action limits for an unacclimatized person
+
+	| Level | Cat 0 (°C)  | Cat 1 (°C)  | Cat 2 (°C)  | Cat 3 (°C)  | Threat Level |
+	|:-----:|:-----------:|:-----------:|:-----------:|:-----------:|:-------------|
+	|   1   |   < 25.0    |    < 24.5   |   < 26.5    |   < 27.8    | Low          |
+	|   2   | 25.0 - 27.9 | 24.5 - 27.1 | 26.5 - 29.1 | 27.8 - 30.4 | Moderate     |
+	|   3   | 28.0 - 29.9 | 27.2 - 28.8 | 29.2 - 30.8 | 30.5 - 32.1 | High         |
+	|   4   | 30.0 - 32.4 | 28.9 - 29.9 | 30.9 - 31.9 | 32.2 - 33.2 | Very High    |
+	|   5   |   >= 32.5   |   >= 30.0   |   >= 32.0   |   >= 33.3   | Extreme      |
 
 ### Changed
 

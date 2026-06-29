@@ -5604,6 +5604,22 @@ namespace CumulusMX
 			return station.WetBulbGlobeTemp.HasValue ? CheckRcDp(station.WetBulbGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagWbgtLevel(Dictionary<string, string> tagParams)
+		{
+			var category = 0;
+			if (int.TryParse(tagParams.Get("cat"), out int val))
+			{
+				category = val;
+			}
+
+			if (category < 0 || category > 3)
+				return "0";
+
+			return station.WetBulbGlobeTemp.HasValue ?
+				MeteoLib.WBGTlevel(ConvertUnits.UserTempToC(station.WetBulbGlobeTemp.Value), category, cumulus.StationOptions.WbgtThresholds).ToString() :
+				"0";
+		}
+
 		// Alarms
 		private string TagLowTempAlarm(Dictionary<string, string> tagParams)
 		{
@@ -7937,6 +7953,7 @@ namespace CumulusMX
 				{ "ByMonthBgtHT", TagByMonthBgtHt },
 
 				{ "WetBulbGlobeTemp", TagWetBulbGlobeTemp },
+				{ "WbgtLevel", TagWbgtLevel },
 				{ "WbgtTH", TagWbgtTh },
 				{ "TWbgtTH", TagTWbgtTh },
 				{ "WbgtYH", TagWbgtYh },
