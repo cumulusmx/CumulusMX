@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.5 \[b5012\]][35] - 2026-06-30
+## [5.1.5 \[b5012\]][35] - 2026-07-03
 
 ### New
 
@@ -37,6 +37,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	```
 	(10_min_average_12h_ago + current_10_min_average) / 2
 	```
+- Comments are now allowed in JSON Station input JSON
 
 ### Fixed
 

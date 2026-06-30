@@ -29,6 +29,11 @@ namespace CumulusMX.Stations
 
 		private DateTime lastFileUpdateTime = DateTime.MinValue;
 
+		private static readonly JsonSerializerOptions jsonOptions = new()
+		{
+			ReadCommentHandling = JsonCommentHandling.Skip
+		};
+
 		public JsonStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
 			this.station = station;
@@ -263,7 +268,7 @@ namespace CumulusMX.Stations
 
 			var retStr = new StringBuilder();
 
-			var data = JsonSerializer.Deserialize<DataObject>(dataString);
+			var data = JsonSerializer.Deserialize<DataObject>(dataString, jsonOptions);
 
 			if (data == null)
 			{
