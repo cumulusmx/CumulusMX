@@ -167,9 +167,9 @@ namespace CumulusMX.Stations
 			mqttClient.Dispose();
 		}
 
-		static readonly JsonSerializerOptions SerializerOptions = new()
-		{
-			WriteIndented = true
-		};
+		//static readonly JsonSerializerOptions SerializerOptions = new()
+		//{
+		//	WriteIndented = true
+		//};
 	}
 }
