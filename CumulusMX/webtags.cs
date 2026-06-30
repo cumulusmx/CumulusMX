@@ -7958,6 +7958,8 @@ namespace CumulusMX
 				{ "TWbgtTH", TagTWbgtTh },
 				{ "WbgtYH", TagWbgtYh },
 				{ "TWbgtYH", TagTWbgtYh },
+				{ "WbgtH", TagWbgtH },
+				{ "TWbgtH", TagTWbgtH },
 				{ "MonthWbgtH", TagMonthWbgtH },
 				{ "MonthWbgtHT", TagMonthWbgtHt },
 				{ "MonthWbgtHD", TagMonthWbgtHd },

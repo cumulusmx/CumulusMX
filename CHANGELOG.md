@@ -46,6 +46,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix occasional "System.objectDisposedException" during real-time FTP operations
 - Re-fix the `<#daylength>` and `<#Tagdaylightlength>` tag outputs when the value is 24 hours
 - Yesterdays high BGT/WBGT values not being written to the yesterday.ini
+- Fix `<#WbgtH> <#TWbgtH>` web tags not actually being implemented!
 
 ---
 
