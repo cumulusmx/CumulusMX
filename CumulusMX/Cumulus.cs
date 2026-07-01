@@ -2500,9 +2500,15 @@ namespace CumulusMX
 			{
 				LogExceptionMessage(ex, "Realtime[{cycle}]: Error during file copies");
 			}
-			finally
+
+			try
 			{
-				realtimeCopySemaphore.Release();
+				if (realtimeCopySemaphore.CurrentCount == 0)
+					realtimeCopySemaphore.Release();
+			}
+			catch
+			{
+				// ignore any errors
 			}
 
 			if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
@@ -2530,9 +2536,15 @@ namespace CumulusMX
 						// signal the wd to attmpt to reconnect
 						RealtimeFtpWatchDogTokenSource.Cancel();
 					}
-					finally
+
+					try
 					{
-						realtimeFtpSemaphore.Release();
+						if (realtimeFtpSemaphore.CurrentCount == 0)
+							realtimeFtpSemaphore.Release();
+					}
+					catch
+					{
+						// ignore any errors
 					}
 				}
 			}
