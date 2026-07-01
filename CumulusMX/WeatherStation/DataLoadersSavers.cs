@@ -878,7 +878,7 @@ namespace CumulusMX
 			{
 				var queryString = new StringBuilder(cumulus.DayfileTable.StartOfInsert, 1024);
 				queryString.Append(" Values(");
-				queryString.Append(timestamp.AddDays(-1).ToString("\\'yy-MM-dd\\'", inv));
+				queryString.Append(timestamp.AddDays(-1).ToString("\\'yyyy-MM-dd\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighGust.ToString(cumulus.WindFormat, inv));
 				queryString.Append(sep + DailyHighLow.Today.HighGustBearing);
 				queryString.Append(sep + DailyHighLow.Today.HighGustTime.ToString("\\'HH:mm\\'", inv));
