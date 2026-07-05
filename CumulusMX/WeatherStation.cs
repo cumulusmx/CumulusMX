@@ -14972,19 +14972,11 @@ namespace CumulusMX
 
 			// air quality
 			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
-			if (cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined
-				&& cumulus.StationOptions.PrimaryAqSensor != (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
+			if (cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{
 				json.Append(",\"AirQuality\":[");
 				json.Append("\"PM 2.5\"");
-
-				// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-				if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-					cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-					cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
-				{
-					json.Append(",\"PM 10\"");
-				}
+				json.Append(",\"PM 10\"");
 				json.Append(']');
 			}
 
