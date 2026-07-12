@@ -38,6 +38,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	(10_min_average_12h_ago + current_10_min_average) / 2
 	```
 - Comments are now allowed in JSON Station input JSON
+- Improved some error logging messages in `upload.php`
 
 ### Fixed
 
@@ -48,6 +49,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Yesterdays high BGT/WBGT values not being written to the yesterday.ini
 - Fix `<#WbgtH> <#TWbgtH>` web tags not actually being implemented!
 - PM 10 data not showing on the Dashboard charts when data is ingested via the JSON station
+- Fix error in Ecowitt HTTP station parsing firmware version for OEM stations that do not send the data
 
 ### Package Updates
 

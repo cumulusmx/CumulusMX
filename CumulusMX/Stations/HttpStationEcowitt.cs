@@ -478,12 +478,27 @@ namespace CumulusMX.Stations
 					reportStationType = false;
 				}
 
-				var modelVer = data["model"].Split("_V");
-				if (modelVer.Length == 2)
+				try
 				{
-					deviceModel = modelVer[0];
-					deviceFirmware = new Version(modelVer[1]);
-					GW1000FirmwareVersion = modelVer[1];
+					if (data["model"].Contains("_V"))
+					{
+						var modelVer = data["model"].Split("_V");
+						if (modelVer.Length == 2)
+						{
+							deviceModel = modelVer[0];
+							deviceFirmware = new Version(modelVer[1]);
+							GW1000FirmwareVersion = modelVer[1];
+						}
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"{procName}: No firmware version present, skipping processing");
+						GW1000FirmwareVersion = "unknown";
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"{procName}: Error parsing the model/firmware strings. Model='{data["model"]}', StationType='{data["stationtype"]}'");
 				}
 
 				// Only do the primary sensors if running as the main station
@@ -1078,7 +1093,7 @@ namespace CumulusMX.Stations
 				// === Firmware Version ===
 				try
 				{
-					if (data["stationtype"] != null)
+					if (data["stationtype"] != null && data["stationtype"].Contains("_V"))
 					{
 						var separator = new string[] { "_V" };
 						var fwString = data["stationtype"].Split(separator, StringSplitOptions.None);
