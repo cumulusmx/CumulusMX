@@ -10318,8 +10318,8 @@ namespace CumulusMX
 			double avgTemp;
 			try
 			{
-				// Do 12 hour values
-				var val12h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? and Timestamp < ? order by Timestamp", ts.AddHours(-12).ToUnixTime(), ts.AddHours(-12).AddMinutes(10).ToUnixTime());
+				// Do 12 hour values, 10 minute average 12 hours ago, current 10 minute average
+				var val12h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? and Timestamp < ? order by Timestamp", ts.AddHours(-12).AddMinutes(-10).ToUnixTime(), ts.AddHours(-12).ToUnixTime());
 				var val0h = RecentDataDb.ExecuteScalar<double?>("select avg(OutsideTemp) from RecentData where Timestamp >= ? order by Timestamp", ts.AddMinutes(-10).ToUnixTime());
 
 				// Calculate "average" Temperature for the last 12 hours		

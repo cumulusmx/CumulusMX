@@ -130,6 +130,7 @@ namespace CumulusMX.Stations
 
 		public override void Start()
 		{
+			var startup = true;
 			lastMinute = DateTime.Now.Minute;
 
 			// Start a broadcast watchdog to warn if messages are not being received
@@ -181,200 +182,207 @@ namespace CumulusMX.Stations
 			cumulus.StartTimersAndSensors();
 
 			while (!Program.ExitSystemToken.IsCancellationRequested)
+			{
+				var dataLastRead = DateTime.Now;
+				double delay;
+
+				try
 				{
-					var dataLastRead = DateTime.Now;
-					double delay;
-
-					try
+					if (!DayResetInProgress)
 					{
-						if (!DayResetInProgress)
+						var rawData = localApi.GetLiveData(Program.ExitSystemToken);
+						if (rawData is not null)
 						{
-							var rawData = localApi.GetLiveData(Program.ExitSystemToken);
-							if (rawData is not null)
+							dataLastRead = DateTime.Now;
+							outdoortemp = -999;
+
+							// process the common_list sensors
+							if (rawData.common_list != null)
 							{
-								dataLastRead = DateTime.Now;
-								outdoortemp = -999;
+								ProcessCommonList(rawData.common_list, dataLastRead);
+							}
 
-								// process the common_list sensors
-								if (rawData.common_list != null)
+							// process base station values
+							if (rawData.wh25 != null)
+							{
+								ProcessWh25(rawData.wh25, dataLastRead);
+							}
+
+							// process rain values
+							if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
+							{
+								ProcessRain(rawData.rain, false);
+							}
+
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo) && rawData.piezoRain != null)
+							{
+								// if we are using piezo as the primary rain sensor
+								// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
+								ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
+							}
+
+							if (rawData.lightning != null)
+							{
+								ProcessLightning(rawData.lightning, dataLastRead);
+							}
+
+							if (rawData.co2 != null)
+							{
+								ProcessCo2(rawData.co2);
+							}
+
+							if (rawData.ch_pm25 != null)
+							{
+								ProcessChPm25(rawData.ch_pm25);
+							}
+
+							if (rawData.ch_leak != null)
+							{
+								ProcessLeak(rawData.ch_leak);
+							}
+
+							if (rawData.ch_aisle != null)
+							{
+								ProcessExtraTempHum(rawData.ch_aisle, dataLastRead);
+							}
+
+							if (rawData.ch_temp != null)
+							{
+								ProcessUserTemp(rawData.ch_temp);
+							}
+
+							if (rawData.ch_soil != null)
+							{
+								ProcessSoilMoisture(rawData.ch_soil);
+							}
+
+							if (rawData.ch_ec != null)
+							{
+								ProcessSoilMoistureEc(rawData.ch_ec);
+							}
+
+							if (rawData.ch_leaf != null)
+							{
+								ProcessLeafWet(rawData.ch_leaf);
+							}
+
+							if (rawData.ch_lds != null)
+							{
+								ProcessLds(rawData.ch_lds);
+							}
+
+							// Now do the stuff that requires more than one input parameter
+
+
+							// Process outdoor temperature here so we have humidity available
+							if (outdoortemp > -999)
+							{
+								DoOutdoorTemp(outdoortemp, dataLastRead);
+							}
+
+							// Same for extra T/H sensors
+							for (var i = 1; i <= 8; i++)
+							{
+								if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
 								{
-									ProcessCommonList(rawData.common_list, dataLastRead);
+									var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
+									ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
+								}
+							}
+
+							if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
+							{
+								DoWind(gustLast, windDirLast, windSpeedLast, dataLastRead);
+							}
+
+							if (rainLast > -999 && rainRateLast > -999)
+							{
+								DoRain(rainLast, rainRateLast, dataLastRead);
+							}
+
+							if (outdoortemp > -999)
+							{
+								DoWindChill(windchill, dataLastRead);
+								DoApparentTemp(dataLastRead);
+								DoFeelsLike(dataLastRead);
+								DoHumidex(dataLastRead);
+								DoCloudBaseHeatIndex(dataLastRead);
+
+								if (cumulus.StationOptions.CalculateSLP)
+								{
+									var avgTemp = CalculateBaro12hAvgTemp(dataLastRead);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
+								}
+							}
+
+							cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
+							UpdateStatusPanel(dataLastRead.ToUniversalTime());
+							UpdateMQTT();
+
+							if (startup)
+							{
+								DumpRuntime(rawData);
+								startup = false;
+							}
+
+							dataReceived = true;
+							LastDataReadTime = dataLastRead;
+
+							var minute = DateTime.Now.Minute;
+							if (minute != lastMinute)
+							{
+								lastMinute = minute;
+
+								// at the start of every 20 minutes to trigger battery status check and dump the station runtime
+								if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
+								{
+									_ = GetSensorIds(true);
+									DumpRuntime(rawData);
 								}
 
-								// process base station values
-								if (rawData.wh25 != null)
+								// every day dump the clock drift at midday each day
+								if (minute == 0 && DateTime.Now.Hour == 12)
 								{
-									ProcessWh25(rawData.wh25, dataLastRead);
+									_ = GetSystemInfo(false, true);
 								}
 
-								// process rain values
-								if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
+								var hour = DateTime.Now.Hour;
+								if (lastHour != hour)
 								{
-									ProcessRain(rawData.rain, false);
-								}
+									lastHour = hour;
 
-								if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo) && rawData.piezoRain != null)
-								{
-									// if we are using piezo as the primary rain sensor
-									// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
-									ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
-								}
-
-								if (rawData.lightning != null)
-								{
-									ProcessLightning(rawData.lightning, dataLastRead);
-								}
-
-								if (rawData.co2 != null)
-								{
-									ProcessCo2(rawData.co2);
-								}
-
-								if (rawData.ch_pm25 != null)
-								{
-									ProcessChPm25(rawData.ch_pm25);
-								}
-
-								if (rawData.ch_leak != null)
-								{
-									ProcessLeak(rawData.ch_leak);
-								}
-
-								if (rawData.ch_aisle != null)
-								{
-									ProcessExtraTempHum(rawData.ch_aisle, dataLastRead);
-								}
-
-								if (rawData.ch_temp != null)
-								{
-									ProcessUserTemp(rawData.ch_temp);
-								}
-
-								if (rawData.ch_soil != null)
-								{
-									ProcessSoilMoisture(rawData.ch_soil);
-								}
-
-								if (rawData.ch_ec != null)
-								{
-									ProcessSoilMoistureEc(rawData.ch_ec);
-								}
-
-								if (rawData.ch_leaf != null)
-								{
-									ProcessLeafWet(rawData.ch_leaf);
-								}
-
-								if (rawData.ch_lds != null)
-								{
-									ProcessLds(rawData.ch_lds);
-								}
-
-								// Now do the stuff that requires more than one input parameter
-
-
-								// Process outdoor temperature here so we have humidity available
-								if (outdoortemp > -999)
-								{
-									DoOutdoorTemp(outdoortemp, dataLastRead);
-								}
-
-								// Same for extra T/H sensors
-								for (var i = 1; i <= 8; i++)
-								{
-									if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
+									if (hour == 13)
 									{
-										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
-										ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
-									}
-								}
-
-								if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
-								{
-									DoWind(gustLast, windDirLast, windSpeedLast, dataLastRead);
-								}
-
-								if (rainLast > -999 && rainRateLast > -999)
-								{
-									DoRain(rainLast, rainRateLast, dataLastRead);
-								}
-
-								if (outdoortemp > -999)
-								{
-									DoWindChill(windchill, dataLastRead);
-									DoApparentTemp(dataLastRead);
-									DoFeelsLike(dataLastRead);
-									DoHumidex(dataLastRead);
-									DoCloudBaseHeatIndex(dataLastRead);
-
-									if (cumulus.StationOptions.CalculateSLP)
-									{
-										var avgTemp = CalculateBaro12hAvgTemp(dataLastRead);
-										var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
-										DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
-									}
-								}
-
-								cumulus.BatteryLowAlarm.Triggered = batteryLow;
-
-								UpdateStatusPanel(dataLastRead.ToUniversalTime());
-								UpdateMQTT();
-
-								dataReceived = true;
-								LastDataReadTime = dataLastRead;
-
-								var minute = DateTime.Now.Minute;
-								if (minute != lastMinute)
-								{
-									lastMinute = minute;
-
-									// at the start of every 20 minutes to trigger battery status check
-									if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
-									{
-										_ = GetSensorIds(true);
-									}
-
-									// every day dump the clock drift at midday each day
-									if (minute == 0 && DateTime.Now.Hour == 12)
-									{
-										_ = GetSystemInfo(false, true);
-									}
-
-									var hour = DateTime.Now.Hour;
-									if (lastHour != hour)
-									{
-										lastHour = hour;
-
-										if (hour == 13)
-										{
-											_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
-											Task.Delay(1000, Program.ExitSystemToken);
-											GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
-										}
+										_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
+										Task.Delay(1000, Program.ExitSystemToken);
+										GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 									}
 								}
 							}
 						}
 					}
-					// Catch the ThreadAbortException
-					catch (ThreadAbortException)
-					{
-						//do nothing
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogExceptionMessage(ex, "Ecowitt Local HTTP API station background task error - continuing");
-					}
-
-					delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
-
-					Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
-
-					if (Program.ExitSystemToken.IsCancellationRequested)
-					{
-						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
-					}
 				}
+				// Catch the ThreadAbortException
+				catch (ThreadAbortException)
+				{
+					//do nothing
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Ecowitt Local HTTP API station background task error - continuing");
+				}
+
+				delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
+
+				Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
+
+				if (Program.ExitSystemToken.IsCancellationRequested)
+				{
+					cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
+				}
+			}
 		}
 
 		public override void Stop()
@@ -1541,6 +1549,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 
+						case "0x7D": // rain event
 						case "0x7C": // rain 24h
 						case "0x10": // Rain day
 						case "0x11": // Rain week
@@ -2115,6 +2124,15 @@ namespace CumulusMX.Stations
 			}
 
 			return false;
+		}
+
+		private void DumpRuntime(EcowittLocalApi.LiveData data)
+		{
+			if (data.debug is not null && data.debug.Length == 1 && data.debug[0].runtime.HasValue)
+			{
+				var uptime = TimeSpan.FromSeconds(data.debug[0].runtime.Value);
+				cumulus.LogDebugMessage($"Station uptime = {data.debug[0].runtime} seconds ({uptime:c})");
+			}
 		}
 
 		private void DataTimeout(object source, ElapsedEventArgs e)

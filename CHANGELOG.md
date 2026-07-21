@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.5 \[b5012\]][35] - 2026-07-04
+## [5.1.5 \[b5012\]][35] - 2026-07-22
 
 ### New
 
@@ -21,13 +21,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Category 0 is user defined. The user defined range must be specified in Celsius
 	- Category 0 default values are based on ACGIH TLV action limits for an unacclimatized person
 
-	| Level | Cat 0 (°C)  | Cat 1 (°C)  | Cat 2 (°C)  | Cat 3 (°C)  | Threat Level | Flag   |
-	|:-----:|:-----------:|:-----------:|:-----------:|:-----------:|:-------------|:-------|
-	|   1   |   < 25.0    |    < 24.5   |   < 26.5    |   < 27.8    | Low          | White  |
-	|   2   | 25.0 - 27.9 | 24.5 - 27.1 | 26.5 - 29.1 | 27.8 - 30.4 | Moderate     | Green  |
-	|   3   | 28.0 - 29.9 | 27.2 - 28.8 | 29.2 - 30.8 | 30.5 - 32.1 | High         | Yellow |
-	|   4   | 30.0 - 32.4 | 28.9 - 29.9 | 30.9 - 31.9 | 32.2 - 33.2 | Very High    | Red    |
-	|   5   |   >= 32.5   |   >= 30.0   |   >= 32.0   |   >= 33.3   | Extreme      | Black  |
+	| Level | Cat 0 (°C) | Cat 1 (°F) | Cat 2 (°F) | Cat 3 (°F) | Threat Level | Flag   |
+	|:-----:|:----------:|:----------:|:----------:|:----------:|:-------------|:-------|
+	|   1   |   < 25.0   |   < 76.1   |   < 79.8   |   < 82.0   | Low          | White  |
+	|   2   |     25.0   |     76.1   |     79.8   |     82.0   | Moderate     | Green  |
+	|   3   |     28.0   |     81.0   |     84.6   |     87.0   | High         | Yellow |
+	|   4   |     30.0   |     84.2   |     87.7   |     90.0   | Very High    | Red    |
+	|   5   |  >= 32.5   |  >= 86.2   |  >= 89.8   |  >= 92.0   | Extreme      | Black  |
 
 ### Changed
 
@@ -50,6 +50,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix `<#WbgtH> <#TWbgtH>` web tags not actually being implemented!
 - PM 10 data not showing on the Dashboard charts when data is ingested via the JSON station
 - Fix error in Ecowitt HTTP station parsing firmware version for OEM stations that do not send the data
+- Fix error message if the PHP secret is left blank. A new GUID value is now correctly applied
 
 ### Package Updates
 

@@ -4374,7 +4374,7 @@ namespace CumulusMX
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", Units.Temp == 0 ? 7 : 45);
 			ChillHourBase = ini.GetValue("Station", "ChillHourBase", -99);
 
-			StationOptions.WbgtThresholds = ini.GetValue("Station", "WBGTthresholds", [25.0m, 28.0m, 30.0m, 32.5m]);
+			StationOptions.WbgtThresholds = ini.GetValue("Station", "WBGTthresholds", [25.0m, 28.0m, 30.0m, 32.5m]); // 77.0, 82.4, 86.0, 90.5
 
 			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
 			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
@@ -6176,7 +6176,10 @@ namespace CumulusMX
 				AirLinkApiSecret = Crypto.DecryptString(AirLinkApiSecret, Program.InstanceId, "AirLinkApiSecret");
 				FtpOptions.Username = Crypto.DecryptString(FtpOptions.Username, Program.InstanceId, "FtpOptions.Username");
 				FtpOptions.Password = Crypto.DecryptString(FtpOptions.Password, Program.InstanceId, "FtpOptions.Password");
-				FtpOptions.PhpSecret = Crypto.DecryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret");
+				if (!Guid.TryParse(FtpOptions.PhpSecret, out _)) // Have we assigned a new unencrypted GUID?
+				{
+					FtpOptions.PhpSecret = Crypto.DecryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret");
+				}
 				Wund.PW = Crypto.DecryptString(Wund.PW, Program.InstanceId, "Wund.PW");
 				Windy.PW = Crypto.DecryptString(Windy.PW, Program.InstanceId, "Windy.PW");
 				Windy.ApiKey = Crypto.DecryptString(Windy.ApiKey, Program.InstanceId, "Windy.ApiKey");
