@@ -416,7 +416,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="altitudeM">Station altitude in metres</param>
 		/// <param name="pressureHpa">Station pressure in inHg</param>
-		/// <param name="tempC">MetData temperature</param>
+		/// <param name="tempC">12 hour average temperature</param>
 		/// <param name="latitude">Latitude of the Stations</param>
 		/// <returns>Returns the sea level pressure in hPa</returns>
 		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC, decimal latitude)
@@ -682,9 +682,9 @@ namespace CumulusMX
 			return 0.7 * wetBulbC + 0.3 * globeTempC;
 		}
 
-		private static readonly decimal[] cat1 = [24.5m, 27.2m, 28.9m, 30.0m];
-		private static readonly decimal[] cat2 = [26.5m, 29.2m, 30.9m, 32.0m];
-		private static readonly decimal[] cat3 = [27.8m, 30.5m, 32.2m, 33.3m];
+		private static readonly decimal[] cat1 = [76.1m, 81.0m, 84.2m, 86.2m]; // 76.1, 81.0, 84.2, 86.2
+		private static readonly decimal[] cat2 = [79.8m, 84.6m, 87.7m, 89.8m]; // 79.8, 84.6, 87.7, 89.8
+		private static readonly decimal[] cat3 = [82.0m, 87.0m, 90.0m, 92.0m]; // 82.0, 87.0, 90.0, 92.0
 
 		/// <summary>
 		/// Given a WBGT temperature and a index category, gets the corresponding index level
@@ -695,6 +695,11 @@ namespace CumulusMX
 		public static int WBGTlevel(double wbgtC, int category, decimal[] thresholds)
 		{
 			var cats = new List<decimal[]> { thresholds, cat1, cat2, cat3 };
+
+			if (category > 0)
+			{
+				wbgtC = CToF(wbgtC);
+			}
 
 			var temp = (decimal) Math.Truncate(wbgtC * 10) / 10;
 

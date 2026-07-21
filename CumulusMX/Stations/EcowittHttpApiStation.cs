@@ -130,6 +130,7 @@ namespace CumulusMX.Stations
 
 		public override void Start()
 		{
+			var startup = true;
 			lastMinute = DateTime.Now.Minute;
 
 			// Start a broadcast watchdog to warn if messages are not being received
@@ -320,6 +321,12 @@ namespace CumulusMX.Stations
 							UpdateStatusPanel(dataLastRead.ToUniversalTime());
 							UpdateMQTT();
 
+							if (startup)
+							{
+								DumpRuntime(rawData);
+								startup = false;
+							}
+
 							dataReceived = true;
 							LastDataReadTime = dataLastRead;
 
@@ -328,10 +335,11 @@ namespace CumulusMX.Stations
 							{
 								lastMinute = minute;
 
-								// at the start of every 20 minutes to trigger battery status check
+								// at the start of every 20 minutes to trigger battery status check and dump the station runtime
 								if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
 								{
 									_ = GetSensorIds(true);
+									DumpRuntime(rawData);
 								}
 
 								// every day dump the clock drift at midday each day
@@ -1546,6 +1554,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 
+						case "0x7D": // rain event
 						case "0x7C": // rain 24h
 						case "0x10": // Rain day
 						case "0x11": // Rain week
@@ -2146,6 +2155,15 @@ namespace CumulusMX.Stations
 			}
 
 			return false;
+		}
+
+		private void DumpRuntime(EcowittLocalApi.LiveData data)
+		{
+			if (data.debug is not null && data.debug.Length == 1 && data.debug[0].runtime.HasValue)
+			{
+				var uptime = TimeSpan.FromSeconds(data.debug[0].runtime.Value);
+				cumulus.LogDebugMessage($"Station uptime = {data.debug[0].runtime} seconds ({uptime:c})");
+			}
 		}
 
 		private void DataTimeout(object source, ElapsedEventArgs e)
