@@ -60,6 +60,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Microsoft.Win32.SystemEvents
 - MQTTnet
 - MySqlConnector
+- NLog
+- NLog.Extension.Logging
+- SQLitePCLRaw.bundle_e_sqlite3
 - System.CodeDom
 - System.IO.Ports
 - System.ServiceProcess.ServiceController
