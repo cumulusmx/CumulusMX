@@ -28,6 +28,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	|   3   |     28.0   |     81.0   |     84.6   |     87.0   | High         | Yellow |
 	|   4   |     30.0   |     84.2   |     87.7   |     90.0   | Very High    | Red    |
 	|   5   |  >= 32.5   |  >= 86.2   |  >= 89.8   |  >= 92.0   | Extreme      | Black  |
+- Adds 'Rain Since Midnight' to 'Today's Rain Editor'
 
 ### Changed
 
