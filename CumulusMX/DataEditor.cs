@@ -40,20 +40,29 @@ namespace CumulusMX
 				text = reader.ReadToEnd();
 			}
 
-			var kvPair = text.Split('=');
-			var raintodaystring = kvPair[1];
+			var parsed = HttpUtility.ParseQueryString(text);
 
-			if (!string.IsNullOrEmpty(raintodaystring))
+			if (parsed.HasKeys())
 			{
 				try
 				{
-					var raintoday = double.Parse(raintodaystring, invC);
-					cumulus.LogMessage("Before rain today edit, raintoday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
-					MetData.RainToday = raintoday;
-					MetData.RainCounterDayStart = MetData.RainCounter - (MetData.RainToday / cumulus.Calib.Rain.Mult);
-					cumulus.LogMessage("After rain today edit,  raintoday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
-					// force the rainthismonth/rainthisyear values to be recalculated
-					station.UpdateYearMonthRainfall();
+					if (double.TryParse(parsed["raintoday"], invC, out double raintoday) && double.TryParse(parsed["midnightrain"], invC, out double midnightrain))
+					{
+						cumulus.LogMessage("Before rain today edit, RainToday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " RainDayStart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
+						cumulus.LogMessage("Before rain today edit, MidnightRain=" + MetData.RainSinceMidnight.ToString(cumulus.RainFormat) + " RainMidnightStart=" + MetData.MidnightRainCount.ToString(cumulus.RainFormat));
+						MetData.RainToday = raintoday;
+						MetData.RainSinceMidnight = midnightrain;
+						MetData.RainCounterDayStart = MetData.RainCounter - (MetData.RainToday / cumulus.Calib.Rain.Mult);
+						MetData.MidnightRainCount = MetData.RainCounter - (MetData.RainSinceMidnight / cumulus.Calib.Rain.Mult);
+						cumulus.LogMessage("After rain today edit,  RainToday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
+						cumulus.LogMessage("After rain today edit,  MidnightRain=" + MetData.RainSinceMidnight.ToString(cumulus.RainFormat) + " RainMidnightStart=" + MetData.MidnightRainCount.ToString(cumulus.RainFormat));
+						// force the rainthismonth/rainthisyear values to be recalculated
+						station.UpdateYearMonthRainfall();
+					}
+					else
+					{
+						cumulus.LogErrorMessage("EditRainToday: Failed to parse the form data");
+					}
 				}
 				catch (Exception ex)
 				{
@@ -81,7 +90,9 @@ namespace CumulusMX
 				raintoday = MetData.RainToday.ToString(cumulus.RainFormat, invC),
 				raincounter = MetData.RainCounter.ToString(cumulus.RainFormat, invC),
 				startofdayrain = MetData.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
-				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC)
+				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC),
+				midnightcounter = MetData.MidnightRainCount.ToString(cumulus.RainFormat, invC),
+				midnightrain = MetData.RainSinceMidnight.ToString(cumulus.RainFormat, invC)
 			};
 
 			return JsonSerializer.Serialize(response);
