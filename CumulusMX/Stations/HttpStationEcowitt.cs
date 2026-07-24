@@ -463,8 +463,7 @@ namespace CumulusMX.Stations
 						if (runtime > 0)
 						{
 							var uptime = TimeSpan.FromSeconds(runtime);
-
-							cumulus.LogMessage($"Ecowitt Gateway uptime = {runtime} secs - {uptime:c}");
+							cumulus.LogMessage($"Station uptime = {runtime} seconds ({uptime:c})");
 						}
 					}
 

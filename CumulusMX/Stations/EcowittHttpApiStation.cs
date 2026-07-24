@@ -2131,7 +2131,7 @@ namespace CumulusMX.Stations
 			if (data.debug is not null && data.debug.Length == 1 && data.debug[0].runtime.HasValue)
 			{
 				var uptime = TimeSpan.FromSeconds(data.debug[0].runtime.Value);
-				cumulus.LogDebugMessage($"Station uptime = {data.debug[0].runtime} seconds ({uptime:c})");
+				cumulus.LogMessage($"Station uptime = {data.debug[0].runtime} seconds ({uptime:c})");
 			}
 		}
 

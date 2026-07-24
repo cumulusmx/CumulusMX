@@ -46,7 +46,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Soil moisture units now set per sensor per station
 - Davis Cloud Station saving soil temperature values as soil moisture!
 - Fix occasional "System.objectDisposedException" during real-time FTP operations
-- Re-fix the `<#daylength>` and `<#Tagdaylightlength>` tag outputs when the value is 24 hours
+- Re-fix the `<#daylength>` and `<#daylightlength>` tag outputs when the value is 24 hours
 - Yesterdays high BGT/WBGT values not being written to the yesterday.ini
 - Fix `<#WbgtH> <#TWbgtH>` web tags not actually being implemented!
 - PM 10 data not showing on the Dashboard charts when data is ingested via the JSON station
