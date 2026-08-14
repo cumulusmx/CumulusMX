@@ -262,6 +262,8 @@ namespace CumulusMX
 			var sb = new StringBuilder();
 			message = string.Empty;
 
+			if (ex is null) return "Exception is null";
+
 			try
 			{
 				sb.AppendLine("");

@@ -3065,7 +3065,6 @@ namespace CumulusMX
 
 		public string GetAqGraphData(bool incremental, DateTime? start = null, DateTime? end = null)
 		{
-			var append = false;
 			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{");
 			var sb2p5 = new StringBuilder("\"pm2p5\":[");
@@ -3105,28 +3104,20 @@ namespace CumulusMX
 					{
 						var val = data[i].Pm2p5 < -0.5 ? "null" : data[i].Pm2p5.Value.ToString("F1", InvC);
 						sb2p5.Append($"[{jsTime},{val}],");
-
-						// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-						if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
-						{
-							append = true;
-							val = (data[i].Pm10 ?? -1) < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
-							sb10.Append($"[{jsTime},{val}],");
-						}
 					}
 					else
 					{
 						sb2p5.Append($"[{jsTime},null],");
-						// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-						if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
-						{
-							append = true;
-							sb10.Append($"[{jsTime},null],");
-						}
+					}
+
+					if (data[i].Pm10.HasValue)
+					{
+						var val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
+						sb10.Append($"[{jsTime},{val}],");
+					}
+					else
+					{
+						sb10.Append($"[{jsTime},null],");
 					}
 				}
 
@@ -3136,15 +3127,11 @@ namespace CumulusMX
 				sb2p5.Append(']');
 				sb.Append(sb2p5);
 
-				if (append)
-				{
-					if (sb10[^1] == ',')
-						sb10.Length--;
+				if (sb10[^1] == ',')
+					sb10.Length--;
 
-					sb10.Append(']');
-					sb.Append(sb10);
-				}
-
+				sb10.Append(']');
+				sb.Append(sb10);
 			}
 
 			sb.Append('}');

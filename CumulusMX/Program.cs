@@ -447,7 +447,10 @@ namespace CumulusMX
 			{
 				MxLogger.Fatal("An error has occurred - please zip up the MXdiags folder and post it in the forum");
 				MxLogger.Fatal("!!! Unhandled Exception !!!");
+				MxLogger.Fatal("Unhandled exeception is terminating = " + e.IsTerminating);
 				MxLogger.Fatal(e.ExceptionObject.ToString());
+				Utils.ExceptionToString(e.ExceptionObject as System.Exception, out var ex);
+				MxLogger.Fatal("Dump = " + ex);
 
 				if (service)
 				{
@@ -460,12 +463,19 @@ namespace CumulusMX
 					Console.CursorVisible = true;
 					Console.WriteLine(e.ExceptionObject.ToString());
 					Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
-					Console.WriteLine("Press Enter to terminate");
-					Console.ReadLine();
+
+					if (e.IsTerminating)
+					{
+						Console.WriteLine("Press Enter to terminate");
+						Console.ReadLine();
+					}
 				}
 
-				Thread.Sleep(1000);
-				Environment.Exit(1);
+				if (e.IsTerminating)
+				{
+					Thread.Sleep(1000);
+					Environment.Exit(1);
+				}
 			}
 			catch (Exception)
 			{

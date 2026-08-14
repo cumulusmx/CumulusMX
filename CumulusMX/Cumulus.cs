@@ -13846,6 +13846,8 @@ namespace CumulusMX
 			{
 				try
 				{
+					RealtimeFTP.Config.SslSessionLength = 0;
+
 					if (FtpOptions.AutoDetect)
 					{
 						RealtimeFTP.AutoConnect();

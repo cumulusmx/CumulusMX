@@ -10,7 +10,34 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.5 \[b5012\]][35] - 2026-07-22
+## [5.1.6 \[b5013\] - 2026-08-22][36]
+
+### New
+
+ - Nothing
+
+### Changed
+
+- Nothing
+
+### Fixed
+
+- Missing PM10 values on the charts for some AQ sensor types
+
+### Package Updates
+
+- BouncyCastle.Cryptography
+- Microsoft.Win32.SystemEvents
+- MySqlConnector
+- SQLitePCLRaw.bundle_e_sqlite3
+- SSH.NET
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
+
+---
+
+## [5.1.5 \[b5012\] - 2026-07-22][35]
 
 ### New
 
@@ -69,12 +96,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ---
 
-## [5.1.4 \[b5011\]][34] - 2026-06-10
+## [5.1.4 \[b5011\] - 2026-06-10][34]
 
 ### New
 
 - Add web tag for the Cumulus dashboard/web socket port - `<#CumulusPort>`
-- Adds a new station option for Cumulus calculates WBGT<br>
+- Adds a new station option for Cumulus calculates WBGT
 	You can use this if say you have a BGT value from your extra sensors, but want to use the outdoor temperature/humidity from your main station
 
 ### Changed
@@ -94,7 +121,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ---
 
-## [5.1.3 \[b5010\]][33] - 2026-05-26
+## [5.1.3 \[b5010\] - 2026-05-26][33]
 
 Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 release
 
@@ -137,7 +164,7 @@ Withdrawn
 
 ---
 
-## [5.1.1 \[b5008\]][32] - 2026-05-17
+## [5.1.1 \[b5008\] - 2026-05-17][32]
 
 ### New
 
@@ -168,9 +195,10 @@ Withdrawn
 
 ---
 
-## [5.1.0 \[b5006\]][31] - 2026-05-07
+## [5.1.0 \[b5006\] - 2026-05-07][31]
 
 ### Important Notes
+
 
 - **MySQL Users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
 - **PHP Upload:** There is an important update to the `upload.php` script
@@ -200,7 +228,6 @@ Withdrawn
 	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`<br>
 	`<#YearBgtH> <#YearBgtHT>`<br>
 	`<#ByMonthBgtH> <#ByMonthBgtHT>`<br>
-	<br>
 	`<#WbgtTH> <#TWbgtTH>`<br>
 	`<#WbgtYH> <#TWbgtYH>`<br>
 	`<#WbgtH> <#TWbgtH>`<br>
@@ -274,7 +301,7 @@ Withdrawn
 
 ---
 
-## [5.0.1 \[b5002\]][30] - 2026-04-03
+## [5.0.1 \[b5002\] - 2026-04-03][30]
 
 ### New
 
@@ -302,7 +329,7 @@ Withdrawn
 
 ---
 
-## [5.0.0 \[b5001\]][29] - 2026-03-25
+## [5.0.0 \[b5001\] - 2026-03-25][29]
 
 ### Important Notes
 
@@ -472,7 +499,7 @@ Withdrawn
 
 ---
 
-## [4.6.5 \[b4129\]][28] - 2025-10-30
+## [4.6.5 \[b4129\] - 2025-10-30][28]
 
 ### Fixed
 
@@ -480,7 +507,7 @@ Withdrawn
 
 ---
 
-## [4.6.4 \[b4128\]][27] - 2025-09-30
+## [4.6.4 \[b4128\] - 2025-09-30][27]
 
 ### Fixed
 
@@ -490,7 +517,7 @@ Withdrawn
 
 ---
 
-## [4.6.3 \[b4127\]][26] - 2025-09-27
+## [4.6.3 \[b4127\] - 2025-09-27][26]
 
 ### New
 
@@ -517,7 +544,7 @@ Withdrawn
 
 ---
 
-## [4.6.2 \[b4122\]][25] - 2025-09-14
+## [4.6.2 \[b4122\] - 2025-09-14][25]
 
 ### New
 
@@ -538,7 +565,7 @@ Withdrawn
 
 ---
 
-## [4.6.1 \[b4121\]][24] - 2025-09-05
+## [4.6.1 \[b4121\] - 2025-09-05][24]
 
 ### Fixed
 
@@ -546,7 +573,7 @@ Withdrawn
 
 ---
 
-## [4.6.0 \[b4120\]][23] - 2025-09-05
+## [4.6.0 \[b4120\] - 2025-09-05][23]
 
 ### New
 
@@ -664,7 +691,7 @@ Withdrawn
 
 ---
 
-## [4.5.2 \[b4105\]][22] - 2025-06-21
+## [4.5.2 \[b4105\] - 2025-06-21][22]
 
 ### New
 
@@ -684,7 +711,7 @@ Withdrawn
 
 ---
 
-## [4.5.1 \[b4104\]][21] - 2025-06-14
+## [4.5.1 \[b4104\] - 2025-06-14][21]
 
 ### New
 
@@ -712,7 +739,7 @@ Withdrawn
 
 ---
 
-## [4.5.0 \[b4103\]][20] - 2025-05-31
+## [4.5.0 \[b4103\] - 2025-05-31][20]
 
 ### New
 - By popular demand, implements web tags:
@@ -731,7 +758,7 @@ Withdrawn
 
 ---
 
-## [4.5.0 \[b4102\]][19] - 2025-05-26
+## [4.5.0 \[b4102\] - 2025-05-26][19]
 
 ### New
 
@@ -851,7 +878,7 @@ Withdrawn
 
 ---
 
-## [4.4.5 \[b4088\]][18] - 2025-04-10
+## [4.4.5 \[b4088\] - 2025-04-10][18]
 
 ### New
 
@@ -870,7 +897,7 @@ Withdrawn
 
 ---
 
-## [4.4.4 \[b4087\]][17] - 2025-04-01
+## [4.4.4 \[b4087\] - 2025-04-01][17]
 
 ### New
 
@@ -887,7 +914,7 @@ Withdrawn
 
 ---
 
-## [4.4.3 \[b4086\]][16] - 2025-03-18
+## [4.4.3 \[b4086\] - 2025-03-18][16]
 
 ### New
 
@@ -914,7 +941,7 @@ Withdrawn
 
 ---
 
-## [4.4.2 \[b4085\]][15] - 2025-03-12
+## [4.4.2 \[b4085\] - 2025-03-12][15]
 
 ### New
 
@@ -929,7 +956,7 @@ Withdrawn
 
 ---
 
-## [4.4.1 \[b4084\]][14] - 2025-03-09
+## [4.4.1 \[b4084\] - 2025-03-09][14]
 
 ### Fixed
 
@@ -941,7 +968,7 @@ Withdrawn
 
 ---
 
-## [4.4.0 \[b4083\]][13] - 2025-03-09
+## [4.4.0 \[b4083\] - 2025-03-09][13]
 
 ### New
 
@@ -1014,7 +1041,7 @@ Withdrawn
 
 ---
 
-## [4.3.3 \[b4070\]][12] - 2025-01-01
+## [4.3.3 \[b4070\] - 2025-01-01][12]
 
 ### Fixed
 
@@ -1024,7 +1051,7 @@ Withdrawn
 
 ---
 
-## [4.3.2 \[b4067\]][11] - 2024-12-18
+## [4.3.2 \[b4067\] - 2024-12-18][11]
 
 ### New
 
@@ -1055,7 +1082,7 @@ Withdrawn
 
 ---
 
-## [4.3.1 \[b4064\]][10] - 2024-12-09
+## [4.3.1 \[b4064\] - 2024-12-09][10]
 
 ### Changed
 
@@ -1076,7 +1103,7 @@ Withdrawn
 
 ---
 
-## [4.3.0 \[b4063\]][9] - 2024-12-04
+## [4.3.0 \[b4063\] - 2024-12-04][9]
 
 ### New
 
@@ -1191,7 +1218,7 @@ Withdrawn
 
 ---
 
-## [4.2.1 \[b4043\]][8] - 2024-10-19
+## [4.2.1 \[b4043\] - 2024-10-19][8]
 
 ### New
 
@@ -1239,7 +1266,7 @@ but you also want to see the two minute values then you can use these new tags
 
 ---
 
-## [4.2.0 \[b4039\]][7] - 2024-10-01
+## [4.2.0 \[b4039\] - 2024-10-01][7]
 
 ### New
 
@@ -1300,7 +1327,7 @@ but you also want to see the two minute values then you can use these new tags
 
 ---
 
-## [4.1.3 \[b4028\]][6] - 2024-08-20
+## [4.1.3 \[b4028\] - 2024-08-20][6]
 
 ### New
 
@@ -1337,7 +1364,7 @@ No changes
 
 ---
 
-## [4.1.2 \[b4027\]][5] - 2024-07-23
+## [4.1.2 \[b4027\] - 2024-07-23][5]
 
 ### New
 
@@ -1371,7 +1398,7 @@ No changes
 
 ---
 
-## [4.1.1 \[b4025\]][4] - 2024-06-19
+## [4.1.1 \[b4025\] - 2024-06-19][4]
 
 ### New
 
@@ -1390,7 +1417,7 @@ No changes
 
 ---
 
-## [4.1.0 \[b4024\]][3] - 2024-06-05
+## [4.1.0 \[b4024\] - 2024-06-05][3]
 
 ### New
 
@@ -1434,7 +1461,7 @@ No changes
 
 ---
 
-## [4.0.1 \[b4023\]][2] - 2024-05-16
+## [4.0.1 \[b4023\] - 2024-05-16][2]
 
 ### New
 
@@ -1455,7 +1482,7 @@ No changes
 
 ---
 
-## [4.0.0 \[b4022\]][1] - 2024-05-11
+## [4.0.0 \[b4022\] - 2024-05-11][1]
 
 Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and removes the requirement for the Mono runtime environment on Linux.
 
@@ -1565,3 +1592,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
+[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5013
