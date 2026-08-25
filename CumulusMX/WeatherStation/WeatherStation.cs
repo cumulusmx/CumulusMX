@@ -29,11 +29,11 @@ namespace CumulusMX
 	{
 		public int StationId { get; }
 
-		public struct TWindRecent
+		public class CWindRecent
 		{
-			public double GustUncal; // uncalibrated "gust" as read from Stations
-			public double SpeedUncal; // uncalibrated "speed" as read from Stations
-			public DateTime Timestamp;
+			public double GustUncal { get; set; } // uncalibrated "gust" as read from station
+			public double SpeedUncal { get; set; } // uncalibrated "speed" as read from station
+			public DateTime Timestamp { get; set; }
 		}
 
 		public struct TWindVec
@@ -72,8 +72,6 @@ namespace CumulusMX
 		public bool calculaterainrate = false;
 
 		protected List<int> buffer = [];
-
-		private readonly List<Last10MinWind> Last10MinWindList = [];
 
 		public List<string> LowBatteryDevices { get; set; } = [];
 
@@ -171,7 +169,6 @@ namespace CumulusMX
 			MetData.SoilEc = new int?[17];
 
 			windcounts = new double[16];
-			WindRecent = new TWindRecent[MaxWindRecent];
 			WindVec = new TWindVec[MaxWindRecent];
 
 			// set some hi/lo descriptions
@@ -185,7 +182,6 @@ namespace CumulusMX
 			RecentDataDb.CreateTable<RecentData>();
 			RecentDataDb.CreateTable<SqlCache>();
 			RecentDataDb.CreateTable<CWindRecent>();
-			RecentDataDb.Execute("create table if not exists WindRecentPointer (pntr INTEGER)");
 			RecentDataDb.CreateTable<DayFileRec>();
 			RecentDataDb.CreateTable<RecentAqData>();
 			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
@@ -1648,7 +1644,7 @@ namespace CumulusMX
 
 		public int nextwindvec { get; set; } = 0;
 
-		public TWindRecent[] WindRecent { get; set; }
+		public LinkedList<CWindRecent> WindRecent { get; set; } = new();
 
 		public TWindVec[] WindVec { get; set; }
 

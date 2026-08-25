@@ -1556,7 +1556,7 @@ namespace CumulusMX
 						canvas.Translate(srcSize / 2f, srcSize / 2f);
 						canvas.RotateDegrees(180);
 						canvas.Translate(-srcSize / 2f, -srcSize / 2f);
-						canvas.DrawBitmap(working, 0, 0);
+						canvas.DrawBitmap(working, 0, 0, SKSamplingOptions.Default, null);
 					}
 					working = rotated;
 				}
@@ -1567,7 +1567,7 @@ namespace CumulusMX
 				{
 					canvas.Clear(SKColors.Transparent);
 					var destRect = new SKRect(0, 0, size, size);
-					canvas.DrawBitmap(working, destRect);
+					canvas.DrawBitmap(working, destRect, SKSamplingOptions.Default, null);
 				}
 
 				// Save as PNG

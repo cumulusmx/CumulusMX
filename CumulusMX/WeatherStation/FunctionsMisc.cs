@@ -445,7 +445,7 @@ namespace CumulusMX
 					bartrend = 1;
 
 				// get one hour average wind direction
-				var avgDir = GetWindDirAvgFromArray(DateTime.Now.AddHours(-1));
+				var avgDir = GetWindCompassAvgFromArray(DateTime.Now.AddHours(-1));
 
 				if (avgDir == "-")
 				{

@@ -461,29 +461,11 @@ namespace CumulusMX
 			{
 				lock (recentwindLock)
 				{
-					var timestamps = WindRecent.Select(rec => rec.Timestamp);
-
-					// get the min and max timestamps from the recent wind array
-					var minWindTs = timestamps.Min();
-					var maxWindTs = timestamps.Max();
-
 					foreach (var rec in result)
 					{
 						try
 						{
-							if (rec.DateTime < minWindTs || rec.DateTime > maxWindTs)
-							{
-								WindRecent[nextwind].GustUncal = cumulus.Calib.WindGust.UnCalibatrate(rec.WindGust);
-								WindRecent[nextwind].SpeedUncal = cumulus.Calib.WindSpeed.UnCalibatrate(rec.WindSpeed);
-								WindRecent[nextwind].Timestamp = rec.DateTime;
-								nextwind = (nextwind + 1) % MaxWindRecent;
-							}
-
-							WindVec[nextwindvec].X = rec.WindGust * Math.Sin(Trig.DegToRad(rec.WindDir));
-							WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(Trig.DegToRad(rec.WindDir));
-							WindVec[nextwindvec].Timestamp = rec.DateTime;
-							WindVec[nextwindvec].Bearing = MetData.WindBearing; // savedBearing
-							nextwindvec = (nextwindvec + 1) % MaxWindRecent;
+							AddNewWindVector(rec.WindDir, rec.DateTime);
 						}
 						catch (Exception e)
 						{
@@ -499,29 +481,18 @@ namespace CumulusMX
 		private void LoadWindData()
 		{
 			cumulus.LogMessage($"LoadWindData: Attempting to reload the wind speeds array");
-			var result = RecentDataDb.Query<CWindRecent>("select * from CWindRecent");
+			var result = RecentDataDb.Query<CumulusMX.CWindRecent>("select * from CWindRecent");
 
 			try
 			{
 				for (var i = 0; i < result.Count; i++)
 				{
-					WindRecent[i].GustUncal = result[i].Gust;
-					WindRecent[i].SpeedUncal = result[i].Speed;
-					WindRecent[i].Timestamp = result[i].DateTime;
+					AddNewWindSample(result[i].Gust, result[i].Speed, result[i].DateTime);
 				}
 			}
 			catch (Exception e)
 			{
 				cumulus.LogErrorMessage($"LoadWindData: Error loading data from database : {e.Message}");
-			}
-
-			try
-			{
-				nextwind = RecentDataDb.ExecuteScalar<int>("select * from WindRecentPointer limit 1");
-			}
-			catch (Exception e)
-			{
-				cumulus.LogErrorMessage($"LoadWindData: Error loading pointer from database : {e.Message}");
 			}
 
 			cumulus.LogMessage($"LoadWindData: Loaded {result.Count} entries to WindRecent data list");
@@ -537,19 +508,15 @@ namespace CumulusMX
 			{
 				// first empty the tables
 				RecentDataDb.DeleteAll<CWindRecent>();
-				RecentDataDb.Execute("delete from WindRecentPointer");
 
 				// save the type array
 				lock (recentwindLock)
 				{
-					for (var i = 0; i < WindRecent.Length; i++)
+					foreach (var node in WindRecent)
 					{
-						if (WindRecent[i].Timestamp > DateTime.MinValue)
-							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp.ToUnixTime(), WindRecent[i].GustUncal, WindRecent[i].SpeedUncal);
+						if (node.Timestamp > DateTime.MinValue)
+							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp.ToUnixTime(), node.GustUncal, node.SpeedUncal);
 					}
-
-					// and save the pointer
-					RecentDataDb.Execute("insert into WindRecentPointer (pntr) values (?)", nextwind);
 
 					RecentDataDb.Commit();
 				}

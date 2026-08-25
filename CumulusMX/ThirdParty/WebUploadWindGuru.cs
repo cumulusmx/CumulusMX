@@ -128,24 +128,27 @@ namespace CumulusMX.ThirdParty
 			double totalwind = 0;
 			double maxwind = 0;
 			double minwind = 999;
+			var cutoff = DateTime.UtcNow - TimeSpan.FromMinutes(cumulus.WindGuru.Interval);
+
 			lock (station.recentwindLock)
 			{
-				for (int i = 0; i < WeatherStation.MaxWindRecent; i++)
+				// Walk backwards until cutoff
+				for (var node = station.WindRecent.Last; node != null; node = node.Previous)
 				{
-					if (station.WindRecent[i].Timestamp >= DateTime.Now.AddMinutes(-cumulus.WindGuru.Interval))
+					if (node.Value.Timestamp < cutoff)
+						break;
+
+					numvalues++;
+					totalwind += node.Value.GustUncal;
+
+					if (node.Value.GustUncal > maxwind)
 					{
-						numvalues++;
-						totalwind += station.WindRecent[i].GustUncal;
+						maxwind = node.Value.GustUncal;
+					}
 
-						if (station.WindRecent[i].GustUncal > maxwind)
-						{
-							maxwind = station.WindRecent[i].GustUncal;
-						}
-
-						if (station.WindRecent[i].GustUncal < minwind)
-						{
-							minwind = station.WindRecent[i].GustUncal;
-						}
+					if (node.Value.GustUncal < minwind)
+					{
+						minwind = node.Value.GustUncal;
 					}
 				}
 			}

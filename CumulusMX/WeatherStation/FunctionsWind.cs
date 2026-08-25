@@ -105,13 +105,9 @@ namespace CumulusMX
 
 			CheckHighGust(calibratedgust, MetData.WindBearing, timestamp);
 
-			lock (recentwindLock)
-			{
-				WindRecent[nextwind].GustUncal = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
-				WindRecent[nextwind].SpeedUncal = uncalibratedspeed;
-				WindRecent[nextwind].Timestamp = timestamp;
-				nextwind = (nextwind + 1) % MaxWindRecent;
-			}
+			// We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
+			AddNewWindSample(gustpar, uncalibratedspeed, timestamp);
+			AddNewWindVector(MetData.WindBearing, timestamp);
 
 #if DEBUGWIND
 			cumulus.LogDebugMessage($"Wind calc using speed: {cumulus.StationOptions.UseSpeedForAvgCalc}");
@@ -173,15 +169,6 @@ namespace CumulusMX
 
 			CheckHighAvgSpeed(timestamp);
 
-			WindVec[nextwindvec].X = calibratedgust * Math.Sin(Trig.DegToRad(MetData.WindBearing));
-			WindVec[nextwindvec].Y = calibratedgust * Math.Cos(Trig.DegToRad(MetData.WindBearing));
-			// save timestamp of this reading
-			WindVec[nextwindvec].Timestamp = timestamp;
-			// save bearing
-			WindVec[nextwindvec].Bearing = MetData.WindBearing; // savedBearing
-															// increment index for next reading
-			nextwindvec = (nextwindvec + 1) % MaxWindRecent;
-
 			// Now add up all the values within the required period
 			double totalwindX = 0;
 			double totalwindY = 0;
@@ -190,7 +177,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < MaxWindRecent; i++)
 			{
-				if (timestamp - WindVec[i].Timestamp < cumulus.AvgBearingTime)
+				if (timestamp.ToUniversalTime() - WindVec[i].Timestamp < cumulus.AvgBearingTime)
 				{
 					totalwindX += WindVec[i].X;
 					totalwindY += WindVec[i].Y;
@@ -262,8 +249,50 @@ namespace CumulusMX
 				}
 			}
 
+			// clean up the cached data
+			RemoveOldWindSamples(timestamp);
+
 			WindReadyToPlot = true;
 			HaveReadData = true;
+		}
+
+		public void AddNewWindVector(int dir, DateTime time)
+		{
+			lock (recentwindLock)
+			{
+				WindVec[nextwindvec].X = calibratedgust * Math.Sin(Trig.DegToRad(dir));
+				WindVec[nextwindvec].Y = calibratedgust * Math.Cos(Trig.DegToRad(dir));
+				// save timestamp of this reading
+				WindVec[nextwindvec].Timestamp = time.ToUniversalTime();
+				// save bearing
+				WindVec[nextwindvec].Bearing = dir; // savedBearing
+													// increment index for next reading
+				nextwindvec = (nextwindvec + 1) % MaxWindRecent;
+			}
+		}
+
+		public void AddNewWindSample(double gustUnCal, double speedUncal, DateTime time)
+		{
+			lock (recentwindLock)
+			{
+				WindRecent.AddLast(new CWindRecent()
+				{
+					GustUncal = gustUnCal,
+					SpeedUncal = speedUncal,
+					Timestamp = time.ToUniversalTime()
+				});
+
+			}
+		}
+
+		private void RemoveOldWindSamples(DateTime time)
+		{
+			var cutoff = time.ToUniversalTime() - TimeSpan.FromMinutes(20);
+
+			while (WindRecent.First != null && WindRecent.First.Value.Timestamp < cutoff)
+			{
+				WindRecent.RemoveFirst();
+			}
 		}
 
 		public double GetWindAverageFromArray(DateTime fromTime)
@@ -271,21 +300,23 @@ namespace CumulusMX
 			var numvalues = 0;
 			double totalwind = 0;
 			double avg = 0;
+			var cutoff = fromTime.ToUniversalTime();
 
 			lock (recentwindLock)
 			{
-				for (var i = 0; i < MaxWindRecent; i++)
+				// Walk backwards until cutoff
+				for (var node = WindRecent.Last; node != null; node = node.Previous)
 				{
-					if (WindRecent[i].Timestamp >= fromTime)
-					{
+					if (node.Value.Timestamp < cutoff)
+						break;
 #if DEBUGWIND
-//						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
+//					cumulus.LogDebugMessage($"Wind Time:{node.Value.Timestamp.ToLocalTime().ToLongTimeString()} Gust:{node.Value.GustUncal:F1} Speed:{node.Value.SpeedUncal:F1}");
 #endif
-						numvalues++;
-						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].SpeedUncal : WindRecent[i].GustUncal;
-					}
+					numvalues++;
+					totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? node.Value.SpeedUncal : node.Value.GustUncal;
 				}
 			}
+
 			// average the values, if we have enough samples
 			if (numvalues > 10 || cumulus.StationOptions.UseSpeedForAvgCalc)
 			{
@@ -304,7 +335,7 @@ namespace CumulusMX
 			return avg;
 		}
 
-		public string GetWindDirAvgFromArray(DateTime fromTime)
+		public int GetWindDirAvgFromArray(DateTime fromTime)
 		{
 			// Now add up all the values within the required period
 			double totalwindX = 0;
@@ -316,7 +347,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < MaxWindRecent; i++)
 				{
-					if (WindVec[i].Timestamp >= fromTime)
+					if (WindVec[i].Timestamp >= fromTime.ToUniversalTime())
 					{
 						totalwindX += WindVec[i].X;
 						totalwindY += WindVec[i].Y;
@@ -351,20 +382,27 @@ namespace CumulusMX
 				}
 			}
 
-			return cumulus.CompassPoint((int) avgDir);
+			return (int) avgDir;
+		}
+
+		public string GetWindCompassAvgFromArray(DateTime fromTime)
+		{
+			return cumulus.CompassPoint(GetWindDirAvgFromArray(fromTime));
 		}
 
 		public double GetWindGustFromArray(DateTime fromTime)
 		{
 			double maxgust = 0;
+			var cutoff = fromTime.ToUniversalTime();
+
 			lock (recentwindLock)
 			{
-				for (var i = 0; i <= MaxWindRecent - 1; i++)
+				for (var node = WindRecent.Last; node != null; node = node.Previous)
 				{
-					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].GustUncal > maxgust)
-					{
-						maxgust = WindRecent[i].GustUncal;
-					}
+					if (node.Value.Timestamp < cutoff)
+						break;
+
+					maxgust = node.Value.GustUncal;
 				}
 			}
 			return maxgust;
@@ -377,16 +415,17 @@ namespace CumulusMX
 			var fromTime = cumulus.LastUpdateTime.Subtract(cumulus.AvgSpeedTime);
 			var numvalues = 0;
 			var totalwind = 0.0;
+			var gust = 0.0;
 
 			lock (recentwindLock)
 			{
-				for (var i = 0; i < MaxWindRecent; i++)
+				for (var node = WindRecent.Last; node != null; node = node.Previous)
 				{
-					if (WindRecent[i].Timestamp >= fromTime)
-					{
-						numvalues++;
-						totalwind += WindRecent[i].SpeedUncal;
-					}
+					if (node.Value.Timestamp < fromTime)
+						break;
+
+					numvalues++;
+					totalwind += node.Value.SpeedUncal;
 				}
 			}
 			// average the values, if we have enough samples
@@ -398,15 +437,18 @@ namespace CumulusMX
 
 			lock (recentwindLock)
 			{
-				for (var i = 0; i < MaxWindRecent; i++)
+				for (var node = WindRecent.Last; node != null; node = node.Previous)
 				{
-					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].GustUncal > MetData.RecentMaxGust)
+					if (node.Value.Timestamp < fromTime)
+						break;
+
+					if (node.Value.GustUncal > gust)
 					{
-						MetData.RecentMaxGust = WindRecent[i].GustUncal;
+						gust = node.Value.GustUncal;
 					}
 				}
 			}
-			MetData.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(MetData.RecentMaxGust);
+			MetData.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
 
 			cumulus.LogDebugMessage($"InitialiseWind: gust={MetData.RecentMaxGust:F1}, speed={MetData.WindAverage:F1}");
 		}
@@ -439,70 +481,13 @@ namespace CumulusMX
 			{
 				for (var ts = start; ts <= end; ts = ts.AddSeconds(3))
 				{
-					WindRecent[nextwind].GustUncal = gust;
-					WindRecent[nextwind].SpeedUncal = speed;
-					WindRecent[nextwind].Timestamp = ts;
-					nextwind = (nextwind + 1) % MaxWindRecent;
+					AddNewWindSample(gust, speed, ts);
 
 					windspeeds[nextwindvalue] = calGust;
 					windbears[nextwindvalue] = calBearing;
 					nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Removes entries from Last10MinWindList older than ts - 10 minutes
-		/// </summary>
-		/// <param name="?"></param>
-		/// <returns></returns>
-		public void RemoveOld10MinWindData(DateTime ts)
-		{
-			var tenminutesago = ts.AddMinutes(-10);
-
-			if (Last10MinWindList.Count > 0)
-			{
-				// there are entries to consider
-				while (Last10MinWindList.Count > 0 && Last10MinWindList[0].timestamp < tenminutesago)
-				{
-					// the oldest entry is older than 10 mins ago, delete it
-					Last10MinWindList.RemoveAt(0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Adds a new entry to the list of wind readings from the last 10 minutes
-		/// </summary>
-		/// <param name="ts"></param>
-		public void AddLast10MinWindEntry(DateTime ts, double windgust, double windspeed, double Xvec, double Yvec)
-		{
-			var last10minwind = new Last10MinWind(ts, windgust, windspeed, Xvec, Yvec);
-			Last10MinWindList.Add(last10minwind);
-		}
-
-		/// <summary>
-		/// Calculates average bearing for last 10 minutes
-		/// </summary>
-		/// <returns></returns>
-		public int CalcAverageBearing()
-		{
-			var totalwindX = Last10MinWindList.Sum(o => o.gustX);
-			var totalwindY = Last10MinWindList.Sum(o => o.gustY);
-
-			if (Math.Abs(totalwindX) < 0.001 && Math.Abs(totalwindY) < 0.001)
-			{
-				return 0;
-			}
-
-			var avgbear = calcavgbear(totalwindX, totalwindY);
-
-			if (avgbear == 0)
-			{
-				avgbear = 360;
-			}
-
-			return avgbear;
 		}
 
 		private static int calcavgbear(double x, double y)
