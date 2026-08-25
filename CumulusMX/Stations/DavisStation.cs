@@ -2082,8 +2082,8 @@ namespace CumulusMX.Stations
 					cumulus.LogDebugMessage("LOOP2: Ignoring wind speed: " + loopData.CurrentWindSpeed + " mph");
 				}
 
-				// Check if the station 10 minute gust value is greater than ours - only if our gust period is 10 minutes or more though
-				if (loopData.WindGust10Min < 200 && cumulus.StationOptions.PeakGustMinutes >= 10)
+				// Check if the station 10 minute gust value is greater than today's record
+				if (loopData.WindGust10Min < 200)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
 					var rawGust10min = ConvertUnits.WindMPHToUser(loopData.WindGust10Min);
@@ -2095,16 +2095,6 @@ namespace CumulusMX.Stations
 					if (CheckHighGust(gust10min, gustdir, now))
 					{
 						cumulus.LogDebugMessage($"LOOP2: Setting max gust from loop2 10-min value: {gust10min.ToString(cumulus.WindFormat)} was: {RecentMaxGust.ToString(cumulus.WindFormat)}");
-						RecentMaxGust = gust10min;
-
-						// add to recent values so normal calculation includes this value
-						lock (recentwindLock)
-						{
-							WindRecent[nextwind].GustUncal = rawGust10min;
-							WindRecent[nextwind].SpeedUncal = -1;
-							WindRecent[nextwind].Timestamp = now;
-							nextwind = (nextwind + 1) % MaxWindRecent;
-						}
 					}
 				}
 

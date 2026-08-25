@@ -880,13 +880,7 @@ namespace CumulusMX.Stations
 												_ = CheckHighGust(gust2min, dir2min, time2min);
 
 												// add the uncalibrated values to the recent wind data
-												lock (recentwindLock)
-												{
-													WindRecent[nextwind].GustUncal = gust2minUncalibrated;
-													WindRecent[nextwind].SpeedUncal = WindAverageUncalibrated;
-													WindRecent[nextwind].Timestamp = time2min;
-													nextwind = (nextwind + 1) % MaxWindRecent;
-												}
+												AddNewWindSample(gust2minUncalibrated, WindAverageUncalibrated, time2min);
 											}
 										}
 									}
