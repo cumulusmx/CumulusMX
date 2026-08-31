@@ -995,106 +995,7 @@ namespace CumulusMX
 			// Do we wait for a ping response from a remote host before starting?
 			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
 			{
-				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
-				var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
-				var escapeTime = DateTime.UtcNow.AddMinutes(ProgramOptions.StartupPingEscapeTime);
-				var attempt = 1;
-				var pingSuccess = false;
-				// This is the timeout for "hung" attempts, we will double this at every failure so we do not create too many hung resources
-				var pingTimeoutSecs = 10;
-				var pingTimeoutDT = DateTime.UtcNow.AddSeconds(pingTimeoutSecs);
-				using var pingTokenSource = new CancellationTokenSource(pingTimeoutSecs * 1000);
-				var pingCancelToken = pingTokenSource.Token;
-
-				do
-				{
-					LogDebugMessage($"Starting PING #{attempt} task with time-out of {pingTimeoutSecs} seconds");
-
-					var pingTask = Task.Run(() =>
-					{
-						var cnt = attempt;
-						using var ping = new Ping();
-						try
-						{
-							LogMessage($"Sending PING #{cnt} to {ProgramOptions.StartupPingHost}");
-
-							// set the actual ping timeout 5 secs less than the task timeout
-							var reply = ping.Send(ProgramOptions.StartupPingHost, (pingTimeoutSecs - 5) * 1000);
-
-							// were we hung on the network and now cancelled? if so just exit silently
-							if (pingCancelToken.IsCancellationRequested)
-							{
-								LogDebugMessage($"Cancelled PING #{cnt} task exiting");
-							}
-							else
-							{
-								var msg = $"Received PING #{cnt} response from {ProgramOptions.StartupPingHost}, status: {reply.Status}";
-
-								LogMessage(msg);
-								LogConsoleMessage(msg);
-
-								if (reply.Status == IPStatus.Success)
-								{
-									pingSuccess = true;
-								}
-							}
-						}
-						catch (Exception e)
-						{
-							LogErrorMessage($"PING #{cnt} to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
-						}
-					}, pingCancelToken);
-
-					// wait for the ping to return
-					do
-					{
-						Thread.Sleep(100);
-					} while (pingTask.Status == TaskStatus.Running && DateTime.UtcNow < pingTimeoutDT);
-
-					LogDebugMessage($"PING #{attempt} task status: {pingTask.Status}");
-
-					// did we timeout waiting for the task to end?
-					if (DateTime.UtcNow >= pingTimeoutDT)
-					{
-						// yep, so attempt to cancel the task
-						LogErrorMessage($"Nothing returned from PING #{attempt}, attempting the cancel the task");
-						pingTokenSource.Cancel();
-						// and double the timeout for next attempt
-						pingTimeoutSecs *= 2;
-					}
-
-					if (!pingSuccess)
-					{
-						// no response wait 10 seconds before trying again
-						LogDebugMessage("Waiting 10 seconds before retry...");
-						Thread.Sleep(10000);
-						attempt++;
-						// Force a DNS refresh if not an IPv4 address
-						if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
-						{
-							// catch and ignore IPv6 and invalid host name for now
-							try
-							{
-								Dns.GetHostEntry(ProgramOptions.StartupPingHost);
-							}
-							catch (Exception ex)
-							{
-								LogErrorMessage($"PING #{attempt}: Error with DNS refresh - {ex.Message}");
-							}
-						}
-					}
-				} while (!pingSuccess && DateTime.UtcNow < escapeTime);
-
-				if (DateTime.UtcNow >= escapeTime)
-				{
-					LogConsoleMessage(msg3, ConsoleColor.Yellow);
-					LogWarningMessage(msg3);
-				}
-				else
-				{
-					LogConsoleMessage(msg2);
-					LogMessage(msg2);
-				}
+				StartupPing();
 			}
 			else
 			{
@@ -2727,7 +2628,7 @@ namespace CumulusMX
 				else
 				{
 					RealtimeFTPSafeDisconnect();
-					RealtimeFTPLogin();
+					await RealtimeFTPLogin();
 					return RealtimeFTP?.IsConnected == true && RealtimeFTP.IsAuthenticated;
 				}
 			}
@@ -2752,6 +2653,8 @@ namespace CumulusMX
 				tempFile = filename;
 			}
 
+			LogDebugMessage("RealtimeFtpWatchDog: Testing new connection...");
+
 			try
 			{
 				if (FtpOptions.FtpMode == FtpProtocols.SFTP)
@@ -2772,15 +2675,28 @@ namespace CumulusMX
 
 					var bytes = Encoding.ASCII.GetBytes("test");
 
-					if (RealtimeFTP.UploadBytes(bytes, tempFile, FtpRemoteExists.Overwrite).IsFailure())
+					var res = await RealtimeFTP.UploadBytes(bytes, tempFile, FtpRemoteExists.Overwrite, false, null, Program.ExitSystemToken);
+					if (res.IsFailure())
 						return false;
 
-					if (!RealtimeFTP.DownloadBytes(out byte[] read, tempFile))
+					byte[] read = await RealtimeFTP.DownloadBytes(tempFile, Program.ExitSystemToken);
+					if (read is null)
 						return false;
 
-					RealtimeFTP.DeleteFile(tempFile);
+					await RealtimeFTP.DeleteFile(tempFile, Program.ExitSystemToken);
 
-					return read.SequenceEqual(bytes);
+					var testRes = read.SequenceEqual(bytes);
+
+					if (testRes)
+					{
+						LogDebugMessage("RealtimeFtpWatchDog: New connection tested OK");
+					}
+					else
+					{
+						LogErrorMessage("RealtimeFtpWatchDog: New connection test FAILED");
+					}
+
+					return testRes;
 				}
 			}
 			catch (Exception ex)
@@ -2917,7 +2833,7 @@ namespace CumulusMX
 						else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
 							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].FileName}", true);
-							if (!UploadStream(RealtimeFTP, remoteFile, dataStream, cycle))
+							if (!await UploadStream(RealtimeFTP, remoteFile, dataStream, cycle))
 							{
 								// trigger the WD
 								RealtimeFtpWatchDogTokenSource.Cancel();
@@ -3209,7 +3125,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								if (AppendText(RealtimeFTP, remotefile, data, cycle, linesAdded))
+								if (await AppendText(RealtimeFTP, remotefile, data, cycle, linesAdded))
 								{
 									ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 								}
@@ -3226,7 +3142,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								if (UploadFile(RealtimeFTP, uploadfile, remotefile, cycle))
+								if (await UploadFile(RealtimeFTP, uploadfile, remotefile, cycle))
 								{
 									ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 								}
@@ -3250,7 +3166,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (!UploadStream(RealtimeFTP, remotefile, strm, cycle))
+							if (!await UploadStream(RealtimeFTP, remotefile, strm, cycle))
 							{
 								// trigger WD
 								RealtimeFtpWatchDogTokenSource.Cancel();
@@ -3271,7 +3187,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (!UploadFile(RealtimeFTP, uploadfile, remotefile, cycle))
+							if (!await UploadFile(RealtimeFTP, uploadfile, remotefile, cycle))
 							{
 								// trigger WD
 								RealtimeFtpWatchDogTokenSource.Cancel();
@@ -4282,7 +4198,7 @@ namespace CumulusMX
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
-		private FtpClient RealtimeFTP;
+		private AsyncFtpClient RealtimeFTP;
 		private SftpClient RealtimeSSH;
 		private int realtimeFtpWdInterval;
 		private byte RealtimeCycleCounter;
@@ -5864,7 +5780,7 @@ namespace CumulusMX
 		}
 
 
-		public void DoHttpFiles(DateTime now)
+		public async Task DoHttpFiles(DateTime now)
 		{
 			// sanity check - is there anything to do?
 			if (!Array.Exists(HttpFilesConfig, x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now))
@@ -5967,7 +5883,7 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				using FtpClient conn = ftpClientFactory.CreateClient().Result;
+				using AsyncFtpClient conn = await ftpClientFactory.CreateClient();
 
 				if (FtpOptions.Logging)
 				{
@@ -5981,11 +5897,11 @@ namespace CumulusMX
 				{
 					if (FtpOptions.AutoDetect)
 					{
-						conn.AutoConnect();
+						await conn.AutoConnect();
 					}
 					else
 					{
-						conn.Connect();
+						await conn.Connect();
 					}
 				}
 				catch (Exception ex)
@@ -6014,7 +5930,7 @@ namespace CumulusMX
 							return;
 
 						strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
-						UploadStream(conn, item.Remote, strm, -1);
+						await UploadStream(conn, item.Remote, strm, -1);
 
 						item.SetNextInterval(now);
 					}
@@ -6033,7 +5949,7 @@ namespace CumulusMX
 
 				if (conn.IsConnected)
 				{
-					conn.Disconnect();
+					await conn.Disconnect();
 					LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname, false);
 				}
 
@@ -6136,7 +6052,7 @@ namespace CumulusMX
 
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle)
+		private async Task<bool> UploadFile(AsyncFtpClient conn, string localfile, string remotefile, int cycle)
 		{
 			string cycleStr;
 			bool realtime;
@@ -6169,7 +6085,7 @@ namespace CumulusMX
 				}
 
 				using Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-				UploadStream(conn, remotefile, istream, cycle);
+				await UploadStream(conn, remotefile, istream, cycle);
 			}
 			catch (Exception ex)
 			{
@@ -6317,7 +6233,7 @@ namespace CumulusMX
 			return false;
 		}
 
-		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle)
+		private async Task<bool> UploadStream(AsyncFtpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr;
@@ -6360,21 +6276,22 @@ namespace CumulusMX
 					// delete the existing tmp file
 					try
 					{
-						if (conn.FileExists(remotefiletmp))
+						if (await conn.FileExists(remotefiletmp, Program.ExitSystemToken))
 						{
-							conn.DeleteFile(remotefiletmp);
+							await conn.DeleteFile(remotefiletmp, Program.ExitSystemToken);
 						}
 					}
 					catch
 					{
-						// continue on error
+						LogDebugMessage($"FTP[{cycleStr}]: Not connected after tmp file check, skipping upload of {remotefile}");
+						return false;
 					}
 				}
 
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefiletmp}", realtime);
 
 				FtpStatus status;
-				status = conn.UploadStream(dataStream, remotefiletmp, DeleteBeforeUpload ? FtpRemoteExists.Overwrite : FtpRemoteExists.NoCheck);
+				status = await conn.UploadStream(dataStream, remotefiletmp, DeleteBeforeUpload ? FtpRemoteExists.Overwrite : FtpRemoteExists.NoCheck, false, null, Program.ExitSystemToken);
 
 				if (status.IsFailure())
 				{
@@ -6388,7 +6305,7 @@ namespace CumulusMX
 
 					try
 					{
-						conn.Rename(remotefiletmp, remotefile);
+						await conn.Rename(remotefiletmp, remotefile, Program.ExitSystemToken);
 						LogFtpDebugMessage($"FTP[{cycleStr}]: Renamed {remotefiletmp}", realtime);
 					}
 					catch (Exception ex)
@@ -6652,7 +6569,7 @@ namespace CumulusMX
 			return true;
 		}
 
-		private bool AppendText(FtpClient conn, string remotefile, string text, int cycle, int linesadded)
+		private async Task<bool> AppendText(AsyncFtpClient conn, string remotefile, string text, int cycle, int linesadded)
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 			bool realtime = cycle >= 0;
@@ -6690,7 +6607,7 @@ namespace CumulusMX
 			{
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefile} [adding {linesadded} lines]", realtime);
 
-				conn.UploadStream(GenerateStreamFromString(text), remotefile, FtpRemoteExists.AddToEnd);
+				await conn.UploadStream(GenerateStreamFromString(text), remotefile, FtpRemoteExists.AddToEnd, false, null, Program.ExitSystemToken);
 
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploaded {remotefile} [added {linesadded} lines]", realtime);
 			}
@@ -7000,7 +6917,7 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				using FtpClient conn = await ftpClientFactory.CreateClient();
+				using AsyncFtpClient conn = await ftpClientFactory.CreateClient();
 
 				if (FtpOptions.Logging)
 				{
@@ -7013,11 +6930,11 @@ namespace CumulusMX
 				{
 					if (FtpOptions.AutoDetect)
 					{
-						conn.AutoConnect();
+						await conn.AutoConnect();
 					}
 					else
 					{
-						conn.Connect();
+						await conn.Connect();
 					}
 				}
 				catch (Exception ex)
@@ -7044,9 +6961,10 @@ namespace CumulusMX
 						LogFtpMessage("", false);
 						LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename, false);
 
-						UploadFile(conn, uploadfile, remotefile, 9999);
-
-						LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete", false);
+						if (await UploadFile(conn, uploadfile, remotefile, 9999))
+						{
+							LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete", false);
+						}
 					}
 					catch (Exception e)
 					{
@@ -7057,7 +6975,14 @@ namespace CumulusMX
 				}
 
 				// b3045 - dispose of connection
-				conn.Disconnect();
+				try
+				{
+					await conn.Disconnect();
+				}
+				catch
+				{
+					// do nothing on disconnect error
+				}
 				LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname, false);
 				LogFtpMessage("FTP[NOAA]: Process complete", false);
 			}
@@ -8348,7 +8273,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void RealtimeFTPLogin()
+		public async Task RealtimeFTPLogin()
 		{
 			LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 
@@ -8365,7 +8290,7 @@ namespace CumulusMX
 				// do nothing
 			}
 
-			RealtimeFTP = ftpClientFactory.CreateClient().Result;
+			RealtimeFTP = await ftpClientFactory.CreateClient();
 
 			SetRealTimeFtpLogging(FtpOptions.Logging);
 
@@ -8384,11 +8309,11 @@ namespace CumulusMX
 				{
 					if (FtpOptions.AutoDetect)
 					{
-						RealtimeFTP.AutoConnect();
+						await RealtimeFTP.AutoConnect();
 					}
 					else
 					{
-						RealtimeFTP.Connect();
+						await RealtimeFTP.Connect();
 					}
 					LogMessage("RealtimeFTPLogin: Realtime FTP connected");
 					RealtimeFTP.Config.SocketKeepAlive = true;
@@ -8401,7 +8326,7 @@ namespace CumulusMX
 						ex = Utils.GetOriginalException(ex);
 						LogErrorMessage($"RealtimeFTPLogin: Base exception - {ex.Message}");
 					}
-					RealtimeFTP.Disconnect();
+					await RealtimeFTP.Disconnect();
 				}
 			}
 		}
@@ -9044,6 +8969,132 @@ namespace CumulusMX
 					LogConsoleMessage(msg, ConsoleColor.Red);
 					LogErrorMessage(msg);
 				}
+			}
+		}
+
+		private void StartupPing()
+		{
+			var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
+			var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
+
+			var escapeTime = DateTime.UtcNow.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+			var attempt = 1;
+			var pingSuccess = false;
+
+			var pingTimeoutSecs = 10;
+			int escapeRemaining;
+
+			LogMessage($"Stating start-up PING process - escape time = {ProgramOptions.StartupPingEscapeTime} mins");
+
+			do
+			{
+				LogDebugMessage($"Starting PING #{attempt} with enforced timeout of {pingTimeoutSecs} seconds");
+
+				var start = DateTime.UtcNow;
+
+				try
+				{
+					using var ping = new Ping();
+
+					LogMessage($"Sending PING #{attempt} to {ProgramOptions.StartupPingHost}");
+
+					var reply = ping.Send(
+						ProgramOptions.StartupPingHost,
+						pingTimeoutSecs * 1000
+					);
+
+					if (reply.Status == IPStatus.Success)
+					{
+						var msg = $"Received PING #{attempt} response from {ProgramOptions.StartupPingHost}, status: {reply.Status}";
+						LogMessage(msg);
+						LogConsoleMessage(msg);
+						return;
+					}
+					else
+					{
+						LogErrorMessage($"PING #{attempt} returned status: {reply.Status}");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogErrorMessage($"PING #{attempt} failed: {ex.InnerException?.Message ?? ex.Message}");
+				}
+
+				// enforce full timeout duration
+				var elapsed = (DateTime.UtcNow - start).TotalSeconds;
+				if (elapsed < pingTimeoutSecs)
+				{
+					var remaining = pingTimeoutSecs - elapsed;
+
+					// how long until escape time?
+					escapeRemaining = (int) (escapeTime - DateTime.UtcNow).TotalSeconds;
+
+					// clamp to escape window
+					var waitSeconds = Math.Min(remaining, escapeRemaining);
+
+					if (waitSeconds > 0)
+					{
+						LogDebugMessage(
+							$"PING #{attempt} returned early after {elapsed:F1}s, waiting {waitSeconds:F1}s " +
+							$"(remaining={remaining:F1}s, escapeRemaining={escapeRemaining:F1}s)"
+						);
+
+						var cancelled = Utils.WaitWithCancellation(TimeSpan.FromSeconds(waitSeconds), Program.ExitSystemToken);
+
+						if (cancelled)
+						{
+							LogMessage("System exit requested during enforced wait, aborting PING startup");
+							break;
+						}
+
+						// escape time expired during wait
+						if (DateTime.UtcNow >= escapeTime)
+						{
+							LogWarningMessage("Escape time reached during enforced wait");
+							break;
+						}
+					}
+				}
+
+				if (!pingSuccess)
+				{
+					LogErrorMessage($"PING #{attempt} did not succeed within {pingTimeoutSecs} seconds");
+
+					// exponential backoff
+					pingTimeoutSecs *= 2;
+
+					pingTimeoutSecs = Math.Min(pingTimeoutSecs, (int) (escapeTime - DateTime.UtcNow).TotalSeconds);
+
+					if (pingTimeoutSecs <= 0)
+						break;
+
+					attempt++;
+
+					// DNS refresh if needed
+					if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
+					{
+						try
+						{
+							Dns.GetHostEntry(ProgramOptions.StartupPingHost);
+						}
+						catch (Exception ex)
+						{
+							LogErrorMessage($"PING #{attempt}: DNS refresh error - {ex.Message}");
+						}
+					}
+				}
+
+			} while (!pingSuccess && DateTime.UtcNow < escapeTime);
+
+			if (DateTime.UtcNow >= escapeTime)
+			{
+				LogConsoleMessage(msg3, ConsoleColor.Yellow);
+				LogWarningMessage(msg3);
+			}
+			else
+			{
+				LogConsoleMessage(msg2);
+				LogMessage(msg2);
 			}
 		}
 

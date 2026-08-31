@@ -514,8 +514,8 @@ namespace CumulusMX
 				{
 					foreach (var node in WindRecent)
 					{
-						if (node.Timestamp > DateTime.MinValue)
-							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp.ToUnixTime(), node.GustUncal, node.SpeedUncal);
+						if (node.DateTime > DateTime.MinValue)
+							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp, node.Gust, node.Speed);
 					}
 
 					RecentDataDb.Commit();

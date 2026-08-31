@@ -533,6 +533,13 @@ namespace CumulusMX
 				return true;
 		}
 
+		public static bool WaitWithCancellation(TimeSpan timeout, CancellationToken token)
+		{
+			// WaitOne returns true if the handle was signaled (i.e., cancellation requested)
+			// and false if the timeout elapsed normally.
+			return token.WaitHandle.WaitOne(timeout);
+		}
+
 		/// <summary>
 		/// Returns the angle from bearing2 to bearing1, in the range -180 to +180 degrees
 		/// </summary>

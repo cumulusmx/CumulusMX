@@ -329,7 +329,7 @@ namespace CumulusMX
 			var msgPrefix = $"Interval[{cycle}] FTP:";
 			var cycle1k = 1000 + cycle;
 
-			using FtpClient conn = await ftpClientFactory.CreateClient();
+			using AsyncFtpClient conn = await ftpClientFactory.CreateClient();
 
 			if (FtpOptions.Logging)
 			{
@@ -343,11 +343,11 @@ namespace CumulusMX
 			{
 				if (FtpOptions.AutoDetect)
 				{
-					conn.AutoConnect();
+					await conn.AutoConnect();
 				}
 				else
 				{
-					conn.Connect();
+					await conn.Connect();
 				}
 			}
 			catch (Exception ex)
@@ -380,12 +380,12 @@ namespace CumulusMX
 						var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 						var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-						success = UploadFile(conn, uploadfile, remotefile, cycle);
+						success = await UploadFile(conn, uploadfile, remotefile, cycle);
 
 						uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 						remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-						success = success && UploadFile(conn, uploadfile, remotefile, cycle);
+						success = success && await UploadFile(conn, uploadfile, remotefile, cycle);
 						LogFtpDebugMessage($"{msgPrefix} Upload of NOAA reports complete", false);
 					}
 					catch (Exception e)
@@ -451,14 +451,14 @@ namespace CumulusMX
 							// have we already uploaded the base file?
 							if (item.logFileLastLineNumber > 0)
 							{
-								if (AppendText(conn, remotefile, data, -1, linesAdded))
+								if (await AppendText(conn, remotefile, data, -1, linesAdded))
 								{
 									ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 								}
 							}
 							else // no, just upload the base file
 							{
-								if (UploadFile(conn, uploadfile, remotefile, -1))
+								if (await UploadFile(conn, uploadfile, remotefile, -1))
 								{
 									ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 								}
@@ -469,11 +469,11 @@ namespace CumulusMX
 							LogFtpDebugMessage($"{msgPrefix} Processing Extra web file: " + uploadfile, false);
 							var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 							using var strm = GenerateStreamFromString(data);
-							eodSuccess = eodSuccess && UploadStream(conn, remotefile, strm, cycle1k);
+							eodSuccess = eodSuccess && await UploadStream(conn, remotefile, strm, cycle1k);
 						}
 						else
 						{
-							eodSuccess = eodSuccess && UploadFile(conn, uploadfile, remotefile, cycle1k);
+							eodSuccess = eodSuccess && await UploadFile(conn, uploadfile, remotefile, cycle1k);
 						}
 					}
 					catch (Exception e)
@@ -512,7 +512,7 @@ namespace CumulusMX
 
 							using (var dataStream = GenerateStreamFromString(data))
 							{
-								UploadStream(conn, remotePath + StdWebFiles[i].FileName, dataStream, cycle1k);
+								await UploadStream(conn, remotePath + StdWebFiles[i].FileName, dataStream, cycle1k);
 							}
 
 							// Uploaded OK, reset the upload required flag
@@ -541,7 +541,7 @@ namespace CumulusMX
 
 							using (var dataStream = GenerateStreamFromString(json))
 							{
-								UploadStream(conn, remotefile, dataStream, cycle1k);
+								await UploadStream(conn, remotefile, dataStream, cycle1k);
 							}
 
 							// Uploaded OK, reset the upload required flag for files that only need a daily upload
@@ -573,7 +573,7 @@ namespace CumulusMX
 							var json = CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 							using var dataStream = GenerateStreamFromString(json);
-							if (UploadStream(conn, remotefile, dataStream, cycle1k))
+							if (await UploadStream(conn, remotefile, dataStream, cycle1k))
 							{
 								// Uploaded OK, reset the upload required flag
 								GraphDataEodFiles[i].FtpRequired = false;
@@ -595,7 +595,7 @@ namespace CumulusMX
 					{
 						LogFtpMessage("", false);
 						LogFtpDebugMessage($"{msgPrefix} Uploading Moon image file", false);
-						if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k))
+						if (await UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k))
 						{
 							// clear the image ready for FTP flag, only upload once an hour
 							MoonImage.ReadyToFtp = false;
@@ -611,7 +611,14 @@ namespace CumulusMX
 			}
 
 			// b3045 - dispose of connection
-			conn.Disconnect();
+			try
+			{
+				await conn.Disconnect();
+			}
+			catch
+			{
+				// Do nothing on disconnect error
+			}
 			LogFtpDebugMessage($"{msgPrefix} Disconnected from " + FtpOptions.Hostname, false);
 			LogFtpMessage($"{msgPrefix} Process complete", false);
 		}

@@ -29,13 +29,6 @@ namespace CumulusMX
 	{
 		public int StationId { get; }
 
-		public class CWindRecent
-		{
-			public double GustUncal { get; set; } // uncalibrated "gust" as read from station
-			public double SpeedUncal { get; set; } // uncalibrated "speed" as read from station
-			public DateTime Timestamp { get; set; }
-		}
-
 		public struct TWindVec
 		{
 			public double X;
@@ -916,7 +909,7 @@ namespace CumulusMX
 					HourChanged(timeNow);
 				}
 
-				MinuteChanged(timeNow);
+				MinuteChanged(timeNow).Wait();
 
 				if (DataStopped)
 				{
@@ -1039,7 +1032,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void MinuteChanged(DateTime now)
+		private async Task MinuteChanged(DateTime now)
 		{
 			CheckForDataStopped();
 
@@ -1287,7 +1280,7 @@ namespace CumulusMX
 						cumulus.CreateWxnowFile();
 					}
 
-					cumulus.DoHttpFiles(now);
+					await cumulus.DoHttpFiles(now);
 				}
 				else
 				{
