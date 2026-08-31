@@ -33,13 +33,6 @@ namespace CumulusMX
 {
 	internal abstract partial class WeatherStation
 	{
-		public class CWindRecent
-		{
-			public double GustUncal { get; set; } // uncalibrated "gust" as read from station
-			public double SpeedUncal { get; set; } // uncalibrated "speed" as read from station
-			public DateTime Timestamp { get; set; }
-		}
-
 		public struct TWindVec
 		{
 			public double X;
@@ -1799,7 +1792,7 @@ namespace CumulusMX
 					HourChanged(timeNow);
 				}
 
-				MinuteChanged(timeNow);
+				MinuteChanged(timeNow).Wait();
 
 				if (DataStopped)
 				{
@@ -1968,7 +1961,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void MinuteChanged(DateTime now)
+		private async Task MinuteChanged(DateTime now)
 		{
 			CheckForDataStopped();
 
@@ -2217,7 +2210,7 @@ namespace CumulusMX
 						CreateWxnowFile();
 					}
 
-					cumulus.DoHttpFiles(now);
+					await cumulus.DoHttpFiles(now);
 				}
 				else
 				{
@@ -8052,9 +8045,9 @@ namespace CumulusMX
 			{
 				WindRecent.AddLast(new CWindRecent()
 				{
-					GustUncal = gustUnCal,
-					SpeedUncal = speedUncal,
-					Timestamp = time.ToUniversalTime()
+					Gust = gustUnCal,
+					Speed = speedUncal,
+					DateTime = time.ToUniversalTime()
 				});
 
 			}
@@ -8062,7 +8055,7 @@ namespace CumulusMX
 
 		private void RemoveOldWindSamples(DateTime time)
 		{
-			var cutoff = time.ToUniversalTime() - TimeSpan.FromMinutes(20);
+			var cutoff = (time.ToUniversalTime() - TimeSpan.FromMinutes(60)).ToUnixTime();
 
 			while (WindRecent.First != null && WindRecent.First.Value.Timestamp < cutoff)
 			{
@@ -8075,7 +8068,7 @@ namespace CumulusMX
 			var numvalues = 0;
 			double totalwind = 0;
 			double avg = 0;
-			var cutoff = fromTime.ToUniversalTime();
+			var cutoff = fromTime.ToUnixTime();
 
 			lock (recentwindLock)
 			{
@@ -8085,10 +8078,10 @@ namespace CumulusMX
 					if (node.Value.Timestamp < cutoff)
 						break;
 #if DEBUGWIND
-//					cumulus.LogDebugMessage($"Wind Time:{node.Value.Timestamp.ToLocalTime().ToLongTimeString()} Gust:{node.Value.GustUncal:F1} Speed:{node.Value.SpeedUncal:F1}");
+//					cumulus.LogDebugMessage($"Wind Time:{node.Value.DateTime.ToLocalTime().ToLongTimeString()} Gust:{node.Value.Gust:F1} Speed:{node.Value.Speed:F1}");
 #endif
 					numvalues++;
-					totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? node.Value.SpeedUncal : node.Value.GustUncal;
+					totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? node.Value.Speed : node.Value.Gust;
 				}
 			}
 
@@ -8169,7 +8162,7 @@ namespace CumulusMX
 		public double GetWindGustFromArray(DateTime fromTime)
 		{
 			double maxgust = 0;
-			var cutoff = fromTime.ToUniversalTime();
+			var cutoff = fromTime.ToUnixTime();
 
 			lock (recentwindLock)
 			{
@@ -8178,7 +8171,8 @@ namespace CumulusMX
 					if (node.Value.Timestamp < cutoff)
 						break;
 
-					maxgust = node.Value.GustUncal;
+					if (node.Value.Gust > maxgust)
+						maxgust = node.Value.Gust;
 				}
 			}
 
@@ -8189,7 +8183,7 @@ namespace CumulusMX
 		public void InitialiseWind()
 		{
 			// first the average
-			var fromTime = cumulus.LastUpdateTime.Subtract(cumulus.AvgSpeedTime);
+			var fromTime = cumulus.LastUpdateTime.Subtract(cumulus.AvgSpeedTime).ToUnixTime();
 			var numvalues = 0;
 			var totalwind = 0.0;
 			var gust = 0.0;
@@ -8202,7 +8196,7 @@ namespace CumulusMX
 						break;
 
 					numvalues++;
-					totalwind += node.Value.SpeedUncal;
+					totalwind += node.Value.Speed;
 				}
 			}
 
@@ -8211,7 +8205,7 @@ namespace CumulusMX
 			WindAverage = cumulus.Calib.WindSpeed.Calibrate(WindAverageUncalibrated);
 
 			// now the gust
-			fromTime = cumulus.LastUpdateTime.Subtract(cumulus.PeakGustTime);
+			fromTime = cumulus.LastUpdateTime.Subtract(cumulus.PeakGustTime).ToUnixTime();
 
 			lock (recentwindLock)
 			{
@@ -8220,9 +8214,9 @@ namespace CumulusMX
 					if (node.Value.Timestamp < fromTime)
 						break;
 
-					if (node.Value.GustUncal > gust)
+					if (node.Value.Gust > gust)
 					{
-						gust = node.Value.GustUncal;
+						gust = node.Value.Gust;
 					}
 				}
 			}
@@ -10891,8 +10885,8 @@ namespace CumulusMX
 				{
 					foreach (var node in WindRecent)
 					{ 
-						if (node.Timestamp > DateTime.MinValue)
-							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp, node.GustUncal, node.SpeedUncal);
+						if (node.DateTime > DateTime.MinValue)
+							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp, node.Gust, node.Speed);
 					}
 
 					RecentDataDb.Commit();

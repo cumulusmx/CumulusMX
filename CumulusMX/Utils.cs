@@ -534,5 +534,12 @@ namespace CumulusMX
 			else
 				return true;
 		}
+
+		public static bool WaitWithCancellation(TimeSpan timeout, CancellationToken token)
+		{
+			// WaitOne returns true if the handle was signaled (i.e., cancellation requested)
+			// and false if the timeout elapsed normally.
+			return token.WaitHandle.WaitOne(timeout);
+		}
 	}
 }

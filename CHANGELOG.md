@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.6 \[b5013\] - 2026-08-22][36]
+## [5.1.6 \[b5013\] - 2026-09-07][36]
 
 ### New
 
@@ -18,11 +18,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-- Nothing
+- The Alternative Interface has been updated to the latest version
+- The upload.php script has been updated to avoid future deprecation issues
 
 ### Fixed
 
 - Missing PM10 values on the charts for some AQ sensor types
+- FTP Exception on connection failure
+- Startup PING
 
 ### Package Updates
 

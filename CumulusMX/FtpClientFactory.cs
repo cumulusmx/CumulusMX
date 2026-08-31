@@ -47,15 +47,15 @@ namespace CumulusMX
 				return;
 			}
 
-			var ip = await _dnsResolver.ResolveAsync(_host);
+			_ = await _dnsResolver.ResolveAsync(_host);
 			return;
 		}
 
-		public async Task<FtpClient> CreateClient()
+		public async Task<AsyncFtpClient> CreateClient()
 		{
 			await ResolveIp();
 
-			var client = new FtpClient
+			var client = new AsyncFtpClient
 			{
 				Host = _host,
 				Port = _port,
