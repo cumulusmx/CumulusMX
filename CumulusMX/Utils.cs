@@ -541,5 +541,19 @@ namespace CumulusMX
 			// and false if the timeout elapsed normally.
 			return token.WaitHandle.WaitOne(timeout);
 		}
+
+		public static string EncodeMultiLineString(string input)
+		{
+			return input.Replace("\\", "\\\\")   // escape backslashes first
+				.Replace("\r", "\\r")
+				.Replace("\n", "\\n");
+		}
+
+		public static string DeEncodeMultiLineString(string input)
+		{
+			return input.Replace("\\n", "\n")
+				.Replace("\\r", "\r")
+				.Replace("\\\\", "\\");
+		}
 	}
 }

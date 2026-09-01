@@ -1698,6 +1698,19 @@ namespace CumulusMX.Stations
 					data.aqiPm10_24hr = AirQualityIndices.BE_BelAQIpm10(data.pm10_24hr);
 					data.aqiPm10_nowcast = AirQualityIndices.BE_BelAQIpm10(data.pm10_nowcast);
 					break;
+				case 8: // European Air Quality Index (EAQI)
+					data.aqiPm2p5 = AirQualityIndices.EEA_EAQIpm2p5h1(data.pm2p5);
+					data.aqiPm2p5_1hr = AirQualityIndices.EEA_EAQIpm2p5h1(data.pm2p5_1hr);
+					data.aqiPm2p5_3hr = AirQualityIndices.EEA_EAQIpm2p5h1(data.pm2p5_3hr);
+					data.aqiPm2p5_24hr = AirQualityIndices.EEA_EAQIpm2p5h1(data.pm2p5_24hr);
+					data.aqiPm2p5_nowcast = AirQualityIndices.EEA_EAQIpm2p5h1(data.pm2p5_nowcast);
+
+					data.aqiPm10 = AirQualityIndices.EEA_EAQIpm10h1(data.pm10);
+					data.aqiPm10_1hr = AirQualityIndices.EEA_EAQIpm10h1(data.pm10_1hr);
+					data.aqiPm10_3hr = AirQualityIndices.EEA_EAQIpm10h1(data.pm10_3hr);
+					data.aqiPm10_24hr = AirQualityIndices.EEA_EAQIpm10h1(data.pm10_24hr);
+					data.aqiPm10_nowcast = AirQualityIndices.EEA_EAQIpm10h1(data.pm10_nowcast);
+					break;
 
 				default:
 					cumulus.LogErrorMessage($"DoAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");

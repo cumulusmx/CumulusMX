@@ -1826,6 +1826,7 @@ namespace CumulusMX
 			}
 
 			cumulus.MQTTSecondChanged(timeNow);
+			cumulus.CustomHttpSecondChanged(timeNow);
 		}
 
 		internal async Task sendWebSocketData(bool wait = false)
@@ -2064,9 +2065,9 @@ namespace CumulusMX
 					}
 
 					// Custom HTTP update - minutes interval
-					if (cumulus.CustomHttpMinutesEnabled && now.Minute % cumulus.CustomHttpMinutesInterval == 0)
+					if (cumulus.CustomHttpMinutesEnabled)
 					{
-						_ = cumulus.CustomHttpMinutesUpdate();
+						_ = cumulus.CustomHttpMinutesUpdate(now);
 					}
 
 					// Custom Log files - interval logs
@@ -11279,6 +11280,12 @@ namespace CumulusMX
 						return AirQualityIndices.BE_BelAQIpm2p5(val);
 					else
 						return AirQualityIndices.BE_BelAQIpm10(val);
+
+				case 8: // European Air Quality Index (EAQI)
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.EEA_EAQIpm2p5h1(val);
+					else
+						return AirQualityIndices.EEA_EAQIpm10h1(val);
 
 				default:
 					cumulus.LogErrorMessage($"GetAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");

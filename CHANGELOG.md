@@ -14,18 +14,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
- - Nothing
+ - Adds support for the latest European Environment Agency - European Air Quality Index (EEA - EAQI)
+	- Note this is for pm2.5 and pm10 only, and should really use a 1-hour average PM value. This 1-hour average is only available from the AirLink
 
 ### Changed
 
 - The Alternative Interface has been updated to the latest version
 - The upload.php script has been updated to avoid future deprecation issues
+- Third Party Custom HTTP uploads have had a make-over
+	- All can now be configured for both GET or POST
+	- The Custom Seconds and Custom Minutes can now have the interval defined per upload
 
 ### Fixed
 
 - Missing PM10 values on the charts for some AQ sensor types
 - FTP Exception on connection failure
-- Startup PING
+- Startup PING hanging up the application
 
 ### Package Updates
 

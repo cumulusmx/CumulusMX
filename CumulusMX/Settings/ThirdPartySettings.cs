@@ -378,52 +378,63 @@ namespace CumulusMX.Settings
 				{
 					// custom seconds
 					cumulus.CustomHttpSecondsEnabled = settings.customhttp.customseconds.enabled;
-					cumulus.CustomHttpSecondsTimer.Enabled = cumulus.CustomHttpSecondsEnabled;
 					if (cumulus.CustomHttpSecondsEnabled)
 					{
-						for (var i = 0; i < 10; i++)
-						{
-							if (i < settings.customhttp.customseconds.url.Length)
-								cumulus.CustomHttpSecondsStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customseconds.url[i]) ? null : settings.customhttp.customseconds.url[i].Trim();
-							else
-								cumulus.CustomHttpSecondsStrings[i] = null;
-						}
+						cumulus.CustomHttpSeconds.Clear();
 
-						cumulus.CustomHttpSecondsInterval = settings.customhttp.customseconds.interval;
-						cumulus.CustomHttpSecondsTimer.Interval = cumulus.CustomHttpSecondsInterval * 1000;
+						for (var i = 0; i < settings.customhttp.customseconds.entries.Length; i++)
+						{
+							if (!string.IsNullOrWhiteSpace(settings.customhttp.customseconds.entries[i].url))
+							{
+								cumulus.CustomHttpSeconds.Add(new ThirdParty.CustomHttpSettings() {
+									Url = settings.customhttp.customseconds.entries[i].url.Trim(),
+									Post = settings.customhttp.customseconds.entries[i].post,
+									PostJson = settings.customhttp.customseconds.entries[i].postjson,
+									PostBody = (settings.customhttp.customseconds.entries[i].postbody ?? string.Empty).Trim(),
+									Interval = settings.customhttp.customseconds.entries[i].interval
+								});
+							}
+						}
 					}
 					// custom minutes
 					cumulus.CustomHttpMinutesEnabled = settings.customhttp.customminutes.enabled;
 					if (cumulus.CustomHttpMinutesEnabled)
 					{
-						for (var i = 0; i < 10; i++)
-						{
-							if (i < settings.customhttp.customminutes.url.Length)
-								cumulus.CustomHttpMinutesStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customminutes.url[i]) ? null : settings.customhttp.customminutes.url[i].Trim();
-							else
-								cumulus.CustomHttpMinutesStrings[i] = null;
-						}
+						cumulus.CustomHttpMinutes.Clear();
 
-						cumulus.CustomHttpMinutesIntervalIndex = settings.customhttp.customminutes.intervalindex;
-						if (cumulus.CustomHttpMinutesIntervalIndex >= 0 && cumulus.CustomHttpMinutesIntervalIndex < Cumulus.FactorsOf60.Length)
+						for (var i = 0; i < settings.customhttp.customminutes.entries.Length; i++)
 						{
-							cumulus.CustomHttpMinutesInterval = Cumulus.FactorsOf60[cumulus.CustomHttpMinutesIntervalIndex];
-						}
-						else
-						{
-							cumulus.CustomHttpMinutesInterval = 10;
+							if (!string.IsNullOrWhiteSpace(settings.customhttp.customminutes.entries[i].url))
+							{
+								cumulus.CustomHttpMinutes.Add(new ThirdParty.CustomHttpSettings()
+								{
+									Url = settings.customhttp.customminutes.entries[i].url.Trim(),
+									Post = settings.customhttp.customminutes.entries[i].post,
+									PostJson = settings.customhttp.customminutes.entries[i].postjson,
+									PostBody = (settings.customhttp.customminutes.entries[i].postbody ?? string.Empty).Trim(),
+									Interval = settings.customhttp.customminutes.entries[i].interval
+								});
+							}
 						}
 					}
 					// custom roll-over
 					cumulus.CustomHttpRolloverEnabled = settings.customhttp.customrollover.enabled;
 					if (cumulus.CustomHttpRolloverEnabled)
 					{
-						for (var i = 0; i < 10; i++)
+						cumulus.CustomHttpRollover.Clear();
+
+						for (var i = 0; i < settings.customhttp.customrollover.entries.Length; i++)
 						{
-							if (i < settings.customhttp.customrollover.url.Length)
-								cumulus.CustomHttpRolloverStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customrollover.url[i]) ? null : settings.customhttp.customrollover.url[i].Trim();
-							else
-								cumulus.CustomHttpRolloverStrings[i] = null;
+							if (!string.IsNullOrWhiteSpace(settings.customhttp.customrollover.entries[i].url))
+							{
+								cumulus.CustomHttpRollover.Add(new ThirdParty.CustomHttpSettings()
+								{
+									Url = settings.customhttp.customrollover.entries[i].url.Trim(),
+									Post = settings.customhttp.customrollover.entries[i].post,
+									PostJson = settings.customhttp.customrollover.entries[i].postjson,
+									PostBody = (settings.customhttp.customrollover.entries[i].postbody ?? string.Empty).Trim()
+								});
+							}
 						}
 					}
 				}
@@ -645,44 +656,51 @@ namespace CumulusMX.Settings
 			var customseconds = new JsonCustomHttpSeconds()
 			{
 				enabled = cumulus.CustomHttpSecondsEnabled,
-				interval = cumulus.CustomHttpSecondsInterval
 			};
 
-			var urlCnt = 1;
-			for (var i = 1; i < 10; i++)
-			{
-				if (!string.IsNullOrEmpty(cumulus.CustomHttpSecondsStrings[i]))
-					urlCnt++;
-			}
-			customseconds.url = new string[urlCnt];
+			var urlCnt = cumulus.CustomHttpSeconds.Count;
+			customseconds.entries = new JsonCustomHttp[urlCnt];
 
 			var index = 0;
-			for (var i = 0; i < 10; i++)
+			foreach (var entry in cumulus.CustomHttpSeconds)
 			{
-				if (!string.IsNullOrEmpty(cumulus.CustomHttpSecondsStrings[i]))
-					customseconds.url[index++] = cumulus.CustomHttpSecondsStrings[i];
+				if (!string.IsNullOrEmpty(entry.Url))
+				{
+					customseconds.entries[index] = new JsonCustomHttp
+					{
+						url = entry.Url,
+						post = entry.Post,
+						postjson = entry.PostJson,
+						postbody = entry.PostBody,
+						interval = entry.Interval
+					};
+					index++;
+				}
 			}
 
 			var customminutes = new JsonCustomHttpMinutes()
 			{
-				enabled = cumulus.CustomHttpMinutesEnabled,
-				intervalindex = cumulus.CustomHttpMinutesIntervalIndex
+				enabled = cumulus.CustomHttpMinutesEnabled
 			};
 
-			urlCnt = 1;
-			for (var i = 1; i < 10; i++)
-			{
-				if (!string.IsNullOrEmpty(cumulus.CustomHttpMinutesStrings[i]))
-					urlCnt++;
-			}
-
-			customminutes.url = new string[urlCnt];
+			urlCnt = cumulus.CustomHttpMinutes.Count;
+			customminutes.entries = new JsonCustomHttp[urlCnt];
 
 			index = 0;
-			for (var i = 0; i < 10; i++)
+			foreach (var entry in cumulus.CustomHttpMinutes)
 			{
-				if (!string.IsNullOrEmpty(cumulus.CustomHttpMinutesStrings[i]))
-					customminutes.url[index++] = cumulus.CustomHttpMinutesStrings[i];
+				if (!string.IsNullOrEmpty(entry.Url))
+				{
+					customminutes.entries[index] = new JsonCustomHttp
+					{
+						url = entry.Url,
+						post = entry.Post,
+						postjson = entry.PostJson,
+						postbody = entry.PostBody,
+						interval = entry.Interval
+					};
+					index++;
+				}
 			}
 
 			var customrollover = new JsonCustomHttpRollover()
@@ -690,20 +708,23 @@ namespace CumulusMX.Settings
 				enabled = cumulus.CustomHttpRolloverEnabled
 			};
 
-			urlCnt = 1;
-			for (var i = 1; i < 10; i++)
-			{
-				if (!string.IsNullOrEmpty(cumulus.CustomHttpRolloverStrings[i]))
-					urlCnt++;
-			}
-
-			customrollover.url = new string[urlCnt];
+			urlCnt = cumulus.CustomHttpRollover.Count;
+			customrollover.entries = new JsonCustomHttp[urlCnt];
 
 			index = 0;
-			for (var i = 0; i < urlCnt; i++)
+			foreach (var entry in cumulus.CustomHttpRollover)
 			{
-				if (!string.IsNullOrEmpty(cumulus.CustomHttpRolloverStrings[i]))
-					customrollover.url[index] = cumulus.CustomHttpRolloverStrings[i];
+				if (!string.IsNullOrEmpty(entry.Url))
+				{
+					customrollover.entries[index] = new JsonCustomHttp
+					{
+						url = entry.Url,
+						post = entry.Post,
+						postjson = entry.PostJson,
+						postbody = entry.PostBody
+					};
+					index++;
+				}
 			}
 
 			var customhttp = new JsonCustomHttpSettings() { customseconds = customseconds, customminutes = customminutes, customrollover = customrollover };
@@ -881,23 +902,32 @@ namespace CumulusMX.Settings
 			public string baseUrl { get; set; }
 		}
 
+		private sealed class JsonCustomHttp
+		{
+			public string url { get; set; }
+			public bool post { get; set; }
+			public bool postjson { get; set; }
+			public string postbody { get; set; }
+			public int interval { get; set; }
+		}
+
 		private sealed class JsonCustomHttpSeconds
 		{
-			public string[] url { get; set; }
+			public JsonCustomHttp[] entries { get; set; }
 			public bool enabled { get; set; }
 			public int interval { get; set; }
 		}
 
 		private sealed class JsonCustomHttpMinutes
 		{
-			public string[] url { get; set; }
+			public JsonCustomHttp[] entries { get; set; }
 			public bool enabled { get; set; }
 			public int intervalindex { get; set; }
 		}
 
 		private sealed class JsonCustomHttpRollover
 		{
-			public string[] url { get; set; }
+			public JsonCustomHttp[] entries { get; set; }
 			public bool enabled { get; set; }
 		}
 
