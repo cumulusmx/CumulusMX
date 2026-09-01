@@ -152,7 +152,7 @@ namespace CumulusMX.Stations
 
 				var timeDiff = nowTime.Subtract(consoleclock).TotalSeconds;
 
-				if (Math.Abs(timeDiff) >= 30)
+				if (Math.Abs(timeDiff) >= 15)
 				{
 					if (cumulus.StationOptions.SyncTime)
 					{
@@ -162,7 +162,7 @@ namespace CumulusMX.Stations
 						// Pause whilst the console sorts itself out
 						cumulus.LogMessage("Console clock: Pausing to allow Davis console to process the new date/time");
 						Cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
-						Thread.Sleep(1000 * 5);
+						Utils.WaitWithCancellation(TimeSpan.FromSeconds(5), Program.ExitSystemToken);
 
 						consoleclock = GetTime();
 
@@ -182,7 +182,7 @@ namespace CumulusMX.Stations
 				}
 				else
 				{
-					cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int) nowTime.Subtract(consoleclock).TotalSeconds}s)");
+					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={(int) consoleclock.Subtract(nowTime).TotalSeconds}s)");
 				}
 			}
 			else
@@ -2468,7 +2468,11 @@ namespace CumulusMX.Stations
 
 							cumulus.LogMessage("GetArchiveData: Loaded archive record for Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
 
-							if (timestamp > LastDataReadTime)
+							if (timestamp > DateTime.Now)
+							{
+								cumulus.LogMessage("GetArchiveData: Ignoring archive data from the future!");
+							}
+							else if (timestamp > LastDataReadTime)
 							{
 								cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 

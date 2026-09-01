@@ -24,12 +24,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Third Party Custom HTTP uploads have had a make-over
 	- All can now be configured for both GET or POST
 	- The Custom Seconds and Custom Minutes can now have the interval defined per upload
+- The Davis VP2 console allowed clock drift reduced from 30 to 15 seconds
 
 ### Fixed
 
 - Missing PM10 values on the charts for some AQ sensor types
 - FTP Exception on connection failure
 - Startup PING hanging up the application
+- Davis VP2 catch-up will no longer process archive records that are timestamped later than the current time
 
 ### Package Updates
 
