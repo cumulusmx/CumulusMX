@@ -376,6 +376,48 @@ namespace CumulusMX
 				return 1 + Interpolate(0, 10, pmVal) * 24;
 		}
 
+		/*
+		 * European Air Quality Index - EEA EAQI - Good, Fair, Moderate, Poor, Very Poor, Extremely Poor
+		 * https://www.eionet.europa.eu/etcs/etc-he/products/etc-he-products/etc-he-reports/etc-he-report-2024-17-eeas-revision-of-the-european-air-quality-index-bands/@@download/file/ETC%20HE%20Report%202024-17_Gonzalez%20Ortiz.pdf
+		 * PM2.5 1hr avg
+		 */
+		public static double EEA_EAQIpm2p5h1(double pmVal)
+		{
+			if (pmVal > 140)
+				return 6;
+			else if (pmVal > 90)
+				return 5;
+			else if (pmVal > 50)
+				return 4;
+			else if (pmVal > 15)
+				return 3;
+			else if (pmVal > 5)
+				return 2;
+			else
+				return 1;
+		}
+
+		/*
+		 * European Air Quality Index - EEA EAQI - Good, Fair, Moderate, Poor, Very Poor, Extremely Poor
+		 * https://www.eionet.europa.eu/etcs/etc-he/products/etc-he-products/etc-he-reports/etc-he-report-2024-17-eeas-revision-of-the-european-air-quality-index-bands/@@download/file/ETC%20HE%20Report%202024-17_Gonzalez%20Ortiz.pdf
+		 * PM10 1hr avg
+		 */
+		public static double EEA_EAQIpm10h1(double pmVal)
+		{
+			if (pmVal > 270)
+				return 6;
+			else if (pmVal > 195)
+				return 5;
+			else if (pmVal > 120)
+				return 4;
+			else if (pmVal > 45)
+				return 3;
+			else if (pmVal > 15)
+				return 2;
+			else
+				return 1;
+		}
+
 
 		/*
 		 * Australia National Environment Pollution Measure - NEPM

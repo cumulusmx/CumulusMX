@@ -943,6 +943,7 @@ namespace CumulusMX
 			}
 
 			cumulus.MQTTSecondChanged(timeNow);
+			cumulus.CustomHttpSecondChanged(timeNow);
 		}
 
 		private async Task sendWebSocketData(bool wait = false)
@@ -1134,9 +1135,9 @@ namespace CumulusMX
 					}
 
 					// Custom HTTP update - minutes interval
-					if (cumulus.CustomHttpMinutesEnabled && now.Minute % cumulus.CustomHttpMinutesInterval == 0)
+					if (cumulus.CustomHttpMinutesEnabled)
 					{
-						_ = cumulus.CustomHttpMinutesUpdate();
+						_ = cumulus.CustomHttpMinutesUpdate(now);
 					}
 
 					// Custom Log files - interval logs

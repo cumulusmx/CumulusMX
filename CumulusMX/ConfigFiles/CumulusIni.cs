@@ -1905,45 +1905,114 @@ namespace CumulusMX
 
 			#region Custom HTTP Settings
 			// Custom HTTP - seconds
-			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", string.Empty);
-			for (var i = 1; i < 10; i++)
-			{
-				if (ini.ValueExists("HTTP", "CustomHttpSecondsString" + i))
-					CustomHttpSecondsStrings[i] = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, string.Empty);
-			}
-
 			CustomHttpSecondsEnabled = ini.GetValue("HTTP", "CustomHttpSecondsEnabled", false);
-			CustomHttpSecondsInterval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10, 1);
 
-			// Custom HTTP - minutes
-			CustomHttpMinutesStrings[0] = ini.GetValue("HTTP", "CustomHttpMinutesString", string.Empty);
-			for (var i = 1; i < 10; i++)
+			var httpSecsIntvl = 10;
+			if (ini.ValueExists("HTTP", "CustomHttpSecondsInterval"))
 			{
-				if (ini.ValueExists("HTTP", "CustomHttpMinutesString" + i))
-					CustomHttpMinutesStrings[i] = ini.GetValue("HTTP", "CustomHttpMinutesString" + i, string.Empty);
-			}
-
-			CustomHttpMinutesEnabled = ini.GetValue("HTTP", "CustomHttpMinutesEnabled", false);
-			CustomHttpMinutesIntervalIndex = ini.GetValue("HTTP", "CustomHttpMinutesIntervalIndex", -1);
-			if (CustomHttpMinutesIntervalIndex >= 0 && CustomHttpMinutesIntervalIndex < FactorsOf60.Length)
-			{
-				CustomHttpMinutesInterval = FactorsOf60[CustomHttpMinutesIntervalIndex];
-			}
-			else
-			{
-				CustomHttpMinutesInterval = 10;
-				CustomHttpMinutesIntervalIndex = 6;
-				ini.SetValue("HTTP", "CustomHttpMinutesIntervalIndex", CustomHttpMinutesIntervalIndex);
+				httpSecsIntvl = ini.GetValue("HTTP", "CustomHttpSecondsInterval", httpSecsIntvl, 1, 30);
+				ini.DeleteValue("HTTP", "CustomHttpSecondsInterval");
 				rewriteRequired = true;
 			}
 
-			// Http - custom roll-over
-			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
-			CustomHttpRolloverStrings[0] = ini.GetValue("HTTP", "CustomHttpRolloverString", string.Empty);
-			for (var i = 1; i < 10; i++)
+			if (!string.IsNullOrWhiteSpace(ini.GetValue("HTTP", "CustomHttpSecondsString", string.Empty)))
 			{
-				if (ini.ValueExists("HTTP", "CustomHttpRolloverString" + i))
-					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, string.Empty);
+				CustomHttpSeconds.Add(new ThirdParty.CustomHttpSettings
+				{
+					Url = ini.GetValue("HTTP", "CustomHttpSecondsString", string.Empty),
+					Post = ini.GetValue("HTTP", "CustomHttpSecondsPost", false),
+					PostJson = ini.GetValue("HTTP", "CustomHttpSecondsBodyJson", true),
+					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpSecondsBody", string.Empty)),
+					Interval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", httpSecsIntvl)
+				});
+
+				for (var i = 1; i < 10; i++)
+				{
+					if (ini.ValueExists("HTTP", "CustomHttpSecondsString" + i))
+					{
+						CustomHttpSeconds.Add(new ThirdParty.CustomHttpSettings
+						{
+							Url = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, string.Empty),
+							Post = ini.GetValue("HTTP", "CustomHttpSecondsPost" + i, false),
+							PostJson = ini.GetValue("HTTP", "CustomHttpSecondsBodyJson" + i, true),
+							PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpSecondsBody" + i, string.Empty)),
+							Interval = ini.GetValue("HTTP", "CustomHttpSecondsInterval" + i, 10)
+						});
+					}
+				}
+			}
+
+
+			// Custom HTTP - minutes
+			CustomHttpMinutesEnabled = ini.GetValue("HTTP", "CustomHttpMinutesEnabled", false);
+
+			var httpMinsIntvl = 10;
+			if (ini.ValueExists("HTTP", "CustomHttpMinutesIntervalIndex"))
+			{
+				var httpMinsIndx = ini.GetValue("HTTP", "CustomHttpMinutesIntervalIndex", -1);
+
+				if (httpMinsIndx >= 0 && httpMinsIndx < FactorsOf60.Length)
+				{
+					httpMinsIntvl = FactorsOf60[httpMinsIndx];
+				}
+
+				ini.DeleteValue("HTTP", "CustomHttpMinutesIntervalIndex");
+				rewriteRequired = true;
+			}
+
+			if (!string.IsNullOrWhiteSpace(ini.GetValue("HTTP", "CustomHttpMinutesString", string.Empty)))
+			{
+				CustomHttpMinutes.Add(new ThirdParty.CustomHttpSettings
+				{
+					Url = ini.GetValue("HTTP", "CustomHttpMinutesString", string.Empty),
+					Post = ini.GetValue("HTTP", "CustomHttpMinutesPost", false),
+					PostJson = ini.GetValue("HTTP", "CustomHttpMinutesBodyJson", true),
+					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpMinutesBody", string.Empty)),
+					Interval = ini.GetValue("HTTP", "CustomHttpMinutesInterval", httpMinsIntvl)
+				});
+
+				for (var i = 1; i < 10; i++)
+				{
+					if (ini.ValueExists("HTTP", "CustomHttpMinutesString" + i))
+					{
+						CustomHttpMinutes.Add(new ThirdParty.CustomHttpSettings
+						{
+							Url = ini.GetValue("HTTP", "CustomHttpMinutesString" + i, string.Empty),
+							Post = ini.GetValue("HTTP", "CustomHttpMinutesPost" + i, false),
+							PostJson = ini.GetValue("HTTP", "CustomHttpMinutesPostJson" + i, true),
+							PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpMinutesBody" + i, string.Empty)),
+							Interval = ini.GetValue("HTTP", "CustomHttpMinutesInterval" + i, httpMinsIntvl)
+						});
+					}
+				}
+			}
+
+			// Custom Http - roll-over
+			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
+			if (!string.IsNullOrWhiteSpace(ini.GetValue("HTTP", "CustomHttpRolloverString", string.Empty)))
+			{
+
+				CustomHttpRollover.Add(new ThirdParty.CustomHttpSettings
+				{
+					Url = ini.GetValue("HTTP", "CustomHttpRolloverString", string.Empty),
+					Post = ini.GetValue("HTTP", "CustomHttpRolloverPost", false),
+					PostJson = ini.GetValue("HTTP", "CustomHttpRolloverBodyJson", true),
+					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpRolloverBody", string.Empty))
+				});
+
+				for (var i = 1; i < 10; i++)
+				{
+					if (ini.ValueExists("HTTP", "CustomHttpRolloverString" + i))
+					{
+						CustomHttpMinutes.Add(new ThirdParty.CustomHttpSettings
+						{
+							Url = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, string.Empty),
+							Post = ini.GetValue("HTTP", "CustomHttpRolloverPost" + i, false),
+							PostJson = ini.GetValue("HTTP", "CustomHttpRolloverPostJson" + i, true),
+							PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpRolloverBody" + i, string.Empty))
+						});
+					}
+				}
 			}
 			#endregion
 
@@ -3544,34 +3613,95 @@ namespace CumulusMX
 			}
 
 
-			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsStrings[0]);
-			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesStrings[0]);
-			ini.SetValue("HTTP", "CustomHttpRolloverString", CustomHttpRolloverStrings[0]);
+			// Custom HTTP uploads - Seconds
+			ini.SetValue("HTTP", "CustomHttpSecondsEnabled", CustomHttpSecondsEnabled);
 
-			for (var i = 1; i < 10; i++)
+			if (CustomHttpSeconds.Count > 0)
 			{
-				if (string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
+				ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSeconds[0].Url);
+				ini.SetValue("HTTP", "CustomHttpSecondsPost", CustomHttpSeconds[0].Post);
+				ini.SetValue("HTTP", "CustomHttpSecondsPostJson", CustomHttpSeconds[0].PostJson);
+				ini.SetValue("HTTP", "CustomHttpSecondsBody", Utils.EncodeMultiLineString(CustomHttpSeconds[0].PostBody));
+				ini.SetValue("HTTP", "CustomHttpSecondsInterval", CustomHttpSeconds[0].Interval);
+
+				var i = 1;
+				foreach (var entry in CustomHttpSeconds.Skip(1))
+				{
+					ini.SetValue("HTTP", "CustomHttpSecondsString" + i, entry.Url);
+					ini.SetValue("HTTP", "CustomHttpSecondsPost" + i, entry.Post);
+					ini.SetValue("HTTP", "CustomHttpSecondsPostJson" + i, entry.PostJson);
+					ini.SetValue("HTTP", "CustomHttpSecondsBody" + i, Utils.EncodeMultiLineString(entry.PostBody));
+					ini.SetValue("HTTP", "CustomHttpSecondsInterval" + i, entry.Interval);
+					i++;
+				}
+
+				for (; i < 10; i++)
+				{
 					ini.DeleteValue("HTTP", "CustomHttpSecondsString" + i);
-				else
-					ini.SetValue("HTTP", "CustomHttpSecondsString" + i, CustomHttpSecondsStrings[i]);
-
-				if (string.IsNullOrEmpty(CustomHttpMinutesStrings[i]))
-					ini.DeleteValue("HTTP", "CustomHttpMinutesString" + i);
-				else
-					ini.SetValue("HTTP", "CustomHttpMinutesString" + i, CustomHttpMinutesStrings[i]);
-
-				if (string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
-					ini.DeleteValue("HTTP", "CustomHttpRolloverString" + i);
-				else
-					ini.SetValue("HTTP", "CustomHttpRolloverString" + i, CustomHttpRolloverStrings[i]);
+					ini.DeleteValue("HTTP", "CustomHttpSecondsPost" + i);
+					ini.DeleteValue("HTTP", "CustomHttpSecondsPostJson" + i);
+					ini.DeleteValue("HTTP", "CustomHttpSecondsBody" + i);
+					ini.DeleteValue("HTTP", "CustomHttpSecondsInterval" + i);
+				}
 			}
 
-			ini.SetValue("HTTP", "CustomHttpSecondsEnabled", CustomHttpSecondsEnabled);
+			// Custom HTTP uploads - Minutes
 			ini.SetValue("HTTP", "CustomHttpMinutesEnabled", CustomHttpMinutesEnabled);
+
+			if (CustomHttpMinutes.Count > 0)
+			{
+				ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutes[0].Url);
+				ini.SetValue("HTTP", "CustomHttpMinutesPost", CustomHttpMinutes[0].Post);
+				ini.SetValue("HTTP", "CustomHttpMinutesPostJson", CustomHttpMinutes[0].PostJson);
+				ini.SetValue("HTTP", "CustomHttpMinutesBody", Utils.EncodeMultiLineString(CustomHttpMinutes[0].PostBody));
+				ini.SetValue("HTTP", "CustomHttpMinutesInterval", CustomHttpMinutes[0].Interval);
+
+				var i = 1;
+				foreach (var entry in CustomHttpSeconds.Skip(1))
+				{
+					ini.SetValue("HTTP", "CustomHttpMinutesString" + i, entry.Url);
+					ini.SetValue("HTTP", "CustomHttpMinutesPost" + i, entry.Post);
+					ini.SetValue("HTTP", "CustomHttpMinutesPostJson" + i, entry.PostJson);
+					ini.SetValue("HTTP", "CustomHttpMinutesBody" + i, Utils.EncodeMultiLineString(entry.PostBody));
+					ini.SetValue("HTTP", "CustomHttpMinutesInterval" + i, entry.Interval);
+				}
+				for (; i < 10; i++)
+				{
+					ini.DeleteValue("HTTP", "CustomHttpMinutesString" + i);
+					ini.DeleteValue("HTTP", "CustomHttpMinutesPost" + i);
+					ini.DeleteValue("HTTP", "CustomHttpMinutesPostJson" + i);
+					ini.DeleteValue("HTTP", "CustomHttpMinutesBody" + i);
+					ini.DeleteValue("HTTP", "CustomHttpMinutesInterval" + i);
+				}
+			}
+
+			// Custom HTTP uploads - Rollover
 			ini.SetValue("HTTP", "CustomHttpRolloverEnabled", CustomHttpRolloverEnabled);
 
-			ini.SetValue("HTTP", "CustomHttpSecondsInterval", CustomHttpSecondsInterval);
-			ini.SetValue("HTTP", "CustomHttpMinutesIntervalIndex", CustomHttpMinutesIntervalIndex);
+			if (CustomHttpRollover.Count > 0)
+			{
+				ini.SetValue("HTTP", "CustomHttpRolloverString", CustomHttpRollover[0].Url);
+				ini.SetValue("HTTP", "CustomHttpRolloverPost", CustomHttpRollover[0].Post);
+				ini.SetValue("HTTP", "CustomHttpRolloverPostJson", CustomHttpRollover[0].PostJson);
+				ini.SetValue("HTTP", "CustomHttpRolloverBody", Utils.EncodeMultiLineString(CustomHttpRollover[0].PostBody));
+
+				var i = 1;
+				foreach (var entry in CustomHttpRollover.Skip(1))
+				{
+					ini.SetValue("HTTP", "CustomHttpRolloverString" + i, entry.Url);
+					ini.SetValue("HTTP", "CustomHttpRolloverPost" + i, entry.Post);
+					ini.SetValue("HTTP", "CustomHttpRolloverPostJson" + i, entry.PostJson);
+					ini.SetValue("HTTP", "CustomHttpRolloverBody" + i, Utils.EncodeMultiLineString(entry.PostBody));
+
+					for (; i < 10; i++)
+					{
+						ini.DeleteValue("HTTP", "CustomHttpRolloverString" + i);
+						ini.DeleteValue("HTTP", "CustomHttpRolloverPost" + i);
+						ini.DeleteValue("HTTP", "CustomHttpRolloverPostJson" + i);
+						ini.DeleteValue("HTTP", "CustomHttpRolloverBody" + i);
+					}
+				}
+			}
 
 			// Http files
 			for (var i = 0; i < 10; i++)

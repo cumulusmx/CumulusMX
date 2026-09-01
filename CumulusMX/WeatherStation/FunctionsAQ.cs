@@ -173,6 +173,12 @@ namespace CumulusMX
 					else
 						return AirQualityIndices.BE_BelAQIpm10(val);
 
+				case 8: // European Air Quality Index (EAQI)
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.EEA_EAQIpm2p5h1(val);
+					else
+						return AirQualityIndices.EEA_EAQIpm10h1(val);
+
 				default:
 					cumulus.LogErrorMessage($"GetAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");
 					return -1;
