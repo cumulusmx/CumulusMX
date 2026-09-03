@@ -32,6 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - FTP Exception on connection failure
 - Startup PING hanging up the application
 - Davis VP2 catch-up will no longer process archive records that are timestamped later than the current time
+- HTTP Files direct download to upload of files via FTP
 
 ### Package Updates
 

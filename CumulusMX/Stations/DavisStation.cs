@@ -32,6 +32,7 @@ namespace CumulusMX.Stations
 		private bool stop;
 		private int loggerInterval;
 		private const string soilMoistUnit = "cb";
+		private TimeSpan clockDiff = TimeSpan.FromSeconds(0);
 
 		private readonly int[,] ForecastLookup =
 		{
@@ -144,19 +145,19 @@ namespace CumulusMX.Stations
 			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime.ToCmxLogFormat());
 
 			var consoleclock = GetTime();
-			var nowTime = DateTime.Now;
 
 			if (consoleclock > DateTime.MinValue)
 			{
 				cumulus.LogMessage("Console clock: " + consoleclock.ToCmxLogFormat());
 
-				var timeDiff = nowTime.Subtract(consoleclock).TotalSeconds;
+				clockDiff = consoleclock.Subtract(DateTime.Now); // we will use this later when fetching the archive data
+				var timeDiffStr = ((int) clockDiff.TotalSeconds).ToString("+#;-#;0");
 
-				if (Math.Abs(timeDiff) >= 15)
+				if (Math.Abs(clockDiff.TotalSeconds) >= 15)
 				{
 					if (cumulus.StationOptions.SyncTime)
 					{
-						cumulus.LogWarningMessage($"Console clock: Console is {(int) timeDiff} seconds adrift, resetting it...");
+						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift, resetting it...");
 
 						SetTime();
 						// Pause whilst the console sorts itself out
@@ -177,12 +178,12 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogWarningMessage($"Console clock: Console is {(int) timeDiff} seconds adrift but automatic setting is disabled - you should set the clock manually.");
+						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift but automatic setting is disabled - you should set the clock manually.");
 					}
 				}
 				else
 				{
-					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={(int) consoleclock.Subtract(nowTime).TotalSeconds}s)");
+					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={timeDiffStr}s)");
 				}
 			}
 			else
@@ -2137,7 +2138,7 @@ namespace CumulusMX.Stations
 			var snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			// work out the next logger interval after the last CMX update
-			var nextLoggerTime = cumulus.LastUpdateTime.AddMinutes(-1).RoundTimeUpToInterval(TimeSpan.FromMinutes(loggerInterval));
+			var nextLoggerTime = cumulus.LastUpdateTime.Subtract(clockDiff).AddMinutes(-1).RoundTimeUpToInterval(TimeSpan.FromMinutes(loggerInterval));
 
 			// check if the calculated logger time is later than now!
 			if (nextLoggerTime > DateTime.Now)
@@ -2466,7 +2467,9 @@ namespace CumulusMX.Stations
 							// ...and load it into the archive data...
 							archiveData.Load(record, out timestamp);
 
-							cumulus.LogMessage("GetArchiveData: Loaded archive record for Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
+							var correctedTimestamp = timestamp.Subtract(clockDiff).RoundTimeToInterval(TimeSpan.FromMinutes(1));
+
+							cumulus.LogMessage($"GetArchiveData: Loaded archive record for Page={p} Record={r} Timestamp={archiveData.Timestamp} Corrected={correctedTimestamp}");
 
 							if (timestamp > DateTime.Now)
 							{

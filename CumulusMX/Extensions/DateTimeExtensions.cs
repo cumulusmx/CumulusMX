@@ -130,16 +130,15 @@ namespace CumulusMX
 
 		}
 
-		public static DateTime RoundTimeToInterval(this DateTime dateTime, int intvl)
+		public static DateTime RoundTimeToInterval(this DateTime dateTime, TimeSpan intvl)
 		{
 			try
 			{
-				if (intvl <= 0)
+				if (intvl <= TimeSpan.Zero)
 					throw new ArgumentOutOfRangeException(nameof(intvl), "Interval must be positive.");
 
-				int minutes = dateTime.Minute;
-				int roundedMinutes = (int) (Math.Round((decimal) minutes / intvl) * intvl);
-				return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, roundedMinutes, 0);
+				long ticks = (dateTime.Ticks + (intvl.Ticks / 2) + 1) / intvl.Ticks;
+				return new DateTime(ticks * intvl.Ticks, dateTime.Kind);
 			}
 			catch (Exception ex)
 			{
