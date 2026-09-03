@@ -149,13 +149,14 @@ namespace CumulusMX.Stations
 			{
 				cumulus.LogMessage("Console clock: " + consoleclock.ToCmxLogFormat());
 
-				var timeDiff = nowTime.Subtract(consoleclock).TotalSeconds;
+				var timeDiff = consoleclock.Subtract(nowTime).TotalSeconds;
+				var timeDiffStr = ((int) timeDiff).ToString("+#;-#;0");
 
 				if (Math.Abs(timeDiff) >= 15)
 				{
 					if (cumulus.StationOptions.SyncTime)
 					{
-						cumulus.LogWarningMessage($"Console clock: Console is {(int) timeDiff} seconds adrift, resetting it...");
+						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift, resetting it...");
 
 						SetTime();
 						// Pause whilst the console sorts itself out
@@ -176,12 +177,12 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogWarningMessage($"Console clock: Console is {(int) timeDiff} seconds adrift but automatic setting is disabled - you should set the clock manually.");
+						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift but automatic setting is disabled - you should set the clock manually.");
 					}
 				}
 				else
 				{
-					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={(int) consoleclock.Subtract(nowTime).TotalSeconds}s)");
+					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={timeDiffStr}s)");
 				}
 			}
 			else

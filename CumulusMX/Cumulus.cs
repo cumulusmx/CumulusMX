@@ -5791,10 +5791,13 @@ namespace CumulusMX
 				{
 					_ = Task.Run(async () =>
 					{
+						LogDebugMessage($"ProcessHttpFiles: Downloading from {item.Url} to {item.Remote}");
+
 						// just create a file from the download
 						await httpFiles.DownloadHttpFile(item.Url, item.Remote);
-
 						item.SetNextInterval(now);
+
+						LogDebugMessage($"ProcessHttpFiles: Downloading from {item.Url} to {item.Remote}");
 					});
 				}
 
@@ -5829,27 +5832,26 @@ namespace CumulusMX
 
 					foreach (var item in uploads)
 					{
-						Stream strm = null;
-
 						try
 						{
 
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return;
 
-							strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
-							UploadStream(conn, item.Remote, strm, -1);
+							LogDebugMessage($"ProcessHttpFiles: Downloading from {item.Url}, upload to {item.Remote}");
 
+							using var strm = await httpFiles.DownloadFileStream(item.Url);
+							if (strm != null)
+							{
+								UploadStream(conn, item.Remote, strm, -1);
+							}
 							item.SetNextInterval(now);
+
+							LogDebugMessage($"ProcessHttpFiles: Download from {item.Url}, upload to {item.Remote} complete");
 						}
 						catch (Exception ex) when (ex is not TaskCanceledException)
 						{
 							LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
-						}
-						finally
-						{
-							if (null != strm)
-								strm.Dispose();
 						}
 					}
 
@@ -5912,27 +5914,26 @@ namespace CumulusMX
 
 				foreach (var item in uploads)
 				{
-					Stream strm = null;
-
 					try
 					{
 
 						if (Program.ExitSystemToken.IsCancellationRequested)
 							return;
 
-						strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
-						await UploadStream(conn, item.Remote, strm, -1);
+						LogDebugMessage($"ProcessHttpFiles: Downloading from {item.Url}, upload to {item.Remote}");
 
+						using var strm = await httpFiles.DownloadFileStream(item.Url);
+						if (strm != null)
+						{
+							await UploadStream(conn, item.Remote, strm, -1);
+						}
 						item.SetNextInterval(now);
+
+						LogDebugMessage($"ProcessHttpFiles: Download from {item.Url}, upload to {item.Remote} complete");
 					}
 					catch (Exception ex) when (ex is not TaskCanceledException)
 					{
 						LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
-					}
-					finally
-					{
-						if (null != strm)
-							strm.Dispose();
 					}
 				}
 
@@ -5988,10 +5989,13 @@ namespace CumulusMX
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
+							LogDebugMessage($"ProcessHttpFiles: Uploading http file {downloadfile} to: {remotefile}");
+
 							var content = await httpFiles.DownloadHttpFileBase64String(item.Url);
 							await UploadString(phpUploadHttpClient, false, null, content, item.Remote, -1, true);
 
 							item.SetNextInterval(now);
+							LogDebugMessage($"ProcessHttpFiles: Upload of http file {downloadfile} to: {remotefile} complete");
 						}
 						catch (Exception ex) when (ex is not TaskCanceledException)
 						{

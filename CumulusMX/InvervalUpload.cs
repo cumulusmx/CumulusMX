@@ -150,14 +150,14 @@ namespace CumulusMX
 								// have we already uploaded the base file?
 								if (item.logFileLastLineNumber > 0)
 								{
-									if (AppendText(conn, remotefile, data, -1, linesAdded))
+									if (AppendText(conn, remotefile, data, cycle1k, linesAdded))
 									{
 										ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 									}
 								}
 								else // no, just upload the base file
 								{
-									if (UploadFile(conn, uploadfile, remotefile, -1))
+									if (UploadFile(conn, uploadfile, remotefile, cycle1k))
 									{
 										ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 									}
@@ -291,7 +291,7 @@ namespace CumulusMX
 						try
 						{
 							LogDebugMessage($"{msgPrefix} Uploading Moon image file");
-							if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, -1))
+							if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;

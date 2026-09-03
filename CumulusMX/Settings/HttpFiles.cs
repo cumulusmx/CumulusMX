@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -165,22 +166,8 @@ namespace CumulusMX.Settings
 			}
 
 			cumulus.LogDebugMessage($"DownloadHttpFile: Downloading from {url} to {filename}");
-
-			try
-			{
-				using (var response = await cumulus.MyHttpClient.GetAsync(new Uri(modUrl)))
-				using (var fileStream = new FileStream(filename, FileMode.Create))
-				{
-					response.EnsureSuccessStatusCode();
-					await response.Content.CopyToAsync(fileStream);
-				}
-
-				cumulus.LogDebugMessage($"DownloadHttpFile: Download from {url} to {filename} complete");
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogExceptionMessage(ex, $"DownloadHttpFile: Error downloading from {new Uri(modUrl)} to {filename}");
-			}
+			await DownloadFile(url, filename);
+			cumulus.LogDebugMessage($"DownloadHttpFile: Download of {url} to {filename} complete");
 		}
 
 		public async Task<string> DownloadHttpFileBase64String(string url)
@@ -245,7 +232,24 @@ namespace CumulusMX.Settings
 			}
 		}
 
-		public async Task<Stream> DownloadHttpFileStream(string url)
+		private async Task DownloadFile(string url, string filename)
+		{
+			try
+			{
+				using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
+				using var response = await cumulus.MyHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+				response.EnsureSuccessStatusCode();
+				using var sourceStream = await response.Content.ReadAsStreamAsync();
+				using var fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None, 8192, useAsync: true);
+				await sourceStream.CopyToAsync(fileStream, bufferSize: 81920);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFile: Error downloading from {new Uri(url)} to {filename}");
+			}
+		}
+
+		public async Task<Stream> DownloadFileStream(string url)
 		{
 			string modUrl;
 
@@ -262,7 +266,7 @@ namespace CumulusMX.Settings
 
 				if (string.IsNullOrEmpty(camUrl))
 				{
-					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
+					cumulus.LogWarningMessage("DownloadFileStream: The Ecowitt Camera URL is not available");
 					return Stream.Null;
 				}
 				else
@@ -286,14 +290,14 @@ namespace CumulusMX.Settings
 
 			try
 			{
-				using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(modUrl));
-				using var response = await cumulus.MyHttpClient.SendAsync(request);
+				var request = new HttpRequestMessage(HttpMethod.Get, new Uri(modUrl));
+				var response = await cumulus.MyHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 				response.EnsureSuccessStatusCode();
-				return response.Content.ReadAsStreamAsync().Result;
+				return await response.Content.ReadAsStreamAsync();
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileStream: Error downloading from {new Uri(modUrl)}");
+				cumulus.LogExceptionMessage(ex, $"DownloadFileStream: Error downloading from {new Uri(modUrl)}");
 				return null;
 			}
 		}
