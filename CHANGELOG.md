@@ -33,6 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Startup PING hanging up the application
 - Davis VP2 catch-up will no longer process archive records that are timestamped later than the current time
 - HTTP Files direct download to upload of files via FTP
+- Fix Davis VP2 THSW index == 255 when reception is lost
 
 ### Package Updates
 

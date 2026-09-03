@@ -2099,7 +2099,7 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				if (loopData.THSWindex < 32000)
+				if (loopData.THSWindex < 255)
 				{
 					THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
 				}
