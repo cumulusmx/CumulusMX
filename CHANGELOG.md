@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.6 \[b5013\] - 2026-09-07][36]
+## [5.1.6 \[b5014\] - 2026-09-05][36]
 
 ### New
 
@@ -1603,4 +1603,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
-[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5013
+[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5014
