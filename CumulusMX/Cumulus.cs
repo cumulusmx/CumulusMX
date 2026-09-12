@@ -31,6 +31,7 @@ using EmbedIO.Utilities;
 using EmbedIO.WebApi;
 
 using FluentFTP;
+using FluentFTP.Exceptions;
 using FluentFTP.Helpers;
 using FluentFTP.Logging;
 
@@ -11842,7 +11843,7 @@ namespace CumulusMX
 			}
 			else if (cycle >= 1000)
 			{
-				prefix = "FTP[Int-{(cycle - 1000)}]";
+				prefix = $"FTP[Int-{(cycle - 1000)}]";
 				realtime = false;
 			}
 			else if (cycle == -1)
@@ -11852,7 +11853,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				prefix = "FTP[{cycle}]";
+				prefix = $"FTP[{cycle}]";
 				realtime = true;
 			}
 
@@ -12034,8 +12035,13 @@ namespace CumulusMX
 					FtpAlarm.LastMessage = $"Error uploading {remotefilename} : {ex.Message}";
 					FtpAlarm.Triggered = true;
 
-					if (ex.Message.Contains("Permission denied")) // Non-fatal
-						return true;
+					// Non-language dependent "permission denied" check
+					if (ex is WebException webEx &&
+						webEx.Response is FtpWebResponse ftpResp &&
+						ftpResp.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+					{
+						return true; // Non-fatal
+					}
 
 					if (ex.InnerException != null)
 					{
@@ -12180,8 +12186,12 @@ namespace CumulusMX
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
 				FtpAlarm.Triggered = true;
 
-				if (ex.Message.Contains("Permission denied")) // Non-fatal
+				if (ex is FtpCommandException ftpEx &&
+					ftpEx.CompletionCode == "550")
+				{
+					// 550 = Permission denied / file unavailable
 					return true;
+				}
 
 				if (ex.InnerException != null)
 				{
@@ -12263,8 +12273,12 @@ namespace CumulusMX
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
 				FtpAlarm.Triggered = true;
 
-				if (ex.Message.Contains("Permission denied")) // Non-fatal
+				if (ex is FtpCommandException ftpEx &&
+					ftpEx.CompletionCode == "550")
+				{
+					// 550 = Permission denied / file unavailable
 					return true;
+				}
 
 				if (ex.InnerException != null)
 				{
@@ -12289,7 +12303,7 @@ namespace CumulusMX
 
 			if (cycle >= 1000)
 			{
-				prefix = "PHP[Int-{(cycle - 1000)}]";
+				prefix = $"PHP[Int-{(cycle - 1000)}]";
 			}
 			else if (cycle == -1)
 			{
@@ -12297,7 +12311,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				prefix = "PHP[{cycle}]";
+				prefix = $"PHP[{cycle}]";
 			}
 
 			if (string.IsNullOrEmpty(data))

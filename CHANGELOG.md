@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.6 \[b5014\] - 2026-09-05][36]
+## [5.1.6 \[b5015\] - 2026-09-12][36]
 
 ### New
 
@@ -25,6 +25,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- All can now be configured for both GET or POST
 	- The Custom Seconds and Custom Minutes can now have the interval defined per upload
 - The Davis VP2 console allowed clock drift reduced from 30 to 15 seconds
+- Optimise the loading of Ecowitt SD card files during catch-up
+- Add delay in Linux service installer before performing systemctl reloading
 
 ### Fixed
 
@@ -38,6 +40,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Package Updates
 
 - BouncyCastle.Cryptography
+- FluentFTP
 - Microsoft.Win32.SystemEvents
 - MySqlConnector
 - SQLitePCLRaw.bundle_e_sqlite3
@@ -1502,7 +1505,7 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 - Moon Image now supports transparent shadows
 - The -install/-unistall command line switches now support both Windows and Linux
 	- Under Linux run<br>
-	`sudo dotnet CumulusMX.dll -install -user <username> [-port <port_number>] [-lang <lang-code>]`
+	`sudo dotnet CumulusMX.dll -install -user <username> [-port <port-number>] [-lang <lang-code>] [-servicename <service-name>]`
 	- Windows install-as-a-service now self-elevates and requests UAC
 - Implements encryption of the credentials in the cumulus.ini file
 	- This requires a new file in the root folder called `UniqueId.txt`
@@ -1603,4 +1606,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
-[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5014
+[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5015

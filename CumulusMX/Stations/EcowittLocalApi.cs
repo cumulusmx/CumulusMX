@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -117,7 +119,7 @@ namespace CumulusMX.Stations
 
 				if (responseBody == "{}")
 				{
-					cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API: No data was returned.");
+					cumulus.LogMessage("LocalApi.GetCalibrationData: Ecowitt Local API: No data was returned.");
 					Cumulus.LogConsoleMessage(" - No Calibration data available");
 					return null;
 				}
@@ -128,26 +130,9 @@ namespace CumulusMX.Stations
 					return json;
 				}
 			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetCalibrationData: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetCalibrationData: HTTP Error");
-				}
-			}
 			catch (Exception ex)
 			{
-				if (token.IsCancellationRequested)
-				{
-					cumulus.LogDebugMessage("GetCalibrationData: Operation cancelled due to shutting down");
-					return null;
-				}
-
-				cumulus.LogExceptionMessage(ex, "GetCalibrationData: Error");
+				HttpExceptionHandler(ex, "LocalApi.GetCalibrationData", token);
 			}
 
 			return null;
@@ -223,28 +208,20 @@ namespace CumulusMX.Stations
 						return json;
 					}
 				}
-				catch (HttpRequestException ex)
-				{
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-					{
-						cumulus.LogErrorMessage("LocalApi.GetDeviceInfo: Error - This Station does not support the HTTP API!");
-					}
-					else
-					{
-						cumulus.LogExceptionMessage(ex, "LocalApi.GetDeviceInfo: HTTP Error");
-					}
-				}
 				catch (Exception ex)
 				{
-					if (token.IsCancellationRequested)
+					if (HttpExceptionHandler(ex, "LocalApi.GetDeviceInfo", token))
 					{
-						cumulus.LogDebugMessage("LocalApi.GetDeviceInfo: Operation cancelled due to shutting down");
 						return null;
 					}
-
-					cumulus.LogExceptionMessage(ex, "LocalApi.GetDeviceInfo: Error");
 				}
-			} while (retries-- > 0);
+
+				retries--;
+				if (retries > 0)
+				{
+					Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(500), token);
+				}
+			} while (retries >= 0);
 
 			return null;
 		}
@@ -254,7 +231,7 @@ namespace CumulusMX.Stations
 			// http://ip-address/get_iot_device_list
 		}
 
-		public LiveData GetLiveData(CancellationToken token)
+		public async Task<LiveData> GetLiveData(CancellationToken token)
 		{
 			// http://ip-address/get_livedata_info
 			//
@@ -418,9 +395,9 @@ namespace CumulusMX.Stations
 					var url = $"http://{cumulus.Gw1000IpAddress}/get_livedata_info";
 
 					// we want to do this synchronously, so .Result
-					using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
+					using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 					{
-						responseBody = response.Content.ReadAsStringAsync(token).Result;
+						responseBody = await response.Content.ReadAsStringAsync(token);
 						responseCode = (int) response.StatusCode;
 						cumulus.LogDebugMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response code: {responseCode}");
 						cumulus.LogDataMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response: {Utils.RemoveCrTabsFromString(responseBody)}");
@@ -453,28 +430,20 @@ namespace CumulusMX.Stations
 						return json;
 					}
 				}
-				catch (HttpRequestException ex)
-				{
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-					{
-						cumulus.LogErrorMessage("LocalApi.GetLiveData: Error - This Station does not support the HTTP API!");
-					}
-					else
-					{
-						cumulus.LogExceptionMessage(ex, "LocalApi.GetLiveData: HTTP Error");
-					}
-				}
 				catch (Exception ex)
 				{
-					if (token.IsCancellationRequested)
+					if (HttpExceptionHandler(ex, "LocalApi.GetLiveData", token))
 					{
-						cumulus.LogDebugMessage("LocalApi.GetLiveData: Operation cancelled due to shutting down");
 						return null;
 					}
-
-					cumulus.LogExceptionMessage(ex, "LocalApi.GetLiveData: Error");
 				}
-			} while (retries-- > 0);
+
+				retries--;
+				if (retries > 0)
+				{
+					Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(500), token);
+				}
+			} while (retries >= 0);
 
 			return null;
 		}
@@ -583,35 +552,32 @@ namespace CumulusMX.Stations
 					}
 
 				}
-				catch (HttpRequestException ex)
-				{
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-					{
-						cumulus.LogErrorMessage("GetSdCardInfo: Error - This Station does not support the HTTP API!");
-					}
-					else
-					{
-						cumulus.LogExceptionMessage(ex, "GetSdCardInfo: HTTP Error");
-					}
-				}
 				catch (Exception ex)
 				{
-					if (token.IsCancellationRequested)
+					if (HttpExceptionHandler(ex, "LocalApi.GetSdCardInfo", token))
 					{
-						cumulus.LogDebugMessage("GetSdCardInfo: Operation cancelled due to shutting down");
 						return null;
 					}
-					cumulus.LogExceptionMessage(ex, "GetSdCardInfo: Error");
 				}
 
 				retries--;
-				Thread.Sleep(250);
+				if (retries > 0)
+				{
+					Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(500), token);
+				}
 			} while (retries >= 0);
 
 			return null;
 		}
 
-		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
+		/// <summary>
+		/// Returns a Tuple containing a boolean to indicate if more records may be present in previous files, and a list of the lines
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <param name="startTime"></param>
+		/// <param name="token"></param>
+		/// <returns>Tuple<bool, List<string>></returns>
+		public async Task<Tuple<bool, List<string>>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
 		{
 			// http://IP-address:81/filename (where filename is YYYYMM[A-Z].csv resp. YYYMMAllSensors_[A-Z].csv)
 			//
@@ -632,6 +598,7 @@ namespace CumulusMX.Stations
 				return null;
 			}
 
+			var mayBeMore = true;
 			var retries = 1;
 
 			var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
@@ -701,7 +668,10 @@ namespace CumulusMX.Stations
 							if (long.TryParse(line.AsSpan(17, 10), out long ts))
 							{
 								if (Utils.RoundDownUnixTimestamp(ts, SdCardInterval).LocalFromUnixTime() < startTime)
+								{
+									mayBeMore = false;
 									continue;
+								}
 							}
 							else
 							{
@@ -742,33 +712,22 @@ namespace CumulusMX.Stations
 
 					if (result.Count > 0)
 					{
-						return result;
-					}
-				}
-				catch (HttpRequestException ex)
-				{
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-					{
-						cumulus.LogErrorMessage("GetSdFileContents: Error - This Station does not support the HTTP API!");
-						return null;
-					}
-					else
-					{
-						cumulus.LogExceptionMessage(ex, "GetSdFileContents: HTTP Error");
+						return new Tuple<bool, List<string>>(mayBeMore, result);
 					}
 				}
 				catch (Exception ex)
 				{
-					if (token.IsCancellationRequested)
+					if (HttpExceptionHandler(ex, "LocalApi.GetSdFileContents", token))
 					{
-						cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled due to shutting down");
 						return null;
 					}
-					cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error");
 				}
 
 				retries--;
-				Thread.Sleep(250);
+				if (retries > 0)
+				{
+					Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(500), token);
+				}
 			} while (retries >= 0);
 
 			return null;
@@ -814,7 +773,7 @@ namespace CumulusMX.Stations
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
-				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				cumulus.LogErrorMessage("LocalApi.GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
 				return null;
 			}
 
@@ -827,13 +786,13 @@ namespace CumulusMX.Stations
 				{
 					var url = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page={page}";
 					var result = await cumulus.MyHttpClient.GetStringAsync(url, token);
-					cumulus.LogDataMessage($"GetSensorInfo: Page {page} = " + Utils.RemoveCrTabsFromString(result));
+					cumulus.LogDataMessage($"LocalApi.GetSensorInfo: Page {page} = " + Utils.RemoveCrTabsFromString(result));
 
 					if (!string.IsNullOrEmpty(result))
 					{
 						if (result == lastData)
 						{
-							cumulus.LogDebugMessage($"GetSensorInfo: Page {page} the same as previous. Aborting downloads.");
+							cumulus.LogDebugMessage($"LocalApi.GetSensorInfo: Page {page} the same as previous. Aborting downloads.");
 							break;
 						}
 
@@ -846,29 +805,24 @@ namespace CumulusMX.Stations
 						}
 					}
 				}
-				catch (HttpRequestException ex)
+				catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
-					// Pages 3 and 4 may return 404 - ignore those and continue.
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					// Pages 3 and 4 may return 404 - ignore those and continue.					{
+					cumulus.LogDebugMessage($"LocalApi.GetSensorInfo: Page {page} not found (404). Skipping.");
+					// If page 1 is missing, treat as station not supporting API
+					if (page == 1)
 					{
-						cumulus.LogDebugMessage($"GetSensorInfo: Page {page} not found (404). Skipping.");
-						// If page 1 is missing, treat as station not supporting API
-						if (page == 1)
-						{
-							cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
-							return null;
-						}
-						break;
+						cumulus.LogErrorMessage("LocalApi.GetSensorInfo: Error - This Station does not support the HTTP API!");
+						return null;
 					}
-
-					// Other HTTP errors are logged and abort
-					cumulus.LogExceptionMessage(ex, "GetSensorInfo: HTTP Error");
-					return null;
+					break;
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogExceptionMessage(ex, "GetSensorInfo: Error");
-					return null;
+					if (HttpExceptionHandler(ex, "LocalApi.GetSensorInfo", token))
+					{
+						return null;
+					}
 				}
 			}
 
@@ -946,14 +900,7 @@ namespace CumulusMX.Stations
 			}
 			catch (HttpRequestException ex)
 			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetVersion: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetVersion: HTTP Error");
-				}
+				HttpExceptionHandler(ex, "LocalApi.GetVersion", token);
 			}
 
 			return unknown;
@@ -1044,38 +991,17 @@ namespace CumulusMX.Stations
 						return json;
 					}
 				}
-				catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException se && se.SocketErrorCode == System.Net.Sockets.SocketError.ConnectionRefused)
-				{
-					// Handle "connection refused"
-					cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: This Station does not support the HTTP API!");
-					return null;
-				}
-				catch (HttpRequestException ex)
-				{
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-					{
-						cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: This Station does not support the HTTP API!");
-						return null;
-					}
-					else
-					{
-						cumulus.LogExceptionMessage(ex, "LocalApi.GetWeatherServiceSettings: HTTP Error");
-					}
-				}
 				catch (Exception ex)
 				{
-					if (token.IsCancellationRequested)
+					if (HttpExceptionHandler(ex, "LocalApi.GetWeatherServiceSettings", token))
 					{
-						cumulus.LogDebugMessage("LocalApi.GetWeatherServiceSettings: Operation cancelled due to shutting down");
 						return null;
 					}
-
-					cumulus.LogExceptionMessage(ex, "LocalApi.GetWeatherServiceSettings: Error");
 				}
 
 				if (retries > 0)
 				{
-					Thread.Sleep(500);
+					Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(500), token);
 				}
 
 			} while (retries-- > 0);
@@ -1242,25 +1168,9 @@ namespace CumulusMX.Stations
 
 				return true;
 			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("SetWeatherServiceSettings: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "SetWeatherServiceSettings: HTTP Error");
-				}
-			}
 			catch (Exception ex)
 			{
-				if (token.IsCancellationRequested)
-				{
-					cumulus.LogDebugMessage("SetWeatherServiceSettings: Operation cancelled due to shutting down");
-					return false;
-				}
-				cumulus.LogExceptionMessage(ex, "SetWeatherServiceSettings: Error");
+				HttpExceptionHandler(ex, "LocalApi.SetWeatherServiceSettings", token);
 			}
 
 			return false;
@@ -1332,25 +1242,9 @@ namespace CumulusMX.Stations
 					return result.is_new;
 				}
 			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("CheckForUpgrade: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "CheckForUpgrade: HTTP Error");
-				}
-			}
 			catch (Exception ex)
 			{
-				if (token.IsCancellationRequested)
-				{
-					cumulus.LogDebugMessage("CheckForUpgrade: Operation cancelled due to shutting down");
-					return false;
-				}
-				cumulus.LogExceptionMessage(ex, "CheckForUpgrade: Error");
+				HttpExceptionHandler(ex, "LocalApi.CheckForUpgrade", token);
 			}
 
 			return false;
@@ -1399,6 +1293,65 @@ namespace CumulusMX.Stations
 		{
 			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 			return Convert.ToBase64String(plainTextBytes);
+		}
+
+		// returns boolean indicating whether to retry (false) or abort (true)
+		private bool HttpExceptionHandler(Exception exception, string prefix, CancellationToken token)
+		{
+			if (exception is HttpRequestException httpEx)
+			{
+				SocketException se = null;
+				if (httpEx.InnerException is SocketException)
+				{
+					se = (SocketException) httpEx.InnerException;
+				}
+				else if (httpEx.InnerException.InnerException is SocketException)
+				{
+					se = (SocketException) httpEx.InnerException.InnerException;
+				}
+
+				if (se != null)
+				{
+					switch (se.SocketErrorCode)
+					{
+						case SocketError.NetworkUnreachable:
+							cumulus.LogErrorMessage($"{prefix}: Network unreachable Error - {httpEx.Message}");
+							return true;
+
+						case SocketError.HostUnreachable:
+							cumulus.LogErrorMessage($"{prefix}: Host unreachable Error - {httpEx.Message}");
+							return true;
+
+						case SocketError.TimedOut:
+							cumulus.LogErrorMessage($"{prefix}: Timed out Error - {httpEx.Message}");
+							return true;
+
+						case SocketError.ConnectionRefused:
+							cumulus.LogMessage($"{prefix}: This Station does not support the HTTP API!");
+							return true;
+					}
+				}
+
+				// HTTP status code errors
+				if (httpEx.StatusCode == HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage($"{prefix}: Error - This Station does not support the HTTP API!");
+					return true;
+				}
+
+				cumulus.LogExceptionMessage(httpEx, $"{prefix}: HTTP Error");
+				return false;
+			}
+
+			// Non-HTTP exceptions
+			if (token.IsCancellationRequested)
+			{
+				cumulus.LogDebugMessage($"{prefix}: Operation cancelled due to shutting down");
+				return true;
+			}
+
+			cumulus.LogExceptionMessage(exception, $"{prefix}: Error");
+			return false;
 		}
 
 

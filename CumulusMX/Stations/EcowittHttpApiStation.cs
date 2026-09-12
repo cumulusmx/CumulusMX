@@ -190,7 +190,7 @@ namespace CumulusMX.Stations
 				{
 					if (!DayResetInProgress)
 					{
-						var rawData = localApi.GetLiveData(Program.ExitSystemToken);
+						var rawData = localApi.GetLiveData(Program.ExitSystemToken).Result;
 						if (rawData is not null)
 						{
 							dataLastRead = DateTime.Now;
@@ -362,6 +362,7 @@ namespace CumulusMX.Stations
 								}
 							}
 						}
+
 					}
 				}
 				// Catch the ThreadAbortException
@@ -376,7 +377,7 @@ namespace CumulusMX.Stations
 
 				delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
 
-				Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
+				Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(delay), Program.ExitSystemToken);
 
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
@@ -534,7 +535,9 @@ namespace CumulusMX.Stations
 			// sort the lists - just in case!
 			cumulus.LogDebugMessage("GetHistoricDataSdCard: Sorting the file lists");
 			baseFiles.Sort();
+			baseFiles.Reverse();
 			extraFiles.Sort();
+			extraFiles.Reverse();
 
 			var buffer = new Dictionary<long, HistoricData>();
 
@@ -543,20 +546,38 @@ namespace CumulusMX.Stations
 			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {baseFiles.Count} base files");
 			Cumulus.LogConsoleMessage("Preprocessing the base sensor file(s)...");
 
-			foreach (var file in baseFiles)
+			for (var i = 0; i < baseFiles.Count; i++)
 			{
 				// add a short delay for the station to sort itself out before we request the next file
-				Thread.Sleep(250);
+				Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(250), Program.ExitSystemToken);
+
+				var file = baseFiles[i];
 
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
 				//var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
-				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
+				var result = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
+				var lines = result.Item2;
+
+				// do we need to process the rest of the files (if any)?
+				if (baseFiles.Count > 1 &&  i < baseFiles.Count && !result.Item1)
+				{
+					for (var j = baseFiles.Count - 1; j > i; j--)
+					{
+						var extraFilename = $"{baseFiles[j][0..6]}Allsensors_{baseFiles[j][6]}.csv";
+						cumulus.LogDebugMessage($"GetHistoricDataSdCard: Removing unneeded files from the processing list - {baseFiles[j]} & {extraFilename}");
+						baseFiles.RemoveAt(j);
+						extraFiles.Remove(extraFilename);
+					}
+				}
 
 				if (lines == null || lines.Count == 1)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file, skipping it");
+					// remove the corresponding file from extraFiles
+					var extraFilename = $"{file[0..6]}Allsensors_{file[6]}.csv";
+					extraFiles.Remove(extraFilename);
+					cumulus.LogMessage("GetHistoricDataSdCard: No data to process in this file, skipping it and " + extraFilename);
 					continue;
 				}
 
@@ -564,7 +585,10 @@ namespace CumulusMX.Stations
 
 				if (!logfile.HeaderValid)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: Invalid header in this file, skipping it");
+					// remove the corresponding file from extraFiles
+					var extraFilename = $"{file[0..6]}Allsensors_{file[6]}.csv";
+					extraFiles.Remove(extraFilename);
+					cumulus.LogMessage("GetHistoricDataSdCard: Invalid header in this file, skipping it and " + extraFilename);
 					continue;
 				}
 
@@ -576,7 +600,10 @@ namespace CumulusMX.Stations
 
 				if (data.Count == 0)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data parsed from this file");
+					// remove the corresponding file from extraFiles
+					var extraFilename = $"{file[0..6]}Allsensors_{file[6]}.csv";
+					extraFiles.Remove(extraFilename);
+					cumulus.LogMessage("GetHistoricDataSdCard: No data parsed from this file and " + extraFilename);
 					continue;
 				}
 
@@ -607,7 +634,7 @@ namespace CumulusMX.Stations
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
 				//var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
-				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
+				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result.Item2;
 
 				if (lines == null || lines.Count == 1)
 				{
