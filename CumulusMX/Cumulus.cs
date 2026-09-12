@@ -31,6 +31,7 @@ using EmbedIO.Utilities;
 using EmbedIO.WebApi;
 
 using FluentFTP;
+using FluentFTP.Exceptions;
 using FluentFTP.Helpers;
 using FluentFTP.Logging;
 
@@ -6231,21 +6232,26 @@ namespace CumulusMX
 		private async Task<bool> UploadStream(AsyncFtpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr;
+			string prefix;
 			bool realtime;
 			if (cycle == 9999)
 			{
-				cycleStr = "NOAA";
+				prefix = "FTP[NOAA]";
 				realtime = false;
 			}
 			else if (cycle >= 1000)
 			{
-				cycleStr = "Int-" + (cycle - 1000);
+				prefix = $"FTP[Int-{(cycle - 1000)}]";
+				realtime = false;
+			}
+			else if (cycle == -1)
+			{
+				prefix = "FTP[HttpFiles]";
 				realtime = false;
 			}
 			else
 			{
-				cycleStr = cycle.ToString();
+				prefix = $"FTP[{cycle}]";
 				realtime = true;
 			}
 
@@ -6253,7 +6259,7 @@ namespace CumulusMX
 			{
 				if (dataStream.Length == 0)
 				{
-					LogWarningMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
+					LogWarningMessage($"{prefix}: The data is empty - skipping upload of {remotefile}");
 					FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 					FtpAlarm.Triggered = true;
 
@@ -6262,7 +6268,7 @@ namespace CumulusMX
 
 				if (!conn.IsConnected)
 				{
-					LogDebugMessage($"FTP[{cycleStr}]: Not connected, skipping upload of {remotefile}");
+					LogDebugMessage($"{prefix}: Not connected, skipping upload of {remotefile}");
 					return false;
 				}
 
@@ -6278,34 +6284,34 @@ namespace CumulusMX
 					}
 					catch
 					{
-						LogDebugMessage($"FTP[{cycleStr}]: Not connected after tmp file check, skipping upload of {remotefile}");
+						LogDebugMessage($"{prefix}: Not connected after tmp file check, skipping upload of {remotefile}");
 						return false;
 					}
 				}
 
-				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefiletmp}", realtime);
+				LogFtpDebugMessage($"{prefix}: Uploading {remotefiletmp}", realtime);
 
 				FtpStatus status;
 				status = await conn.UploadStream(dataStream, remotefiletmp, DeleteBeforeUpload ? FtpRemoteExists.Overwrite : FtpRemoteExists.NoCheck, false, null, Program.ExitSystemToken);
 
 				if (status.IsFailure())
 				{
-					LogErrorMessage($"FTP[{cycleStr}]: Upload of {remotefile} failed");
+					LogErrorMessage($"{prefix}: Upload of {remotefile} failed");
 					return false;
 				}
 				else if (FTPRename)
 				{
 					// rename the file
-					LogFtpDebugMessage($"FTP[{cycleStr}]: Renaming {remotefiletmp} to {remotefile}", realtime);
+					LogFtpDebugMessage($"{prefix}: Renaming {remotefiletmp} to {remotefile}", realtime);
 
 					try
 					{
 						await conn.Rename(remotefiletmp, remotefile, Program.ExitSystemToken);
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Renamed {remotefiletmp}", realtime);
+						LogFtpDebugMessage($"{prefix}: Renamed {remotefiletmp}", realtime);
 					}
 					catch (Exception ex)
 					{
-						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefiletmp} to {remotefile} : {ex.Message}", realtime);
+						LogFtpMessage($"{prefix}: Error renaming {remotefiletmp} to {remotefile} : {ex.Message}", realtime);
 
 						FtpAlarm.LastMessage = $"Error renaming {remotefiletmp} to {remotefile} : {ex.Message}";
 						FtpAlarm.Triggered = true;
@@ -6313,7 +6319,7 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
+							LogFtpMessage($"{prefix}: Base exception - {ex.Message}", realtime);
 						}
 
 						return false;
@@ -6322,12 +6328,12 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}", realtime);
+				LogFtpMessage($"{prefix}: Error uploading {remotefile} : {ex.Message}", realtime);
 
 				if (ex.InnerException != null)
 				{
-					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}", realtime);
-					LogExceptionMessage(ex, $"FTP[{cycleStr}]: Exception dump", false);
+					LogFtpMessage($"{prefix}: Inner Exception: {ex.GetBaseException().Message}", realtime);
+					LogExceptionMessage(ex, $"{prefix}: Exception dump", false);
 				}
 
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
@@ -6344,12 +6350,29 @@ namespace CumulusMX
 		private bool UploadStream(SftpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr = cycle >= 1000 ? "Int-" + (cycle - 1000) : cycle.ToString();
+			string prefix;
+			if (cycle == 9999)
+			{
+				prefix = "SFTP[NOAA]";
+			}
+			else if (cycle >= 1000)
+			{
+				prefix = $"SFTP[Int-{cycle - 1000}]";
+			}
+			else if (cycle == -1)
+			{
+				prefix = "SFTP[HttpFiles]";
+			}
+			else
+			{
+				prefix = $"SFTP[{cycle}]";
+			}
+
 			bool realtime = cycle < 1000;
 
 			if (dataStream.Length == 0)
 			{
-				LogWarningMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
+				LogWarningMessage($"{prefix}: The data is empty - skipping upload of {remotefile}");
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
 				return true;
@@ -6357,7 +6380,7 @@ namespace CumulusMX
 
 			if (!conn.IsConnected)
 			{
-				LogDebugMessage($"SFTP[{cycleStr}]: Not connected, skipping upload of {remotefile}");
+				LogDebugMessage($"{prefix}: Not connected, skipping upload of {remotefile}");
 				return false;
 			}
 
@@ -6365,7 +6388,7 @@ namespace CumulusMX
 			{
 				if (conn == null || !conn.IsConnected)
 				{
-					LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
+					LogErrorMessage($"{prefix}: The SFTP object is null or not connected - skipping upload of {remotefile}");
 					FtpAlarm.LastMessage = $"The SFTP object is null or not connected - skipping upload of {remotefile}";
 					FtpAlarm.Triggered = true;
 
@@ -6374,7 +6397,7 @@ namespace CumulusMX
 			}
 			catch (ObjectDisposedException)
 			{
-				LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
+				LogErrorMessage($"{prefix}: The SFTP object is disposed - skipping upload of {remotefile}");
 
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
@@ -6387,35 +6410,39 @@ namespace CumulusMX
 				// No delete before upload required for SFTP as we use the overwrite flag
 				try
 				{
-					LogDebugMessage($"SFTP[{cycleStr}]: Uploading {remotefilename}");
+					LogDebugMessage($"{prefix}: Uploading {remotefilename}");
 
 					conn.OperationTimeout = TimeSpan.FromSeconds(15);
 					conn.UploadFile(dataStream, remotefilename); // defaults to CreateNewOrOpen
 					dataStream.Close();
 
-					LogDebugMessage($"SFTP[{cycleStr}]: Uploaded {remotefilename}");
+					LogDebugMessage($"{prefix}: Uploaded {remotefilename}");
 				}
 				catch (ObjectDisposedException)
 				{
-					LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
+					LogErrorMessage($"{prefix}: The SFTP object is disposed");
 					FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
 					FtpAlarm.Triggered = true;
 					return false;
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"SFTP[{cycleStr}]: Error uploading {remotefilename} : {ex.Message}");
+					LogErrorMessage($"{prefix}: Error uploading {remotefilename} : {ex.Message}");
 
 					FtpAlarm.LastMessage = $"Error uploading {remotefilename} : {ex.Message}";
 					FtpAlarm.Triggered = true;
 
-					if (ex.Message.Contains("Permission denied")) // Non-fatal
+					if (ex is FtpCommandException ftpEx &&
+						ftpEx.CompletionCode == "550")
+					{
+						// 550 = Permission denied / file unavailable
 						return true;
+					}
 
 					if (ex.InnerException != null)
 					{
 						ex = Utils.GetOriginalException(ex);
-						LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
+						LogFtpMessage($"{prefix}: Base exception - {ex.Message}", realtime);
 					}
 
 					// Lets start again anyway! Too hard to tell if the error is recoverable
@@ -6427,20 +6454,20 @@ namespace CumulusMX
 					// rename the file
 					try
 					{
-						LogDebugMessage($"SFTP[{cycleStr}]: Renaming {remotefilename} to {remotefile}");
+						LogDebugMessage($"{prefix}: Renaming {remotefilename} to {remotefile}");
 						conn.RenameFile(remotefilename, remotefile, true);
-						LogDebugMessage($"SFTP[{cycleStr}]: Renamed {remotefilename}");
+						LogDebugMessage($"{prefix}: Renamed {remotefilename}");
 					}
 					catch (ObjectDisposedException)
 					{
-						LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
+						LogErrorMessage($"{prefix}: The SFTP object is disposed");
 						FtpAlarm.LastMessage = $"The SFTP object is disposed during renaming of {remotefile}";
 						FtpAlarm.Triggered = true;
 						return false;
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"SFTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
+						LogErrorMessage($"{prefix}: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 
 						FtpAlarm.LastMessage = $"Error renaming {remotefilename} to {remotefile} : {ex.Message}";
 						FtpAlarm.Triggered = true;
@@ -6448,24 +6475,24 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
+							LogFtpMessage($"{prefix}: Base exception - {ex.Message}", realtime);
 						}
 
 						return false;
 					}
 				}
-				LogDebugMessage($"SFTP[{cycleStr}]: Completed uploading {remotefile}");
+				LogDebugMessage($"{prefix}: Completed uploading {remotefile}");
 			}
 			catch (ObjectDisposedException)
 			{
-				LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
+				LogErrorMessage($"{prefix}: The SFTP object is disposed");
 				FtpAlarm.LastMessage = "The SFTP object is disposed";
 				FtpAlarm.Triggered = true;
 				return false;
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage($"SFTP[{cycleStr}]: Error uploading {remotefile} - {ex.Message}");
+				LogErrorMessage($"{prefix}: Error uploading {remotefile} - {ex.Message}");
 
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} - {ex.Message}";
 				FtpAlarm.Triggered = true;
@@ -6473,7 +6500,7 @@ namespace CumulusMX
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
-					LogDebugMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
+					LogDebugMessage($"{prefix}: Base exception - {ex.Message}");
 				}
 
 				return false;
@@ -6493,11 +6520,19 @@ namespace CumulusMX
 
 		private bool AppendText(SftpClient conn, string remotefile, string text, int cycle, int linesadded)
 		{
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string prefix;
+			if (cycle < 1000)
+			{
+				prefix = $"FTP[{cycle}]";
+			}
+			else
+			{
+				prefix = $"FTP[Int-{cycle - 1000}]";
+			}
 
 			if (text.Length == 0)
 			{
-				LogWarningMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
+				LogWarningMessage($"{prefix}: The data is empty - skipping upload of {remotefile}");
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
 				return false;
@@ -6507,7 +6542,7 @@ namespace CumulusMX
 			{
 				if (conn == null || !conn.IsConnected)
 				{
-					LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
+					LogErrorMessage($"{prefix}: The SFTP object is null or not connected - skipping upload of {remotefile}");
 					FtpAlarm.LastMessage = $"The SFTP object is null or not connected - skipping upload of {remotefile}";
 					FtpAlarm.Triggered = true;
 
@@ -6516,7 +6551,7 @@ namespace CumulusMX
 			}
 			catch (ObjectDisposedException)
 			{
-				LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
+				LogErrorMessage($"{prefix}: The SFTP object is disposed - skipping upload of {remotefile}");
 
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
@@ -6526,34 +6561,38 @@ namespace CumulusMX
 
 			try
 			{
-				LogDebugMessage($"SFTP[{cycleStr}]: Uploading {remotefile} [adding {linesadded} lines]");
+				LogDebugMessage($"{prefix}: Uploading {remotefile} [adding {linesadded} lines]");
 
 				conn.OperationTimeout = TimeSpan.FromSeconds(15);
 				conn.AppendAllText(remotefile, text);
 
-				LogDebugMessage($"SFTP[{cycleStr}]: Uploaded {remotefile} [added {linesadded} lines]");
+				LogDebugMessage($"{prefix}: Uploaded {remotefile} [added {linesadded} lines]");
 			}
 			catch (ObjectDisposedException)
 			{
-				LogErrorMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
+				LogErrorMessage($"{prefix}: The SFTP object is disposed");
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
 				return false;
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage($"SFTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}");
+				LogErrorMessage($"{prefix}: Error uploading {remotefile} : {ex.Message}");
 
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
 				FtpAlarm.Triggered = true;
 
-				if (ex.Message.Contains("Permission denied")) // Non-fatal
+				if (ex is FtpCommandException ftpEx &&
+					ftpEx.CompletionCode == "550")
+				{
+					// 550 = Permission denied / file unavailable
 					return true;
+				}
 
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
-					LogDebugMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
+					LogDebugMessage($"{prefix}: Base exception - {ex.Message}");
 				}
 
 				// Lets start again anyway! Too hard to tell if the error is recoverable
@@ -6566,12 +6605,22 @@ namespace CumulusMX
 
 		private async Task<bool> AppendText(AsyncFtpClient conn, string remotefile, string text, int cycle, int linesadded)
 		{
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
-			bool realtime = cycle >= 0;
+			string prefix;
+			bool realtime;
+			if (cycle < 1000)
+			{
+				prefix = $"FTP[{cycle}]";
+				realtime = true;
+			}
+			else
+			{
+				prefix = $"FTP[Int-{cycle - 1000}]";
+				realtime = false;
+			}
 
 			if (text.Length == 0)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}", realtime);
+				LogFtpMessage($"{prefix}: The data is empty - skipping upload of {remotefile}", realtime);
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
 				return false;
@@ -6581,7 +6630,7 @@ namespace CumulusMX
 			{
 				if (conn == null || !conn.IsConnected)
 				{
-					LogFtpMessage($"FTP[{cycleStr}]: The FTP object is null or not connected - skipping upload of {remotefile}", realtime);
+					LogFtpMessage($"{prefix}: The FTP object is null or not connected - skipping upload of {remotefile}", realtime);
 					FtpAlarm.LastMessage = $"The FTP object is null or not connected - skipping upload of {remotefile}";
 					FtpAlarm.Triggered = true;
 
@@ -6590,7 +6639,7 @@ namespace CumulusMX
 			}
 			catch (ObjectDisposedException)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: The FTP object is disposed - skipping upload of {remotefile}", realtime);
+				LogFtpMessage($"FTP[{prefix}]: The FTP object is disposed - skipping upload of {remotefile}", realtime);
 
 				FtpAlarm.LastMessage = $"The FTP object is disposed - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
@@ -6600,33 +6649,38 @@ namespace CumulusMX
 
 			try
 			{
-				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefile} [adding {linesadded} lines]", realtime);
+				LogFtpDebugMessage($"{prefix}: Uploading {remotefile} [adding {linesadded} lines]", realtime);
 
 				await conn.UploadStream(GenerateStreamFromString(text), remotefile, FtpRemoteExists.AddToEnd, false, null, Program.ExitSystemToken);
 
-				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploaded {remotefile} [added {linesadded} lines]", realtime);
+				LogFtpDebugMessage($"{prefix}: Uploaded {remotefile} [added {linesadded} lines]", realtime);
 			}
 			catch (ObjectDisposedException)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: The FTP object is disposed", realtime);
+				LogFtpMessage($"{prefix}: The FTP object is disposed", realtime);
 				FtpAlarm.LastMessage = $"The FTP object is disposed - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
 				return false;
 			}
 			catch (Exception ex)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}", realtime);
+				LogFtpMessage($"{prefix}: Error uploading {remotefile} : {ex.Message}", realtime);
 
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
 				FtpAlarm.Triggered = true;
 
-				if (ex.Message.Contains("Permission denied")) // Non-fatal
-					return true;
+				// Non-language dependent "permission denied" check
+				if (ex is WebException webEx &&
+					webEx.Response is FtpWebResponse ftpResp &&
+					ftpResp.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+				{
+					return true; // Non-fatal
+				}
 
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
-					LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
+					LogFtpMessage($"{prefix}: Base exception - {ex.Message}", realtime);
 				}
 
 				// Lets start again anyway! Too hard to tell if the error is recoverable
@@ -6642,7 +6696,20 @@ namespace CumulusMX
 		// Return False if the upload failed
 		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle, bool binary = false, bool utf8 = true, bool logfile = false, int linecount = 0)
 		{
-			var prefix = cycle >= 1000 ? $"PHP[Int-{cycle-1000}]" : $"PHP[{cycle}]";
+			string prefix;
+
+			if (cycle >= 1000)
+			{
+				prefix = $"PHP[Int-{(cycle - 1000)}]";
+			}
+			else if (cycle == -1)
+			{
+				prefix = "PHP[HttpFiles]";
+			}
+			else
+			{
+				prefix = $"PHP[{cycle}]";
+			}
 
 			if (string.IsNullOrEmpty(data))
 			{
