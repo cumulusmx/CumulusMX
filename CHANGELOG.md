@@ -26,7 +26,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Custom Seconds and Custom Minutes can now have the interval defined per upload
 - The Davis VP2 console allowed clock drift reduced from 30 to 15 seconds
 - Optimise the loading of Ecowitt SD card files during catch-up
-- Add delay in Linux service installer before performing systemctl reloading
+- Add delay in Linux service installer before performing systemctl reload
 
 ### Fixed
 

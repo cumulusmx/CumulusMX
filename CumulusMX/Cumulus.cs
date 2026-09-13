@@ -14284,7 +14284,8 @@ namespace CumulusMX
 									};
 
 									var processedString = parser.ToStringFromString();
-									LogDebugMessage($"CustomHttpSeconds[{count}]: Querying - {entry.Url} with body {processedString}");
+									LogDebugMessage($"CustomHttpSeconds[{count}]: Querying - {entry.Url}");
+									LogDataMessage($"CustomHttpSeconds[{count}]:   with POST body: {processedString}");
 
 									HttpContent content;
 									if (entry.PostJson)
@@ -14367,7 +14368,8 @@ namespace CumulusMX
 									};
 
 									var processedString = parser.ToStringFromString();
-									LogDebugMessage($"CustomHttpMinutes[{count}]: Querying - {entry.Url} with body {processedString}");
+									LogDebugMessage($"CustomHttpMinutes[{count}]: Querying - {entry.Url}");
+									LogDataMessage($"CustomHttpMinutes[{count}]:   with POST body: {processedString}");
 
 									HttpContent content;
 									if (entry.PostJson)
@@ -14440,7 +14442,8 @@ namespace CumulusMX
 								};
 
 								var processedString = parser.ToStringFromString();
-								LogDebugMessage($"CustomHttpRollover[{count}]: Querying - {entry.Url} with body {processedString}");
+								LogDebugMessage($"CustomHttpRollover[{count}]: Querying - {entry.Url}");
+								LogDataMessage($"CustomHttpRollover[{count}]:   with POST body: {processedString}");
 
 								HttpContent content;
 								if (entry.PostJson)
