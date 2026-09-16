@@ -7611,13 +7611,14 @@ namespace CumulusMX
 				ini.SetValue("HTTP", "CustomHttpMinutesInterval", CustomHttpMinutes[0].Interval);
 
 				var i = 1;
-				foreach (var entry in CustomHttpSeconds.Skip(1))
+				foreach (var entry in CustomHttpMinutes.Skip(1))
 				{
 					ini.SetValue("HTTP", "CustomHttpMinutesString" + i, entry.Url);
 					ini.SetValue("HTTP", "CustomHttpMinutesPost" + i, entry.Post);
 					ini.SetValue("HTTP", "CustomHttpMinutesPostJson" + i, entry.PostJson);
 					ini.SetValue("HTTP", "CustomHttpMinutesBody" + i, Utils.EncodeMultiLineString(entry.PostBody));
 					ini.SetValue("HTTP", "CustomHttpMinutesInterval" + i, entry.Interval);
+					i++;
 				}
 				for (; i < 10; i++)
 				{
@@ -7646,14 +7647,14 @@ namespace CumulusMX
 					ini.SetValue("HTTP", "CustomHttpRolloverPost" + i, entry.Post);
 					ini.SetValue("HTTP", "CustomHttpRolloverPostJson" + i, entry.PostJson);
 					ini.SetValue("HTTP", "CustomHttpRolloverBody" + i, Utils.EncodeMultiLineString(entry.PostBody));
-
-					for (; i < 10; i++)
-					{
-						ini.DeleteValue("HTTP", "CustomHttpRolloverString" + i);
-						ini.DeleteValue("HTTP", "CustomHttpRolloverPost" + i);
-						ini.DeleteValue("HTTP", "CustomHttpRolloverPostJson" + i);
-						ini.DeleteValue("HTTP", "CustomHttpRolloverBody" + i);
-					}
+					i++;
+				}
+				for (; i < 10; i++)
+				{
+					ini.DeleteValue("HTTP", "CustomHttpRolloverString" + i);
+					ini.DeleteValue("HTTP", "CustomHttpRolloverPost" + i);
+					ini.DeleteValue("HTTP", "CustomHttpRolloverPostJson" + i);
+					ini.DeleteValue("HTTP", "CustomHttpRolloverBody" + i);
 				}
 			}
 
