@@ -10,7 +10,29 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.6 \[b5015\] - 2026-09-12][36]
+## [5.2.0 \[b5017\] - 2026-10-10][37]
+
+### New
+
+- Nothing
+
+### Changed
+
+- The Extra Web Files functionality has had an overhaul:
+	- The settings page is now an Alpaca form with a changed layout. This means that the available settings change to reflect the capabilities of other settings
+	- In addition to real-time/interval/eod periods, you can now perfrom Extra Web File copies/uploads at custom intervals, and perform them at scheduled times
+
+### Fixed
+
+- Nothing
+
+### Package Updates
+
+- None
+
+---
+
+## [5.1.6 \[b5016\] - 2026-09-17][36]
 
 ### New
 
@@ -1606,4 +1628,5 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [33]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5010
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
-[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5015
+[36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
+[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5017
