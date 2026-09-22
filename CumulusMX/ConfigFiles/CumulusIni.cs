@@ -870,50 +870,75 @@ namespace CumulusMX
 
 			for (int i = 0; i < numextrafiles; i++)
 			{
-				ExtraFiles[i] = new CExtraFiles
-				{
-					local = ini.GetValue("FTP site", "ExtraLocal" + i, string.Empty),
-					remote = ini.GetValue("FTP site", "ExtraRemote" + i, string.Empty),
-					process = ini.GetValue("FTP site", "ExtraProcess" + i, false),
-					binary = ini.GetValue("FTP site", "ExtraBinary" + i, false),
-					realtime = ini.GetValue("FTP site", "ExtraRealtime" + i, false),
-					FTP = ini.GetValue("FTP site", "ExtraFTP" + i, false),
-					UTF8 = ini.GetValue("FTP site", "ExtraUTF" + i, false),
-					endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false),
-					incrementalLogfile = ini.GetValue("FTP site", "ExtraIncLogFile" + i, false)
-				};
+				// Type = 0-Realtime, 1-Interval, 2-EoD, 3-Cust Intv, 4-Scheduled
+				int type = 1;
 
-				if (ExtraFiles[i].binary)
+				if (ini.ValueExists("FTP site", "ExtraType" + i))
 				{
-					ExtraFiles[i].incrementalLogfile = false;
-				}
-
-				if (ini.ValueExists("FTP site", "ExtraEnable" + i))
-				{
-					ExtraFiles[i].enable = ini.GetValue("FTP site", "ExtraEnable" + i, false);
+					type = ini.GetValue("FTP site", "ExtraType" + i, 1);
 				}
 				else
 				{
-					ExtraFiles[i].enable = !string.IsNullOrEmpty(ExtraFiles[i].local) && !string.IsNullOrEmpty(ExtraFiles[i].remote);
+
+					if (ini.GetValue("FTP site", "ExtraRealtime" + i, false))
+					{
+						type = 0;
+					}
+					else if (ini.GetValue("FTP site", "ExtraEOD" + i, false))
+					{
+						type = 2;
+					}
+
+					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
+					ini.DeleteValue("FTP site", "ExtraEOD" + i);
+					recreateRequired = true;
 				}
 
-				if (ExtraFiles[i].enable && ExtraFiles[i].local != string.Empty && ExtraFiles[i].remote != string.Empty)
+				var item = (new Settings.ExtaWebFilesItem()
 				{
-					ActiveExtraFiles.Add(new CExtraFiles
+					LocalFilename = ini.GetValue("FTP site", "ExtraLocal" + i, string.Empty),
+					DestFilename = ini.GetValue("FTP site", "ExtraRemote" + i, string.Empty),
+					Process = ini.GetValue("FTP site", "ExtraProcess" + i, false),
+					Binary = ini.GetValue("FTP site", "ExtraBinary" + i, false),
+					Type = type,
+					Interval = ini.GetValue("FTP site", "ExtraInterval" + i, 10),
+					StartTimeString = ini.GetValue("FTP site", "ExtraStartTime" + i, "00:00"),
+					Upload = ini.GetValue("FTP site", "ExtraFTP" + i, false),
+					Utf8 = ini.GetValue("FTP site", "ExtraUTF" + i, false),
+					Incremental = ini.GetValue("FTP site", "ExtraIncLogFile" + i, false)
+				});
+
+				if (ini.ValueExists("FTP site", "ExtraEnable" + i))
+				{
+					item.Enabled = ini.GetValue("FTP site", "ExtraEnable" + i, false);
+				}
+				else
+				{
+					item.Enabled = !string.IsNullOrEmpty(item.LocalFilename) && !string.IsNullOrEmpty(item.DestFilename);
+				}
+
+				if (item.Binary)
+				{
+					item.Incremental = false;
+				}
+
+				if (item.Type == 3 | item.Type == 4)
+				{
+					if (item.Type == 3)
 					{
-						enable = ExtraFiles[i].enable,
-						local = ExtraFiles[i].local,
-						remote = ExtraFiles[i].remote,
-						process = ExtraFiles[i].process,
-						binary = ExtraFiles[i].binary,
-						realtime = ExtraFiles[i].realtime,
-						FTP = ExtraFiles[i].FTP,
-						UTF8 = ExtraFiles[i].UTF8,
-						endofday = ExtraFiles[i].endofday,
-						incrementalLogfile = ExtraFiles[i].incrementalLogfile,
-						logFileLastFileName = string.Empty,
-						logFileLastLineNumber = 0
-					});
+						item.StartTimeString = "00:00";
+					}
+					item.SetInitialNextInterval(DateTime.Now);
+				}
+
+				if (!string.IsNullOrEmpty(item.LocalFilename) || !string.IsNullOrEmpty(item.DestFilename))
+				{
+					ExtraFiles.Add(item);
+
+					if (item.Enabled)
+					{
+						ActiveExtraFiles.Add(item);
+					}
 				}
 			}
 
@@ -2793,34 +2818,36 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "PHP-UseBrotli", FtpOptions.PhpUseBrotli);
 			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
 
-			for (int i = 0; i < numextrafiles; i++)
+			for (int i = 0; i < ExtraFiles.Count; i++)
 			{
-				if (string.IsNullOrEmpty(ExtraFiles[i].local) && string.IsNullOrEmpty(ExtraFiles[i].remote))
-				{
-					ini.DeleteValue("FTP site", "ExtraEnable" + i);
-					ini.DeleteValue("FTP site", "ExtraLocal" + i);
-					ini.DeleteValue("FTP site", "ExtraRemote" + i);
-					ini.DeleteValue("FTP site", "ExtraProcess" + i);
-					ini.DeleteValue("FTP site", "ExtraBinary" + i);
-					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
-					ini.DeleteValue("FTP site", "ExtraFTP" + i);
-					ini.DeleteValue("FTP site", "ExtraUTF" + i);
-					ini.DeleteValue("FTP site", "ExtraEOD" + i);
-					ini.DeleteValue("FTP site", "ExtraIncLogFile" + i);
-				}
-				else
-				{
-					ini.SetValue("FTP site", "ExtraEnable" + i, ExtraFiles[i].enable);
-					ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].local);
-					ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].remote);
-					ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].process);
-					ini.SetValue("FTP site", "ExtraBinary" + i, ExtraFiles[i].binary);
-					ini.SetValue("FTP site", "ExtraRealtime" + i, ExtraFiles[i].realtime);
-					ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].FTP);
-					ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].UTF8);
-					ini.SetValue("FTP site", "ExtraEOD" + i, ExtraFiles[i].endofday);
-					ini.SetValue("FTP site", "ExtraIncLogFile" + i, ExtraFiles[i].incrementalLogfile);
-				}
+				ini.SetValue("FTP site", "ExtraEnable" + i, ExtraFiles[i].Enabled);
+				ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].LocalFilename);
+				ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].DestFilename);
+				ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].Process);
+				ini.SetValue("FTP site", "ExtraBinary" + i, ExtraFiles[i].Binary);
+				ini.SetValue("FTP site", "ExtraType" + i, ExtraFiles[i].Type);
+				ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].Upload);
+				ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].Utf8);
+				ini.SetValue("FTP site", "ExtraInterval" + i, ExtraFiles[i].Interval);
+				ini.SetValue("FTP site", "ExtraStartTime" + i, ExtraFiles[i].StartTimeString);
+				ini.SetValue("FTP site", "ExtraIncLogFile" + i, ExtraFiles[i].Incremental);
+			}
+
+			for (int i = ExtraFiles.Count; i < numextrafiles; i++)
+			{
+				ini.DeleteValue("FTP site", "ExtraEnable" + i);
+				ini.DeleteValue("FTP site", "ExtraLocal" + i);
+				ini.DeleteValue("FTP site", "ExtraRemote" + i);
+				ini.DeleteValue("FTP site", "ExtraProcess" + i);
+				ini.DeleteValue("FTP site", "ExtraBinary" + i);
+				ini.DeleteValue("FTP site", "ExtraRealtime" + i);
+				ini.DeleteValue("FTP site", "ExtraType" + i);
+				ini.DeleteValue("FTP site", "ExtraStartTime" + i);
+				ini.DeleteValue("FTP site", "ExtraInterval" + i);
+				ini.DeleteValue("FTP site", "ExtraFTP" + i);
+				ini.DeleteValue("FTP site", "ExtraUTF" + i);
+				ini.DeleteValue("FTP site", "ExtraEOD" + i);
+				ini.DeleteValue("FTP site", "ExtraIncLogFile" + i);
 			}
 
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);

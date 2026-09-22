@@ -29,6 +29,7 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings { get; set; }
 		public static MqttSettings mqttSettings { get; set; }
 		public static CustomLogs customLogs { get; set; }
+		internal static ExtraWebFiles extraWebFiles { get; set; }
 		internal static HttpFiles httpFiles { get; set; }
 		public static Wizard wizard { get; set; }
 		internal static LangSettings langSettings { get; set; }
@@ -1371,7 +1372,7 @@ namespace CumulusMX
 							await writer.WriteAsync(extraSensorSettings.GetAlpacaFormData());
 							break;
 						case "extrawebfiles.json":
-							await writer.WriteAsync(internetSettings.GetExtraWebFilesData());
+							await writer.WriteAsync(extraWebFiles.GetExtraWebFilesData());
 							break;
 						case "calibrationdata.json":
 							await writer.WriteAsync(calibrationSettings.GetAlpacaFormData());
@@ -1466,8 +1467,8 @@ namespace CumulusMX
 						case "updatenoaaconfig.json":
 							await writer.WriteAsync(noaaSettings.UpdateConfig(HttpContext));
 							break;
-						case "updateextrawebfiles.html":
-							await writer.WriteAsync(internetSettings.UpdateExtraWebFiles(HttpContext));
+						case "updateextrawebfiles.json":
+							await writer.WriteAsync(extraWebFiles.UpdateExtraWebFiles(HttpContext));
 							break;
 						case "updatemysqlconfig.json":
 							await writer.WriteAsync(mySqlSettings.UpdateConfig(HttpContext));

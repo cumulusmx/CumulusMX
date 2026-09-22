@@ -1651,7 +1651,7 @@ namespace CumulusMX.Settings
 				{
 					cumulus.LogDebugMessage("Upload Now: Starting the main update process in the background");
 					cumulus.WebUpdating = 1;
-					cumulus.ftpThread = new Thread(async () => await cumulus.DoHTMLFiles()) { IsBackground = true };
+					cumulus.ftpThread = new Thread(async () => await cumulus.DoHtmlFiles()) { IsBackground = true };
 					cumulus.ftpThread.Start();
 				}
 				catch (Exception ex)

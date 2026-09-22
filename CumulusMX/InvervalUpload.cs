@@ -104,14 +104,14 @@ namespace CumulusMX
 					{
 						var item = ActiveExtraFiles[i];
 
-						if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
+						if (!item.Upload || item.Type == 0 || ((item.Type == 2) && !EODfilesNeedFTP))
 						{
 							continue;
 						}
 
 						// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-						var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-						var uploadfile = GetUploadFilename(item.local, logDay);
+						var logDay = item.Type == 2 ? DateTime.Now.AddDays(-1) : DateTime.Now;
+						var uploadfile = GetUploadFilename(item.LocalFilename, logDay);
 
 						if (!File.Exists(uploadfile))
 						{
@@ -121,7 +121,7 @@ namespace CumulusMX
 							continue;
 						}
 
-						var remotefile = GetRemoteFileName(item.remote, logDay);
+						var remotefile = GetRemoteFileName(item.DestFilename, logDay);
 
 						LogDebugMessage($"{msgPrefix} Uploading Extra web file: {uploadfile}");
 
@@ -129,7 +129,7 @@ namespace CumulusMX
 						try
 						{
 							// Is this an incremental log file upload?
-							if (item.incrementalLogfile && !item.binary)
+							if (item.Incremental && !item.Binary)
 							{
 								// has the log file rolled over?
 								if (item.logFileLastFileName != uploadfile)
@@ -163,10 +163,10 @@ namespace CumulusMX
 									}
 								}
 							}
-							else if (item.process)
+							else if (item.Process)
 							{
 								LogDebugMessage($"{msgPrefix} Processing Extra web file: {uploadfile}");
-								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.Utf8);
 								using var strm = GenerateStreamFromString(data);
 								eodSuccess = eodSuccess && UploadStream(conn, remotefile, strm, cycle1k);
 							}
@@ -403,14 +403,14 @@ namespace CumulusMX
 				{
 					var item = ActiveExtraFiles[i];
 
-					if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
+					if (!item.Upload || item.Type == 0 || ((item.Type == 2) && !EODfilesNeedFTP))
 					{
 						continue;
 					}
 
 					// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-					var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-					var uploadfile = GetUploadFilename(item.local, logDay);
+					var logDay = item.Type == 2 ? DateTime.Now.AddDays(-1) : DateTime.Now;
+					var uploadfile = GetUploadFilename(item.LocalFilename, logDay);
 
 					if (!File.Exists(uploadfile))
 					{
@@ -420,7 +420,7 @@ namespace CumulusMX
 						continue;
 					}
 
-					var remotefile = GetRemoteFileName(item.remote, logDay);
+					var remotefile = GetRemoteFileName(item.DestFilename, logDay);
 
 					LogFtpMessage("", false);
 					LogFtpDebugMessage($"{msgPrefix} Uploading Extra web file: {uploadfile}", false);
@@ -430,7 +430,7 @@ namespace CumulusMX
 					try
 					{
 						// Is this an incremental log file upload?
-						if (item.incrementalLogfile && !item.binary)
+						if (item.Incremental && !item.Binary)
 						{
 							// has the log file rolled over?
 							if (item.logFileLastFileName != uploadfile)
@@ -464,10 +464,10 @@ namespace CumulusMX
 								}
 							}
 						}
-						else if (item.process)
+						else if (item.Process)
 						{
 							LogFtpDebugMessage($"{msgPrefix} Processing Extra web file: " + uploadfile, false);
-							var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+							var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.Utf8);
 							using var strm = GenerateStreamFromString(data);
 							eodSuccess = eodSuccess && await UploadStream(conn, remotefile, strm, cycle1k);
 						}
@@ -771,7 +771,7 @@ namespace CumulusMX
 			{
 				var item = ActiveExtraFiles[i];
 
-				if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
+				if (!item.Upload || item.Type == 0 || ((item.Type == 2) && !EODfilesNeedFTP))
 				{
 					continue;
 				}
@@ -782,10 +782,10 @@ namespace CumulusMX
 				var idx = i;
 
 				// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-				var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+				var logDay = item.Type == 2 ? DateTime.Now.AddDays(-1) : DateTime.Now;
 
-				var uploadfile = GetUploadFilename(item.local, logDay);
-				var remotefile = GetRemoteFileName(item.remote, logDay);
+				var uploadfile = GetUploadFilename(item.LocalFilename, logDay);
+				var remotefile = GetRemoteFileName(item.DestFilename, logDay);
 
 				if (!File.Exists(uploadfile))
 				{
@@ -795,7 +795,7 @@ namespace CumulusMX
 
 
 				// Is this an incremental log file upload?
-				if (item.incrementalLogfile && !item.binary)
+				if (item.Incremental && !item.Binary)
 				{
 					// has the log file rolled over?
 					if (item.logFileLastFileName != uploadfile)
@@ -846,28 +846,28 @@ namespace CumulusMX
 
 						// all checks OK, file needs to be uploaded
 						// Is this an incremental log file upload?
-						if (item.incrementalLogfile && !item.binary)
+						if (item.Incremental && !item.Binary)
 						{
 							LogDebugMessage($"{msgPrefix} Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incremental - {linesAdded} lines" : "Full file")})");
-							if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle1k, item.binary, item.UTF8, true, item.logFileLastLineNumber))
+							if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle1k, item.Binary, item.Utf8, true, item.logFileLastLineNumber))
 							{
 								ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
 							}
 						}
 						else
 						{
-							if (item.process)
+							if (item.Process)
 							{
 								LogDebugMessage($"{msgPrefix} Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
 
-								var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
-								_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle1k, false, item.UTF8);
+								var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.Utf8);
+								_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle1k, false, item.Utf8);
 							}
 							else
 							{
 								LogDebugMessage($"{msgPrefix} Uploading Extra file: {uploadfile} to: {remotefile}");
 
-								_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, item.UTF8);
+								_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, item.Utf8);
 							}
 						}
 					}

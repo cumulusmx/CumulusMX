@@ -1158,20 +1158,20 @@ namespace CumulusMX
 								cumulus.ftpThread.Interrupt();
 							cumulus.LogMessage("Trying new web update");
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(() => _ = cumulus.DoHTMLFiles()) { IsBackground = true };
+							cumulus.ftpThread = new Thread(() => _ = cumulus.DoHtmlFiles()) { IsBackground = true };
 							cumulus.ftpThread.Start();
 						}
 						else
 						{
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(() => _ = cumulus.DoHTMLFiles()) { IsBackground = true };
+							cumulus.ftpThread = new Thread(() => _ = cumulus.DoHtmlFiles()) { IsBackground = true };
 							cumulus.ftpThread.Start();
 						}
 					}
-					// We also want to kick off DoHTMLFiles if local copy is enabled
+					// We also want to kick off DoHtmlFiles if local copy is enabled
 					else if (cumulus.FtpOptions.LocalCopyEnabled && cumulus.SynchronisedWebUpdate && now.Minute % cumulus.UpdateInterval == 0)
 					{
-						cumulus.ftpThread = new Thread(() => _ = cumulus.DoHTMLFiles()) { IsBackground = true };
+						cumulus.ftpThread = new Thread(() => _ = cumulus.DoHtmlFiles()) { IsBackground = true };
 						cumulus.ftpThread.Start();
 					}
 
@@ -1282,6 +1282,7 @@ namespace CumulusMX
 					}
 
 					await cumulus.DoHttpFiles(now);
+					await cumulus.DoExtraWebFiles(now);
 				}
 				else
 				{
