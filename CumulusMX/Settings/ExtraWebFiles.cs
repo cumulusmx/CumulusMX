@@ -107,6 +107,12 @@ namespace CumulusMX.Settings
 		public string DestFilename { get; set; }
 		public bool Process { get; set; }
 		public bool Upload { get; set; }
+		/// 0-Realtime
+		/// 1-Interval
+		/// 2-EoD
+		/// 3-Custom Interval
+		/// 4-Scheduled
+		/// </summary>
 		public int Type { get; set; }
 		public int Interval { get; set; }
 		[JsonIgnore]
