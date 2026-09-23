@@ -103,7 +103,6 @@ namespace CumulusMX
 		{
 			static readonly string[] bypassList = [
 				"airlink.js",
-				"extrawebfiles.js",
 				"gaugefeed.js",
 				"noaamonth.js",
 				"noaayear.js",
@@ -158,6 +157,7 @@ namespace CumulusMX
 				"CustomLogsDailySchema.json",
 				"CustomLogsIntvlSchema.json",
 				"HttpFilesSchema.json",
+				"ExtraWebFilesSchema.json",
 				"QueryDayFileSchema.json",
 				"UserAlarmsSchema.json"
 			];

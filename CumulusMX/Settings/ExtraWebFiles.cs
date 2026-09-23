@@ -53,29 +53,36 @@ namespace CumulusMX.Settings
 
 			try
 			{ 
-				cumulus.ExtraFiles = settings.Files;
-
+				cumulus.ExtraFiles.Clear();
 				cumulus.ActiveExtraFiles.Clear();
 
-				for (var i =0; i < cumulus.ExtraFiles.Count; i++)
+				for (var i =0; i < settings.Files.Count; i++)
 				{
-					if (cumulus.ExtraFiles[i].Type == 3 | cumulus.ExtraFiles[i].Type == 4)
+					if (settings.Files[i].Type == 3 | settings.Files[i].Type == 4)
 					{
-						if (cumulus.ExtraFiles[i].Type == 3)
+						if (settings.Files[i].Type == 3)
 						{
-							cumulus.ExtraFiles[i].StartTimeString = "00:00";
+							settings.Files[i].StartTimeString = "00:00";
 						}
-						cumulus.ExtraFiles[i].SetInitialNextInterval(DateTime.Now);
+						settings.Files[i].SetInitialNextInterval(DateTime.Now);
 					}
 
-					if (string.IsNullOrEmpty(cumulus.ExtraFiles[i].LocalFilename) || string.IsNullOrEmpty(cumulus.ExtraFiles[i].DestFilename))
+					if (string.IsNullOrEmpty(settings.Files[i].LocalFilename) || string.IsNullOrEmpty(settings.Files[i].DestFilename))
 					{
-						cumulus.ExtraFiles[i].Enabled = false;
+						if (string.IsNullOrEmpty(settings.Files[i].LocalFilename) && string.IsNullOrEmpty(settings.Files[i].DestFilename))
+						{
+							// with no filenames defined, do not save the entry
+							continue;
+						}
+
+						settings.Files[i].Enabled = false;
 					}
 
-					if (cumulus.ExtraFiles[i].Enabled)
+					cumulus.ExtraFiles.Add(settings.Files[i]);
+
+					if (settings.Files[i].Enabled)
 					{
-						cumulus.ActiveExtraFiles.Add(cumulus.ExtraFiles[i]);
+						cumulus.ActiveExtraFiles.Add(settings.Files[i]);
 					}
 				}
 
