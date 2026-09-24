@@ -979,7 +979,7 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage($"{procName}: Error in Soil EC Moisture data - {ex.Message}");
 				}
 
-				// === Soil EC Temperature ===
+				// === Soil EC Temperature (F) ===
 				try
 				{
 					ProcessSoilEcTemp(data);
@@ -1381,7 +1381,7 @@ namespace CumulusMX.Stations
 			{
 				if (StationId == cumulus.SensorMaps.SoilTemp[i - 1])
 				{
-					double? val = data["soil_ec_temp" + i] == null ? null : Convert.ToDouble(data["soil_ec_temp" + i], invNum);
+					double? val = data["soil_ec_temp" + i] == null ? null : ConvertUnits.TempFToUser(Convert.ToDouble(data["soil_ec_temp" + i], invNum));
 					WeatherStation.DoSoilTemp(val, i);
 				}
 			}
