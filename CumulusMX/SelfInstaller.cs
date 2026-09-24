@@ -121,6 +121,8 @@ namespace CumulusMX
 
 				File.WriteAllLines(serviceFile, contents);
 
+				Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(1000), Program.ExitSystemToken);
+
 				return RunCommand("systemctl", "daemon-reload") == 0;
 			}
 			catch (Exception ex)
@@ -162,6 +164,8 @@ namespace CumulusMX
 					// delete it
 					File.Delete($"/usr/lib/systemd/system/{name}.service");
 				}
+
+				Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(1000), Program.ExitSystemToken);
 
 				var ok = RunCommand("systemctl", "daemon-reload") == 0;
 				ok = ok && RunCommand("systemctl", "reset-failed") == 0;
