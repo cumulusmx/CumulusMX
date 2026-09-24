@@ -24,7 +24,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
-- Nothing
+- Tempest station not updating the Station and Altimeter pressures during live running
 
 ### Package Updates
 
