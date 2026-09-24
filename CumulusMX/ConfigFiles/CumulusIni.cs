@@ -877,9 +877,8 @@ namespace CumulusMX
 				{
 					type = ini.GetValue("FTP site", "ExtraType" + i, 1);
 				}
-				else
+				else if (ini.ValueExists("FTP site", "ExtraRealtime" + i))
 				{
-
 					if (ini.GetValue("FTP site", "ExtraRealtime" + i, false))
 					{
 						type = 0;
@@ -892,6 +891,10 @@ namespace CumulusMX
 					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
 					ini.DeleteValue("FTP site", "ExtraEOD" + i);
 					recreateRequired = true;
+				}
+				else
+				{
+					continue;
 				}
 
 				var item = (new Settings.ExtaWebFilesItem()
