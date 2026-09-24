@@ -25,6 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Tempest station not updating the Station and Altimeter pressures during live running
+- Ecowitt Soil EC Temperatures not being converted to user units
 
 ### Package Updates
 

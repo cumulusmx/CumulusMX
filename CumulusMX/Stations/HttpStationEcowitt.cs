@@ -1418,7 +1418,7 @@ namespace CumulusMX.Stations
 			{
 				if (data["soil_ec_temp" + i] != null)
 				{
-					station.DoSoilTemp(Convert.ToDouble(data["soil_ec_temp" + i], invNum), i);
+					station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["soil_ec_temp" + i], invNum)), i);
 				}
 			}
 		}

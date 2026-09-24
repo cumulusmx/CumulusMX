@@ -252,6 +252,12 @@ namespace CumulusMX.Stations
 								//rec.ExtraDewPoint[i] = MeteoLib.FtoC(rec.ExtraDewPoint[i]);
 								//rec.ExtraHeatIndex[i] = MeteoLib.FtoC(rec.ExtraHeatIndex[i]);
 								rec.UserTemp[i] = MeteoLib.FtoC(rec.UserTemp[i]);
+								rec.SoilTemp[i] = MeteoLib.FtoC(rec.SoilTemp[i]);
+							}
+
+							for (var i = 8; i < 16; i++)
+							{
+								rec.SoilTemp[i] = MeteoLib.FtoC(rec.SoilTemp[i]);
 							}
 
 							rec.AqiComboTemp = MeteoLib.FtoC(rec.AqiComboTemp);
@@ -265,6 +271,12 @@ namespace CumulusMX.Stations
 								//rec.ExtraDewPoint[i] = MeteoLib.CToF(rec.ExtraDewPoint[i]);
 								//rec.ExtraHeatIndex[i] = MeteoLib.CToF(rec.ExtraHeatIndex[i]);
 								rec.UserTemp[i] = MeteoLib.CToF(rec.UserTemp[i]);
+								rec.SoilTemp[i] = MeteoLib.CToF(rec.SoilTemp[i]);
+							}
+
+							for (var i = 8; i < 16; i++)
+							{
+								rec.SoilTemp[i] = MeteoLib.CToF(rec.SoilTemp[i]);
 							}
 
 							rec.AqiComboTemp = MeteoLib.CToF(rec.AqiComboTemp);

@@ -1991,8 +1991,8 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel, soilMoistUnit);
-						DoSoilTemp(sensor.temp.Value, sensor.channel);
+						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel, soilMoistUnit);					
+						DoSoilTemp(sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value), sensor.channel);
 						DoSoilEc(sensor.ecVal.Value, sensor.channel);
 					}
 					catch (Exception ex)
