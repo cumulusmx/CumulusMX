@@ -58,24 +58,20 @@ namespace CumulusMX.Settings
 
 				for (var i =0; i < settings.Files.Count; i++)
 				{
-					if (settings.Files[i].Type == 3 | settings.Files[i].Type == 4)
+					if (string.IsNullOrEmpty(settings.Files[i].LocalFilename) && string.IsNullOrEmpty(settings.Files[i].DestFilename))
 					{
-						if (settings.Files[i].Type == 3)
-						{
-							settings.Files[i].StartTimeString = "00:00";
-						}
-						settings.Files[i].SetInitialNextInterval(DateTime.Now);
+						// with no filenames defined, do not save the entry
+						continue;
 					}
 
 					if (string.IsNullOrEmpty(settings.Files[i].LocalFilename) || string.IsNullOrEmpty(settings.Files[i].DestFilename))
 					{
-						if (string.IsNullOrEmpty(settings.Files[i].LocalFilename) && string.IsNullOrEmpty(settings.Files[i].DestFilename))
-						{
-							// with no filenames defined, do not save the entry
-							continue;
-						}
-
 						settings.Files[i].Enabled = false;
+					}
+
+					if (settings.Files[i].Type == 3 | settings.Files[i].Type == 4)
+					{
+						settings.Files[i].SetInitialNextInterval(DateTime.Now);
 					}
 
 					cumulus.ExtraFiles.Add(settings.Files[i]);
@@ -122,9 +118,9 @@ namespace CumulusMX.Settings
 		/// 4-Scheduled
 		/// </summary>
 		public int Type { get; set; }
-		public int Interval { get; set; }
+		public int Interval { get; set; } = 10;
 		[JsonIgnore]
-		public TimeSpan StartTime { get; set; }
+		public TimeSpan StartTime { get; set; } = TimeSpan.Zero;
 		[JsonPropertyName("StartTime")]
 		public string StartTimeString
 		{

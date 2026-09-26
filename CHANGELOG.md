@@ -10,7 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5017\] - 2026-10-10][37]
+## [5.2.0 \[b5018\] - 2026-10-10][37]
+
+### BETA b5018 Fixes
+
+- Extra Web Files
+	- Real-time updates fixed
+	- Interval has a default value for newly created entries
 
 ### New
 
