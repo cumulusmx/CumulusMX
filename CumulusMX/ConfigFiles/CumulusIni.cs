@@ -870,55 +870,25 @@ namespace CumulusMX
 
 			for (int i = 0; i < numextrafiles; i++)
 			{
-				// Type = 0-Realtime, 1-Interval, 2-EoD, 3-Cust Intv, 4-Scheduled
-				int type = 1;
-
-				if (ini.ValueExists("FTP site", "ExtraType" + i))
-				{
-					type = ini.GetValue("FTP site", "ExtraType" + i, 1);
-				}
-				else if (ini.ValueExists("FTP site", "ExtraRealtime" + i))
-				{
-					if (ini.GetValue("FTP site", "ExtraRealtime" + i, false))
-					{
-						type = 0;
-					}
-					else if (ini.GetValue("FTP site", "ExtraEOD" + i, false))
-					{
-						type = 2;
-					}
-
-					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
-					ini.DeleteValue("FTP site", "ExtraEOD" + i);
-					recreateRequired = true;
-				}
-				else
+				if (ini.ValueExists("FTP site", "ExtraLocal" + i))
 				{
 					continue;
 				}
 
 				var item = (new Settings.ExtaWebFilesItem()
 				{
+					Enabled = ini.GetValue("FTP site", "ExtraEnable" + i, false),
 					LocalFilename = ini.GetValue("FTP site", "ExtraLocal" + i, string.Empty),
 					DestFilename = ini.GetValue("FTP site", "ExtraRemote" + i, string.Empty),
 					Process = ini.GetValue("FTP site", "ExtraProcess" + i, false),
 					Binary = ini.GetValue("FTP site", "ExtraBinary" + i, false),
-					Type = type,
+					Type = ini.GetValue("FTP site", "ExtraType" + i, 1),
 					Interval = ini.GetValue("FTP site", "ExtraInterval" + i, 10),
 					StartTimeString = ini.GetValue("FTP site", "ExtraStartTime" + i, "00:00"),
 					Upload = ini.GetValue("FTP site", "ExtraFTP" + i, false),
 					Utf8 = ini.GetValue("FTP site", "ExtraUTF" + i, false),
 					Incremental = ini.GetValue("FTP site", "ExtraIncLogFile" + i, false)
 				});
-
-				if (ini.ValueExists("FTP site", "ExtraEnable" + i))
-				{
-					item.Enabled = ini.GetValue("FTP site", "ExtraEnable" + i, false);
-				}
-				else
-				{
-					item.Enabled = !string.IsNullOrEmpty(item.LocalFilename) && !string.IsNullOrEmpty(item.DestFilename);
-				}
 
 				if (item.Binary)
 				{
@@ -3895,7 +3865,7 @@ namespace CumulusMX
 				ini.Refresh();
 			}
 
-			// convert old dtart date format to new ISO format
+			// convert old start date format to new ISO format
 			if (ini.ValueExists("Station", "StartDate"))
 			{
 				var RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
@@ -4244,6 +4214,38 @@ namespace CumulusMX
 			{
 				LogMessage("Cumulus.ini: Updating old Cumulus 1 NOAA monthly file name");
 				ini.SetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
+			}
+
+			// Extra Web File changes
+			for (int i = 0; i < numextrafiles; i++)
+			{
+				// Type = 0-Realtime, 1-Interval, 2-EoD, 3-Cust Intv, 4-Scheduled
+				int type = 1;
+
+				if (ini.ValueExists("FTP site", "ExtraRealtime" + i))
+				{
+					if (ini.GetValue("FTP site", "ExtraRealtime" + i, false))
+					{
+						type = 0;
+					}
+					else if (ini.GetValue("FTP site", "ExtraEOD" + i, false))
+					{
+						type = 2;
+					}
+
+					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
+					ini.DeleteValue("FTP site", "ExtraEOD" + i);
+					ini.SetValue("FTP site", "ExtraType" + i, type);
+
+					var local = ini.GetValue("FTP site", "ExtraLocal" + i, string.Empty);
+					var remote = ini.GetValue("FTP site", "ExtraRemote" + i, string.Empty);
+					var enabled = !string.IsNullOrEmpty(local) && !string.IsNullOrEmpty(remote);
+					ini.SetValue("FTP site", "ExtraEnable" + i, enabled);
+				}
+				else
+				{
+					continue;
+				}
 			}
 		}
 	}

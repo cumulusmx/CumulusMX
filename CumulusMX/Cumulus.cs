@@ -2842,6 +2842,7 @@ namespace CumulusMX
 
 						Interlocked.Increment(ref taskCount);
 
+						// Create a fixed index reference
 						var idx = i;
 						tasklist.Add(Task.Run(async () =>
 						{
@@ -2946,6 +2947,7 @@ namespace CumulusMX
 					}
 
 					var remotefile = GetRemoteFileName(ActiveExtraFiles[i].DestFilename, DateTime.Now);
+					// Create a fixed index reference
 					var idx = i;
 
 					Interlocked.Increment(ref taskCount);
@@ -2961,10 +2963,10 @@ namespace CumulusMX
 
 							// all checks OK, file needs to be uploaded
 							// Is this an incremental log file upload?
-							if (ActiveExtraFiles[i].Incremental && !ActiveExtraFiles[i].Binary)
+							if (ActiveExtraFiles[idx].Incremental && !ActiveExtraFiles[idx].Binary)
 							{
 								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incremental - {linesAdded} lines" : "Full file")})");
-								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle, ActiveExtraFiles[i].Binary, ActiveExtraFiles[i].Utf8, true, ActiveExtraFiles[i].logFileLastLineNumber))
+								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle, ActiveExtraFiles[idx].Binary, ActiveExtraFiles[idx].Utf8, true, ActiveExtraFiles[idx].logFileLastLineNumber))
 								{
 									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
 								}
@@ -2973,16 +2975,16 @@ namespace CumulusMX
 							{
 								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web file {uploadfile} to {remotefile}");
 
-								if (ActiveExtraFiles[i].Process)
+								if (ActiveExtraFiles[idx].Process)
 								{
 									LogDebugMessage($"Realtime[{cycle}]: Processing extra web file {uploadfile}");
-									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, ActiveExtraFiles[i].Utf8);
+									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, ActiveExtraFiles[idx].Utf8);
 
-									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle, ActiveExtraFiles[i].Binary, ActiveExtraFiles[i].Utf8);
+									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle, ActiveExtraFiles[idx].Binary, ActiveExtraFiles[idx].Utf8);
 								}
 								else
 								{
-									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle, ActiveExtraFiles[i].Binary, ActiveExtraFiles[i].Utf8);
+									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle, ActiveExtraFiles[idx].Binary, ActiveExtraFiles[idx].Utf8);
 								}
 							}
 						}
