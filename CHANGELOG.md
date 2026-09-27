@@ -10,7 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5018\] - 2026-10-10][37]
+## [5.2.0 \[b5019\] - 2026-10-10][37]
+
+### BETA b5019 Fixes
+
+- Extra Web Files
+	- Real-time uploads were uploading all the extra files that were NOT flagged as real-time - Ooops!
+	- UTF8 option now permanently available in the settings as the form logic does not have required capabilities. Doing it in JS code also turns out to very non-trivial for an array of settings
 
 ### BETA b5018 Fixes
 
@@ -1636,4 +1642,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
-[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5017
+[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5019
