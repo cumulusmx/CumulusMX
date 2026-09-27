@@ -1425,20 +1425,42 @@ namespace CumulusMX
 
 
 
-		public static string GetIncrementalLogFileData(string fileName, int prevLastLine, out int newLines)
+		public sealed class IncrementalLogResult
 		{
-			string[] data;
-			if (prevLastLine == 0)
-			{
-				data = File.ReadAllLines(fileName);
-			}
-			else
-			{
-				data = File.ReadLines(fileName).Skip(prevLastLine).ToArray();
-			}
+			public string Data { get; init; } = "";
+			public int NewLines { get; init; }
+		}
 
-			newLines = data.Length;
-			return string.Join(Environment.NewLine, data) + Environment.NewLine;
+		public static async Task<IncrementalLogResult> GetIncrementalLogFileDataAsync(string fileName, int prevLastLine)
+		{
+			var lines = new List<string>();
+
+			using var stream = new FileStream(
+				fileName,
+				FileMode.Open,
+				FileAccess.Read,
+				FileShare.ReadWrite,
+				4096,
+				useAsync: true);
+
+			using var reader = new StreamReader(stream);
+
+			int currentLine = 0;
+
+			// Skip old lines
+			while (currentLine < prevLastLine && await reader.ReadLineAsync() != null)
+				currentLine++;
+
+			// Read new lines
+			string? line;
+			while ((line = await reader.ReadLineAsync()) != null)
+				lines.Add(line);
+
+			return new IncrementalLogResult
+			{
+				Data = string.Join(Environment.NewLine, lines) + Environment.NewLine,
+				NewLines = lines.Count
+			};
 		}
 
 
