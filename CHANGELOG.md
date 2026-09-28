@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5019\] - 2026-10-10][37]
+## [5.2.0 \[b5020\] - 2026-10-10][37]
+
+### BETA b5020
+
+- Fixes to Month dry/wet day thresholds if you have defined your own rain threshold
+- Implements new all time year average web tags for average temperature, rainfall, annual windrun, annual sunshine, total ET, total chill hours, total dry & wet days. See below
 
 ### BETA b5019 Fixes
 
@@ -26,7 +31,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Nothing
+- New web tags for average annual values
+	- `<#AllYearsTempAvg> <#AllYearsRainfallAvg> <#AllYearsWindRunAvg> <#AllYearsSunshineAvg>** <#AllYearsTotalETAvg>** <#AllYearsTotalChillHoursAvg>`<br>
+	`<#AllYearsDryDaysAvg> <#AllYearsWetDaysAvg>`
+	- Accept a parameter of `mindays=nnn`, which defines the minimum number of days in a year for it to be included in the averaging. This defaults to 360 days
+	- ** Note: `<#AllYearsSunshineAvg> <#AllYearsTotalETAvg>` assume you have had shunshine hours being recorded for your whole history. To be improved, add start date parameter?
 
 ### Changed
 
@@ -1642,4 +1651,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
-[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5019
+[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5020

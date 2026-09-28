@@ -16631,7 +16631,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			double thresh;
 			if (cumulus.RainDayThreshold > 0)
 			{
-				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+				thresh = cumulus.RainDayThreshold;
 			}
 			else
 			{
@@ -16664,7 +16664,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			double thresh;
 			if (cumulus.RainDayThreshold > 0)
 			{
-				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+				thresh = cumulus.RainDayThreshold;
 			}
 			else
 			{
@@ -16698,7 +16698,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			double thresh;
 			if (cumulus.RainDayThreshold > 0)
 			{
-				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+				thresh = cumulus.RainDayThreshold;
 			}
 			else
 			{
