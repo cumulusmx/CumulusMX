@@ -986,6 +986,10 @@ namespace CumulusMX
 		{
 			return station.OutdoorHumidity.ToString();
 		}
+		private string TagAbsHum(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(MeteoLib.AbsoluteHumidty(ConvertUnits.UserTempToC(station.OutdoorTemperature), station.OutdoorHumidity), tagParams, 2);
+		}
 
 		private string Taghumidex(Dictionary<string, string> tagParams)
 		{
@@ -7677,6 +7681,7 @@ namespace CumulusMX
 				{ "avgtempY", TagavgtempY },
 				{ "hum", Taghum },
 				{ "humidex", Taghumidex },
+				{ "AbsHum", TagAbsHum },
 				{ "press", Tagpress },
 				{ "altimeterpressure", Tagaltimeterpressure },
 				{ "stationpressure", Tagstationpressure },

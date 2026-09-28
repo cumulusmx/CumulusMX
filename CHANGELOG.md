@@ -17,6 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fixes to Month dry/wet day thresholds if you have defined your own rain threshold
 - Implements new all time year average web tags for average temperature, rainfall, annual windrun, annual sunshine, total ET, total chill hours, total dry & wet days. See below
 - New web tag for local solar noon time
+- New web tag for current absolute humidity
 
 ### BETA b5019 Fixes
 
@@ -38,6 +39,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Accept a parameter of `mindays=nnn`, which defines the minimum number of days in a year for it to be included in the averaging. This defaults to 360 days
 	- ** Note: `<#AllYearsSunshineAvg> <#AllYearsTotalETAvg>` assume you have had shunshine hours being recorded for your whole history. To be improved, add start date parameter?
 - New web tag for solar noon time `<#solarnoon>`
+- New web tag for current absolute humidity `<#AbsHum>` which returns the total water content in g/m³
 
 ### Changed
 
