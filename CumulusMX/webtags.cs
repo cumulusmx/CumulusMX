@@ -3679,6 +3679,13 @@ namespace CumulusMX
 			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SunSetTime), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
+		private string Tagsolarnoon(Dictionary<string, string> tagParams)
+		{
+			//AstroLib.CalculateSunPosition(DateTime.Now, (double) cumulus.Latitude, (double) cumulus.Longitude, out _, out _, out var noon);
+			//return GetFormattedDateTime(noon.ToLocalTime(), cumulus.Trans.WebTagGenTime, tagParams);
+			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SolarNoonTime), cumulus.Trans.WebTagGenTime, tagParams);
+		}
+
 		private string Tagdaylength(Dictionary<string, string> tagParams)
 		{
 			// If the sun is up all day the total hours = 24, which outputs as "00"!
@@ -7987,6 +7994,7 @@ namespace CumulusMX
 				{ "longlocationJsEnc", TaglonglocationJsEnc },
 				{ "sunrise", Tagsunrise },
 				{ "sunset", Tagsunset },
+				{ "solarnoon", Tagsolarnoon },
 				{ "daylength", Tagdaylength },
 				{ "dawn", Tagdawn },
 				{ "dusk", Tagdusk },
