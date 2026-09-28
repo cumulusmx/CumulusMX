@@ -4213,6 +4213,315 @@ namespace CumulusMX
 			}
 		}
 
+		private string TagAllYearsTempAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				static double AvgTemp(DayFileRec d) => d.AvgTemp;
+
+				var avg = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Average(AvgTemp));
+
+				if (double.IsNaN(avg))
+				{
+					cumulus.LogErrorMessage("TagAllYearsTempAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(avg, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsTempAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsRainfallAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				static double SumRainfall(DayFileRec d) => d.TotalRain;
+
+				var avg = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Sum(SumRainfall));
+
+				if (double.IsNaN(avg))
+				{
+					cumulus.LogErrorMessage("TagAllYearsRainfallAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(avg, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsRainfallAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsWindRunAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				static double AvgWindRun(DayFileRec d) => d.WindRun;
+
+				var avg = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Sum(AvgWindRun));
+
+				if (double.IsNaN(avg))
+				{
+					cumulus.LogErrorMessage("TagAllYearsWindRunAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(avg, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsWindRunAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsSunshineAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				static double AvgSunshineHours(DayFileRec d) => d.SunShineHours;
+
+				var avg = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Sum(AvgSunshineHours));
+
+				if (double.IsNaN(avg))
+				{
+					cumulus.LogErrorMessage("TagAllYearsSunshineAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(avg, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsSunshineAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsTotalETAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				static bool ValidET(DayFileRec d) => d.ET > -999;
+				static double AvgET(DayFileRec d) => d.ET;
+
+				var avg = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count(ValidET) > minDays)
+					.Average(g => g.Where(ValidET).Sum(AvgET));
+
+				if (double.IsNaN(avg))
+				{
+					cumulus.LogErrorMessage("TagAllYearsTotalETAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(avg, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsTotalETAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsTotalChillHoursAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				static double AvgChillHours(DayFileRec d) => d.ChillHours;
+
+				var avg = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Max(AvgChillHours));
+
+				if (double.IsNaN(avg))
+				{
+					cumulus.LogErrorMessage("TagAllYearsTotalChillHoursAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(avg, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsTotalChillHoursAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsDryDaysAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				double thresh;
+				if (cumulus.RainDayThreshold > 0)
+				{
+					thresh = cumulus.RainDayThreshold;
+				}
+				else
+				{
+					// default
+					if (cumulus.Units.Rain == 0)
+					{
+						thresh = 0.2; // 0.2 mm
+					}
+					else
+					{
+						thresh = 0.01;  // 0.01 in
+					}
+				}
+
+				bool Dry(DayFileRec d) => d.TotalRain < thresh;
+
+				var dryDays = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Count(Dry));
+
+				if (double.IsNaN(dryDays))
+				{
+					cumulus.LogErrorMessage("TagAllYearsDryDaysAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(dryDays, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsDryDaysAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagAllYearsWetDaysAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				int minDays = 360;
+				if (int.TryParse(tagParams.Get("mindays"), out int val))
+				{
+					minDays = val;
+				}
+
+				double thresh;
+				if (cumulus.RainDayThreshold > 0)
+				{
+					thresh = cumulus.RainDayThreshold;
+				}
+				else
+				{
+					// default
+					if (cumulus.Units.Rain == 0)
+					{
+						thresh = 0.2; // 0.2 mm
+					}
+					else
+					{
+						thresh = 0.01;  // 0.01 in
+					}
+				}
+
+				bool Wet(DayFileRec d) => d.TotalRain >= thresh;
+
+				var wetDays = MetData.DayFile
+					.GroupBy(d => d.Date.Year)
+					.Where(g => g.Count() > minDays)
+					.Average(g => g.Count(Wet));
+
+				if (double.IsNaN(wetDays))
+				{
+					cumulus.LogErrorMessage("TagAllYearsWetDaysAvg: Error - NaN");
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return CheckRcDp(wetDays, tagParams, 1);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAllYearsWetDaysAvg: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
 		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
 		{
 			try
@@ -8398,7 +8707,15 @@ namespace CumulusMX
 				{ "MonthAvgTotalSunHours", TagMonthAvgTotalSunHours },
 				{ "MonthAvgTotalET", TagMonthAvgTotalET },
 				{ "MonthAvgTotalChillHrs", TagMonthAvgTotalChillHrs },
-
+				// Yearly averages
+				{ "AllYearsTempAvg", TagAllYearsTempAvg },
+				{ "AllYearsRainfallAvg", TagAllYearsRainfallAvg },
+				{ "AllYearsWindRunAvg", TagAllYearsWindRunAvg },
+				{ "AllYearsSunshineAvg", TagAllYearsSunshineAvg },
+				{ "AllYearsTotalETAvg", TagAllYearsTotalETAvg },
+				{ "AllYearsTotalChillHoursAvg", TagAllYearsTotalChillHoursAvg },
+				{ "AllYearsDryDaysAvg", TagAllYearsDryDaysAvg },
+				{ "AllYearsWetDaysAvg", TagAllYearsWetDaysAvg },
 				// Specifc Month/Year values
 				{ "MonthTempAvg", TagMonthTempAvg },
 				{ "YearTempAvg", TagYearTempAvg },

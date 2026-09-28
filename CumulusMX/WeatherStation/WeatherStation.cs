@@ -2959,7 +2959,7 @@ namespace CumulusMX
 			double thresh;
 			if (cumulus.RainDayThreshold > 0)
 			{
-				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+				thresh = cumulus.RainDayThreshold;
 			}
 			else
 			{
@@ -2992,7 +2992,7 @@ namespace CumulusMX
 			double thresh;
 			if (cumulus.RainDayThreshold > 0)
 			{
-				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+				thresh = cumulus.RainDayThreshold;
 			}
 			else
 			{
@@ -3026,7 +3026,7 @@ namespace CumulusMX
 			double thresh;
 			if (cumulus.RainDayThreshold > 0)
 			{
-				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+				thresh = cumulus.RainDayThreshold;
 			}
 			else
 			{
