@@ -302,6 +302,19 @@ namespace CumulusMX
 		}
 
 		/// <summary>
+		/// Calculates the absolute humidty in grams/m³
+		/// The total water content per unit volume
+		/// </summary>
+		/// <param name="tempC">Temp in C</param>
+		/// <param name="humidity">Relative humidity</param>
+		/// <returns></returns>
+		public static double AbsoluteHumidty(double tempC, int humidity)
+		{
+			var svp = SaturationVapourPressure2008(tempC);
+			return svp * humidity * 2.1674 / (273.15 + tempC);
+		}
+
+		/// <summary>
 		/// Calculates the Vapour Pressure Deficit in hPa
 		/// </summary>
 		/// <remarks>
