@@ -81,7 +81,7 @@ namespace CumulusMX
 		{
 			DateTime utctime = timestamp.ToUniversalTime();
 
-			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out _);
+			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out _, out _);
 			var dEpoch = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Local);
 			double erv = CalcSunDistance(utctime, dEpoch);
 
@@ -110,7 +110,7 @@ namespace CumulusMX
 		// https://gml.noaa.gov/grad/solcalc/calcdetails.html
 		#region NOAA_Solar
 
-		private static void CalculateSunPosition(DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
+		public static void CalculateSunPosition(DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth, out DateTime solarnoon)
 		{
 			// We will use DateTime.ToOADate() which automatically includes the TZ
 			var zone = 0.0;
@@ -132,7 +132,8 @@ namespace CumulusMX
 			var varY = Math.Tan(DegToRad(obliqCorr / 2.0)) * Math.Tan(DegToRad(obliqCorr / 2.0));
 			var eqOfTime = 4 * RadToDeg(varY * Math.Sin(2 * DegToRad(geoMeanLongSun)) - 2 * eccEarthOrbit * Math.Sin(DegToRad(geoMeanAnomSun)) + 4 * eccEarthOrbit * varY * Math.Sin(DegToRad(geoMeanAnomSun)) * Math.Cos(2 * DegToRad(geoMeanLongSun)) - 0.5 * varY * varY * Math.Sin(4 * DegToRad(geoMeanLongSun)) - 1.25 * eccEarthOrbit * eccEarthOrbit * Math.Sin(2 * DegToRad(geoMeanAnomSun)));
 			//var haSunRise = RadToDeg(Math.Acos(Math.Cos(DegToRad(90.833)) / (Math.Cos(DegToRad(latitude)) * Math.Cos(DegToRad(sunDec))) - Math.Tan(DegToRad(latitude)) * Math.Tan(DegToRad(sunDec))))
-			//var solarNoonLst = (720.0 - 4 * longitude - eqOfTime + zone * 60.0) / 1440.0
+			var solarNoonLst = (720.0 - 4 * longitude - eqOfTime + zone * 60.0) / 1440.0;
+			solarnoon = DateTime.SpecifyKind(dateTime.Date.AddMinutes(solarNoonLst), DateTimeKind.Utc).ToLocalTime();
 			//var sunriseTimeLst = solarNoonLst - haSunRise * 4 / 1440.0
 			//var sunsetTimeLst = solarNoonLst + haSunRise * 4 / 1440.0
 			//var sunlightDurationMins = 8 * haSunRise

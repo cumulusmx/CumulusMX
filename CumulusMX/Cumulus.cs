@@ -3584,6 +3584,8 @@ namespace CumulusMX
 			DateTime tomorrow = today.AddDays(1);
 			try
 			{
+				AstroLib.CalculateSunPosition(today, (double) Latitude, (double) Longitude, out _, out _, out SolarNoonTime);
+
 				GetSunriseSunset(today, out SunRiseTime, out SunSetTime, out SunAlwaysUp, out SunAlwaysDown);
 
 				if (SunAlwaysUp)
@@ -3768,8 +3770,8 @@ namespace CumulusMX
 		}
 
 		internal DateTime SunSetTime;
-
 		internal DateTime SunRiseTime;
+		internal DateTime SolarNoonTime;
 
 		internal bool SunAlwaysUp;
 		internal bool SunAlwaysDown;
