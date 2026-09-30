@@ -4225,27 +4225,79 @@ namespace CumulusMX
 			}
 		}
 
+		private static IEnumerable<(int Year, int Days, int ValidDays, double Average)> AnnualDiagnosticsAvg(IEnumerable<DayFileRec> source, Func<DayFileRec, bool> validSelector, Func<DayFileRec, double> valueSelector)
+		{
+			return source
+				.GroupBy(d => d.Date.Year)
+				.Select(g => (
+					Year: g.Key,
+					Days: g.Count(),
+					ValidDays: g.Count(validSelector),
+					Average: g.Where(validSelector).Average(valueSelector)
+				))
+				.OrderBy(x => x.Year);
+		}
+
+		private static IEnumerable<(int Year, int Days, int ValidDays, double Sum)> AnnualDiagnosticsSum(IEnumerable<DayFileRec> source, Func<DayFileRec, bool> validSelector, Func<DayFileRec, double> valueSelector)
+		{
+			return source
+				.GroupBy(d => d.Date.Year)
+				.Select(g => (
+					Year: g.Key,
+					Days: g.Count(),
+					ValidDays: g.Count(validSelector),
+					Sum: g.Where(validSelector).Sum(valueSelector)
+				))
+				.OrderBy(x => x.Year);
+		}
+
+		private static IEnumerable<(int Year, int Days, int ValidDays)> AnnualWetDryDiagnostics(IEnumerable<DayFileRec> source, Func<DayFileRec, bool> validSelector)
+		{
+			return source
+				.GroupBy(d => d.Date.Year)
+				.Select(g => (
+					Year: g.Key,
+					Days: g.Count(),
+					ValidDays: g.Count(validSelector)
+				))
+				.OrderBy(x => x.Year);
+		}
+
 		private string TagAllYearsTempAvg(Dictionary<string, string> tagParams)
 		{
+			static double Temp(DayFileRec d) => d.AvgTemp;
+			static bool ValidTemp(DayFileRec d) => true;
+
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
 					minDays = val;
 				}
 
-				static double AvgTemp(DayFileRec d) => d.AvgTemp;
-
 				var avg = MetData.DayFile
 					.GroupBy(d => d.Date.Year)
 					.Where(g => g.Count() > minDays)
-					.Average(g => g.Average(AvgTemp));
+					.Average(g => g.Average(Temp));
 
 				if (double.IsNaN(avg))
 				{
 					cumulus.LogErrorMessage("TagAllYearsTempAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = AnnualDiagnosticsAvg(MetData.DayFile, ValidTemp, Temp);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average={CheckRcDp(avg, tagParams, cumulus.TempDPlaces)} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays, Average) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} Avg:{CheckRcDp(Average, tagParams, cumulus.TempDPlaces)} Inc:{(ValidDays >= minDays)}");
+					}
+					return sb.ToString();
 				}
 				else
 				{
@@ -4261,25 +4313,39 @@ namespace CumulusMX
 
 		private string TagAllYearsRainfallAvg(Dictionary<string, string> tagParams)
 		{
+			static double Rainfall(DayFileRec d) => d.TotalRain;
+			static bool ValidRainfall(DayFileRec d) => true;
+
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
 					minDays = val;
 				}
 
-				static double SumRainfall(DayFileRec d) => d.TotalRain;
-
 				var avg = MetData.DayFile
 					.GroupBy(d => d.Date.Year)
 					.Where(g => g.Count() > minDays)
-					.Average(g => g.Sum(SumRainfall));
+					.Average(g => g.Sum(Rainfall));
 
 				if (double.IsNaN(avg))
 				{
 					cumulus.LogErrorMessage("TagAllYearsRainfallAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = AnnualDiagnosticsSum(MetData.DayFile, ValidRainfall, Rainfall);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Sum={CheckRcDp(avg, tagParams, cumulus.RainDPlaces)} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays, Sum) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} Sum:{CheckRcDp(Sum, tagParams, cumulus.RainDPlaces)} Inc:{(ValidDays >= minDays)}");
+					}
+					return sb.ToString();
 				}
 				else
 				{
@@ -4295,25 +4361,39 @@ namespace CumulusMX
 
 		private string TagAllYearsWindRunAvg(Dictionary<string, string> tagParams)
 		{
+			static double WindRun(DayFileRec d) => d.WindRun;
+			static bool ValidWindRun(DayFileRec d) => true;
+
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
 					minDays = val;
 				}
 
-				static double AvgWindRun(DayFileRec d) => d.WindRun;
-
 				var avg = MetData.DayFile
 					.GroupBy(d => d.Date.Year)
 					.Where(g => g.Count() > minDays)
-					.Average(g => g.Sum(AvgWindRun));
+					.Average(g => g.Sum(WindRun));
 
 				if (double.IsNaN(avg))
 				{
 					cumulus.LogErrorMessage("TagAllYearsWindRunAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = AnnualDiagnosticsSum(MetData.DayFile, ValidWindRun, WindRun);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Sum={CheckRcDp(avg, tagParams, cumulus.WindRunDPlaces)} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays, Sum) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} Sum:{CheckRcDp(Sum, tagParams, cumulus.WindRunDPlaces)} Inc:{(ValidDays >= minDays)}");
+					}
+					return sb.ToString();
 				}
 				else
 				{
@@ -4329,25 +4409,41 @@ namespace CumulusMX
 
 		private string TagAllYearsSunshineAvg(Dictionary<string, string> tagParams)
 		{
+			static double SunshineHours(DayFileRec d) => d.SunShineHours;
+			static bool ValidSunshineHours(DayFileRec d) => true;
+
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+				var startYear = int.Parse(tagParams.Get("startyear") ?? "1900");
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
 					minDays = val;
 				}
 
-				static double AvgSunshineHours(DayFileRec d) => d.SunShineHours;
-
 				var avg = MetData.DayFile
+					.Where(d => d.Date.Year >= startYear)
 					.GroupBy(d => d.Date.Year)
 					.Where(g => g.Count() > minDays)
-					.Average(g => g.Sum(AvgSunshineHours));
+					.Average(g => g.Sum(SunshineHours));
 
 				if (double.IsNaN(avg))
 				{
 					cumulus.LogErrorMessage("TagAllYearsSunshineAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = AnnualDiagnosticsSum(MetData.DayFile, ValidSunshineHours, SunshineHours);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Sum={CheckRcDp(avg, tagParams, cumulus.SunshineDPlaces)} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays, Sum) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} Sum:{CheckRcDp(Sum, tagParams, cumulus.SunshineDPlaces)} Inc:{(ValidDays >= minDays && Year >= startYear)}");
+					}
+					return sb.ToString();
 				}
 				else
 				{
@@ -4363,26 +4459,39 @@ namespace CumulusMX
 
 		private string TagAllYearsTotalETAvg(Dictionary<string, string> tagParams)
 		{
+			static double ET(DayFileRec d) => d.ET;
+			static bool ValidET(DayFileRec d) => d.ET > -999;
+
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
 					minDays = val;
 				}
 
-				static bool ValidET(DayFileRec d) => d.ET > -999;
-				static double AvgET(DayFileRec d) => d.ET;
-
 				var avg = MetData.DayFile
 					.GroupBy(d => d.Date.Year)
 					.Where(g => g.Count(ValidET) > minDays)
-					.Average(g => g.Where(ValidET).Sum(AvgET));
+					.Average(g => g.Where(ValidET).Sum(ET));
 
 				if (double.IsNaN(avg))
 				{
 					cumulus.LogErrorMessage("TagAllYearsTotalETAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = AnnualDiagnosticsSum(MetData.DayFile, ValidET, ET);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Sum={CheckRcDp(avg, tagParams, 1)} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays, Sum) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} ValidDays: {ValidDays} Sum:{CheckRcDp(Sum, tagParams, 1)} Inc:{(ValidDays >= minDays)}");
+					}
+					return sb.ToString();
 				}
 				else
 				{
@@ -4398,25 +4507,46 @@ namespace CumulusMX
 
 		private string TagAllYearsTotalChillHoursAvg(Dictionary<string, string> tagParams)
 		{
+			static double ChillHours(DayFileRec d) => d.ChillHours;
+
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
 					minDays = val;
 				}
 
-				static double AvgChillHours(DayFileRec d) => d.ChillHours;
-
 				var avg = MetData.DayFile
 					.GroupBy(d => d.Date.Year)
 					.Where(g => g.Count() > minDays)
-					.Average(g => g.Max(AvgChillHours));
+					.Average(g => g.Max(ChillHours));
 
 				if (double.IsNaN(avg))
 				{
 					cumulus.LogErrorMessage("TagAllYearsTotalChillHoursAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = MetData.DayFile.GroupBy(d => d.Date.Year)
+						.Select(g => (
+							Year: g.Key,
+							Days: g.Count(),
+							Max: g.Max(ChillHours)
+						))
+						.OrderBy(x => x.Year);
+
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Hours={CheckRcDp(avg, tagParams, 1)} MinDays={minDays}");
+					foreach (var (Year, Days, Hours) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} Hours:{CheckRcDp(Hours, tagParams, 1)} Inc:{(Days >= minDays)}");
+					}
+					return sb.ToString();
+
 				}
 				else
 				{
@@ -4434,6 +4564,8 @@ namespace CumulusMX
 		{
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
@@ -4470,6 +4602,17 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("TagAllYearsDryDaysAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
 				}
+				else if (diags)
+				{
+					var yrs = AnnualWetDryDiagnostics(MetData.DayFile, Dry);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Count={dryDays} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} DryDays: {ValidDays} Inc:{(Days >= minDays)}");
+					}
+					return sb.ToString();
+				}
 				else
 				{
 					return CheckRcDp(dryDays, tagParams, 1);
@@ -4486,6 +4629,8 @@ namespace CumulusMX
 		{
 			try
 			{
+				var diags = tagParams.Get("diags") == "y";
+
 				int minDays = 360;
 				if (int.TryParse(tagParams.Get("mindays"), out int val))
 				{
@@ -4521,6 +4666,17 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("TagAllYearsWetDaysAvg: Error - NaN");
 					return tagParams.Get("nv") ?? "-";
+				}
+				else if (diags)
+				{
+					var yrs = AnnualWetDryDiagnostics(MetData.DayFile, Wet);
+					var sb = new StringBuilder();
+					sb.AppendLine($"Average Count={wetDays} MinDays={minDays}");
+					foreach (var (Year, Days, ValidDays) in yrs)
+					{
+						sb.AppendLine($"{Year} Days:{Days} WetDays: {ValidDays} Inc:{(Days >= minDays)}");
+					}
+					return sb.ToString();
 				}
 				else
 				{
