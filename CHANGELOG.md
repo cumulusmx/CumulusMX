@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Implements new all time year average web tags for average temperature, rainfall, annual windrun, annual sunshine, total ET, total chill hours, total dry & wet days. See below
 - New web tag for local solar noon time
 - New web tag for current absolute humidity
+- Third party package updates
 
 ### BETA b5019 Fixes
 
@@ -54,7 +55,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
-- None
+- FluentFTP
+- MailKit
+- NLog
+- NLog.Extensions.Logging
 
 ---
 
