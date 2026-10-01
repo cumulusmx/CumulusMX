@@ -109,7 +109,8 @@ namespace CumulusMX
 				"raintodayeditor.js",
 				"records.js",
 				"thisperiod.js",
-				"todayyest.js"
+				"todayyest.js",
+				"simplereports.js"
 			];
 
 			[Route(HttpVerbs.Get, "/js/{req}")]
@@ -1526,6 +1527,8 @@ namespace CumulusMX
 			public async Task GetData(string req)
 			{
 				NoaaReports noaarpts = new NoaaReports(cumulus, Station);
+				double thresh;
+
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1535,19 +1538,26 @@ namespace CumulusMX
 
 					using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
 
-					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
-					{
-						await writer.WriteAsync("Invalid year supplied: " + year);
-						Response.StatusCode = 406;
-						return;
-					}
-
 					switch (req)
 					{
 						case "noaayear":
+							if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+							{
+								await writer.WriteAsync("Invalid year supplied: " + year);
+								Response.StatusCode = 406;
+								return;
+							}
+
 							await writer.WriteAsync(noaarpts.GetNoaaYearReport(year));
 							break;
 						case "noaamonth":
+							if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+							{
+								await writer.WriteAsync("Invalid year supplied: " + year);
+								Response.StatusCode = 406;
+								return;
+							}
+
 							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
 							{
 								await writer.WriteAsync("Invalid month supplied: " + month);
@@ -1555,6 +1565,61 @@ namespace CumulusMX
 								return;
 							}
 							await writer.WriteAsync(noaarpts.GetNoaaMonthReport(year, month));
+							break;
+						case "simpleTemperature":
+							await writer.WriteAsync(SimpleReports.TemperatureReport(Station.DayFile, cumulus.WindRunDPlaces));
+							break;
+						case "simpleRainfall":
+							await writer.WriteAsync(SimpleReports.RainfallReport(Station.DayFile, cumulus.RainDPlaces));
+							break;
+						case "simpleWindRun":
+							await writer.WriteAsync(SimpleReports.WindRunReport(Station.DayFile, cumulus.WindRunDPlaces));
+							break;
+						case "simpleSunshine":
+							await writer.WriteAsync(SimpleReports.SunShineReport(Station.DayFile));
+							break;
+						case "simpleET":
+							await writer.WriteAsync(SimpleReports.ETReport(Station.DayFile, cumulus.RainDPlaces));
+							break;
+						case "simpleDryDays":
+							if (cumulus.RainDayThreshold > 0)
+							{
+								thresh = cumulus.RainDayThreshold;
+							}
+							else
+							{
+								// default
+								if (cumulus.Units.Rain == 0)
+								{
+									thresh = 0.2; // 0.2 mm
+								}
+								else
+								{
+									thresh = 0.01;  // 0.01 in
+								}
+							}
+
+							await writer.WriteAsync(SimpleReports.WetDryDaysReport(Station.DayFile, thresh, true));
+							break;
+						case "simpleWetDays":
+							if (cumulus.RainDayThreshold > 0)
+							{
+								thresh = cumulus.RainDayThreshold;
+							}
+							else
+							{
+								// default
+								if (cumulus.Units.Rain == 0)
+								{
+									thresh = 0.2; // 0.2 mm
+								}
+								else
+								{
+									thresh = 0.01;  // 0.01 in
+								}
+							}
+
+							await writer.WriteAsync(SimpleReports.WetDryDaysReport(Station.DayFile, thresh, false));
 							break;
 						default:
 							Response.StatusCode = 404;

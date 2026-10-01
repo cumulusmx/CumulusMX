@@ -16,8 +16,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Implements a new `startyear=YYYY` parameter for `<#AllYearsSunshineAvg>`
 - Implements a disgnostics mode for the AllYears**** web tags to show how the average was derived
-	- Use the parameter `diags`
+	- Use the parameter `diags` to display the information
 - Boolean web tag parameters that accept y/n now default to "y" if no value is supplied (see full changelog below)
+- Adds new simple reports for some weather variables, tabular text summaries of monthly and annual values
 
 ### BETA b5020
 
@@ -45,9 +46,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- `<#AllYearsTempAvg> <#AllYearsRainfallAvg> <#AllYearsWindRunAvg> <#AllYearsSunshineAvg>** <#AllYearsTotalETAvg> <#AllYearsTotalChillHoursAvg>`<br>
 	`<#AllYearsDryDaysAvg> <#AllYearsWetDaysAvg>`
 	- Accept a parameter of `mindays=nnn`, which defines the minimum number of days in a year for it to be included in the averaging. This defaults to 360 days
-	- ** Note: `<#AllYearsSunshineAvg>` assumes you have had shunshine hours being recorded for your whole history. If this is not the case add a parameter to specify the first **FULL YEAR** of your history that contains solar data `startyear=YYYY`
+	- ** Note: `<#AllYearsSunshineAvg>` assumes you have had sunshine hours being recorded for your whole history. If this is not the case add a parameter to specify the first **FULL YEAR** of your history that contains solar data `startyear=YYYY`
+	- Some diagnostics that give an indication how the averages were arrived at can be displayed by adding the web tag parameter `diags`
 - New web tag for solar noon time `<#solarnoon>`
 - New web tag for current absolute humidity `<#AbsHum>` which returns the total water content in g/m³
+- New simple text based reports of various weather variables summarised by month and year from your day file. Accessed from Reports -> Simple Reports
 
 ### Changed
 
@@ -57,7 +60,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Web tag parameters which are effectively boolean (accept a "y" or "n" value) can now have the value omitted to default to "y"
 	- For example, previously you had to use the parameter `rc=y` to remove commas, now simply add the parameter `rc` has the same effect
 	- The old behaviour of the full key=value format will still continue to function
-	- The current parameters to use y/n are: rc, tcstr, diags, showdate, dateonly
+	- The current parameters to use y/n are: `rc, tc, tcstr, diags, showdate, dateonly`
 
 ### Fixed
 
