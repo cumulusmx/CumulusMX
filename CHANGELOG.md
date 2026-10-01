@@ -10,7 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5020\] - 2026-10-10][37]
+## [5.2.0 \[b5021\] - 2026-10-10][37]
+
+### BETA b2021
+
+- Implements a new `startyear=YYYY` parameter for `<#AllYearsSunshineAvg>`
+- Implements a disgnostics mode for the AllYears**** web tags to show how the average was derived
+	- Use the parameter `diags`
+- Boolean web tag parameters that accept y/n now default to "y" if no value is supplied (see full changelog below)
 
 ### BETA b5020
 
@@ -35,10 +42,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - New web tags for average annual values
-	- `<#AllYearsTempAvg> <#AllYearsRainfallAvg> <#AllYearsWindRunAvg> <#AllYearsSunshineAvg>** <#AllYearsTotalETAvg>** <#AllYearsTotalChillHoursAvg>`<br>
+	- `<#AllYearsTempAvg> <#AllYearsRainfallAvg> <#AllYearsWindRunAvg> <#AllYearsSunshineAvg>** <#AllYearsTotalETAvg> <#AllYearsTotalChillHoursAvg>`<br>
 	`<#AllYearsDryDaysAvg> <#AllYearsWetDaysAvg>`
 	- Accept a parameter of `mindays=nnn`, which defines the minimum number of days in a year for it to be included in the averaging. This defaults to 360 days
-	- ** Note: `<#AllYearsSunshineAvg> <#AllYearsTotalETAvg>` assume you have had shunshine hours being recorded for your whole history. To be improved, add start date parameter?
+	- ** Note: `<#AllYearsSunshineAvg>` assumes you have had shunshine hours being recorded for your whole history. If this is not the case add a parameter to specify the first **FULL YEAR** of your history that contains solar data `startyear=YYYY`
 - New web tag for solar noon time `<#solarnoon>`
 - New web tag for current absolute humidity `<#AbsHum>` which returns the total water content in g/m³
 
@@ -47,6 +54,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The Extra Web Files functionality has had an overhaul:
 	- The settings page is now an Alpaca form with a changed layout. This means that the available settings change to reflect the capabilities of other settings
 	- In addition to real-time/interval/eod periods, you can now perfrom Extra Web File copies/uploads at custom intervals, and perform them at scheduled times
+- Web tag parameters which are effectively boolean (accept a "y" or "n" value) can now have the value omitted to default to "y"
+	- For example, previously you had to use the parameter `rc=y` to remove commas, now simply add the parameter `rc` has the same effect
+	- The old behaviour of the full key=value format will still continue to function
+	- The current parameters to use y/n are: rc, tcstr, diags, showdate, dateonly
 
 ### Fixed
 

@@ -3236,28 +3236,24 @@ namespace CumulusMX
 			{
 				var tagParams = new Dictionary<string, string>();
 				var paramList = ParseParams(strToken);
-				var webTag = paramList[0];
+				var webTag = paramList.First().Key;
 
 				tagParams.Add("webtag", webTag);
-				for (int i = 1; i < paramList.Count; i += 2)
+				foreach (var tag  in paramList.Skip(1))
 				{
-					// odd numbered entries are keys
-					string key = paramList[i];
-					// even numbered entries are values
-					string value = paramList[i + 1];
-					tagParams.Add(key, value);
+					tagParams.Add(tag.Key, tag.Value);
 				}
 
 				strReplacement = WebTags.GetWebTagText(webTag, tagParams);
 			}
 		}
 
-		private static List<string> ParseParams(string line)
+		private static Dictionary<string,string> ParseParams(string line)
 		{
 			if (string.IsNullOrWhiteSpace(line))
 				return [];
 
-			var parts = new List<string>();
+			var parts = new Dictionary<string, string>();
 
 			int len = line.Length;
 			int idx = 0;
@@ -3271,7 +3267,7 @@ namespace CumulusMX
 			while (idx < len && !char.IsWhiteSpace(line[idx]))
 				idx++;
 			var initial = line[start..idx].ToLowerInvariant();
-			parts.Add(initial); // preserve initial token exactly as input
+			parts.Add(initial, null); // preserve initial token exactly as input
 
 			// skip whitespace after initial token
 			while (idx < len && char.IsWhiteSpace(line[idx]))
@@ -3289,7 +3285,8 @@ namespace CumulusMX
 				{
 					// trailing standalone token (no '=')
 					var standalone = line[start..idx].ToLowerInvariant();
-					parts.Add(standalone);
+					if (!parts.ContainsKey(standalone))
+						parts.Add(standalone, "y");
 					break;
 				}
 
@@ -3302,7 +3299,8 @@ namespace CumulusMX
 				{
 					// key found
 					var key = line[start..idx].Trim().ToLowerInvariant();
-					parts.Add(key);
+					if (!parts.ContainsKey(key))
+						parts.Add(key, "y");
 
 					// move idx to character after '='
 					idx = scan + 1;
@@ -3320,7 +3318,7 @@ namespace CumulusMX
 						while (idx < len && line[idx] != '"')
 							idx++;
 						var value = line[start..idx]; // excludes quotes
-						parts.Add(value);
+						parts[key] = value;
 						// skip closing quote if present
 						if (idx < len && line[idx] == '"')
 							idx++;
@@ -3332,14 +3330,17 @@ namespace CumulusMX
 						while (idx < len && !char.IsWhiteSpace(line[idx]))
 							idx++;
 						var value = line[start..idx];
-						parts.Add(value);
+						parts[key] = value;
 					}
 				}
 				else if (line[idx] == '=')
 				{
 					// direct '=' encountered (no spaces): key is from start..idx
 					var key = line[start..idx].Trim().ToLowerInvariant();
-					parts.Add(key);
+
+					if (!parts.ContainsKey(key))
+						parts.Add(key, null);
+
 					// move past '='
 					idx++;
 
@@ -3355,7 +3356,7 @@ namespace CumulusMX
 						while (idx < len && line[idx] != '"')
 							idx++;
 						var value = line[start..idx];
-						parts.Add(value);
+						parts[key] = value;
 						if (idx < len && line[idx] == '"')
 							idx++;
 					}
@@ -3365,14 +3366,15 @@ namespace CumulusMX
 						while (idx < len && !char.IsWhiteSpace(line[idx]))
 							idx++;
 						var value = line[start..idx];
-						parts.Add(value);
+						parts[key] = value;
 					}
 				}
 				else
 				{
 					// standalone token (no '=' found)
 					var standalone = line[start..idx].ToLowerInvariant();
-					parts.Add(standalone);
+					if (!parts.ContainsKey(standalone))
+						parts.Add(standalone, "y");
 				}
 
 				// skip whitespace before next pair
