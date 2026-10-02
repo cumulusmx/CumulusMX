@@ -10,15 +10,19 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5021\] - 2026-10-10][37]
+## [5.2.0 \[b5022\] - 2026-10-10][37]
 
-### BETA b2021
+### BETA b5022
+
+- Simple reports now default to HTML table output (plain text is still an option), and they are localisable
+
+### BETA b5021
 
 - Implements a new `startyear=YYYY` parameter for `<#AllYearsSunshineAvg>`
 - Implements a disgnostics mode for the AllYears**** web tags to show how the average was derived
 	- Use the parameter `diags` to display the information
 - Boolean web tag parameters that accept y/n now default to "y" if no value is supplied (see full changelog below)
-- Adds new simple reports for some weather variables, tabular text summaries of monthly and annual values
+- Adds new simple reports for some weather variables: Tabular text summaries of monthly and annual values
 
 ### BETA b5020
 
@@ -50,7 +54,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Some diagnostics that give an indication how the averages were arrived at can be displayed by adding the web tag parameter `diags`
 - New web tag for solar noon time `<#solarnoon>`
 - New web tag for current absolute humidity `<#AbsHum>` which returns the total water content in g/m³
-- New simple text based reports of various weather variables summarised by month and year from your day file. Accessed from Reports -> Simple Reports
+- New simple reports of various weather variables summarised by month and year from your day file.
+	- Accessed from Reports -> Simple Reports
+	- They default to HTML table format, but you have the option of plain text output
 
 ### Changed
 
@@ -1673,4 +1679,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
-[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5020
+[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5022
