@@ -13,7 +13,7 @@ using EmbedIO;
 
 namespace CumulusMX
 {
-	public class DashboardLocalisationManager
+	public partial class DashboardLocalisationManager
 	{
 		private Dictionary<string, string> _cache = [];
 
@@ -62,7 +62,7 @@ namespace CumulusMX
 		}
 
 
-		public async Task ReplaceTokensToHttpResponseAsyncTokenStreaming(string inputFile, IHttpResponse response)
+		public async Task ReplaceTokensToHttpResponseAsyncTokenStreamingFile(string inputFile, IHttpResponse response)
 		{
 			if (_cache.Count == 0)
 			{
@@ -73,7 +73,7 @@ namespace CumulusMX
 			}
 
 			// Precompile the regex for speed
-			var tokenRegex = new Regex(@"\{\{(\w+)\}\}", RegexOptions.Compiled);
+			var tokenRegex = TokenRegEx();
 
 			using var reader = new StreamReader(File.OpenRead(inputFile), Encoding.UTF8, false, 8192);
 
@@ -116,6 +116,64 @@ namespace CumulusMX
 			await response.OutputStream.FlushAsync();
 		}
 
+		public async Task ReplaceTokensToHttpResponseAsyncTokenStreamingString(string inputStr, IHttpResponse response)
+		{
+			// Precompile the regex for speed
+			var tokenRegex = TokenRegEx();
+
+			const int ChunkSize = 4096;
+
+			ReadOnlyMemory<char> memory = inputStr.AsMemory();
+			int position = 0;
+
+			// Carry-over buffer for incomplete tokens
+			StringBuilder carry = new();
+
+			while (position < memory.Length)
+			{
+				int remaining = memory.Length - position;
+				int take = Math.Min(ChunkSize, remaining);
+
+				// Append chunk to carry-over
+				carry.Append(memory.Span.Slice(position, take));
+				position += take;
+
+				// Find last complete token boundary
+				int lastTokenEnd = carry.ToString().LastIndexOf("}}", StringComparison.Ordinal);
+				if (lastTokenEnd < 0)
+					continue;
+
+				// Extract safe-to-process region
+				string processPart = carry.ToString(0, lastTokenEnd + 2);
+				carry.Remove(0, lastTokenEnd + 2);
+
+				// Token replacement
+				string replaced = tokenRegex.Replace(processPart, m =>
+				{
+					var key = m.Groups[1].Value;
+					return _cache.TryGetValue(key, out var value) ? value : m.Value;
+				});
+
+				await response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(replaced));
+				await response.OutputStream.FlushAsync();
+			}
+
+			// Final tail
+			if (carry.Length > 0)
+			{
+				string replaced = tokenRegex.Replace(carry.ToString(), m =>
+				{
+					var key = m.Groups[1].Value;
+					return _cache.TryGetValue(key, out var value) ? value : m.Value;
+				});
+
+				await response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(replaced));
+				await response.OutputStream.FlushAsync();
+			}
+
+		}
+
+
 		public static List<string> GetAvailableLocales()
 		{
 			var retVal = new List<string>();
@@ -155,5 +213,8 @@ namespace CumulusMX
 
 			return System.Text.Json.JsonSerializer.Serialize(list);
 		}
+
+		[GeneratedRegex(@"\{\{(\w+)\}\}", RegexOptions.Compiled)]
+		private static partial Regex TokenRegEx();
 	}
 }

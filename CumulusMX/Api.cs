@@ -83,7 +83,7 @@ namespace CumulusMX
 							var manager = new DashboardLocalisationManager();
 							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
-							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingFile(file, HttpContext.Response);
 						}
 					}
 					else
@@ -136,7 +136,7 @@ namespace CumulusMX
 							var manager = new DashboardLocalisationManager();
 							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
-							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingFile(file, HttpContext.Response);
 						}
 					}
 					else
@@ -186,7 +186,7 @@ namespace CumulusMX
 							var manager = new DashboardLocalisationManager();
 							await manager.LoadJsonLocalization(cumulus.ProgramOptions.DisplayLanguage, file);
 
-							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingFile(file, HttpContext.Response);
 						}
 					}
 					else
@@ -1545,59 +1545,78 @@ namespace CumulusMX
 			public async Task GetData(string req)
 			{
 				NoaaReports noaarpts = new NoaaReports(cumulus, Station);
+				int month, year;
 				double thresh;
 
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
-					int month, year;
 
 					Response.ContentType = "text/plain";
 
-					using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
+					var manager = new DashboardLocalisationManager();
+					await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
+
+					var textFormat = (query["format"] ?? "html") == "text";
 
 					switch (req)
 					{
 						case "noaayear":
-							if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
 							{
-								await writer.WriteAsync("Invalid year supplied: " + year);
-								Response.StatusCode = 406;
-								return;
-							}
+								using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
+								if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+								{
+									await writer.WriteAsync("Invalid year supplied: " + year);
+									Response.StatusCode = 406;
+									return;
+								}
 
-							await writer.WriteAsync(noaarpts.GetNoaaYearReport(year));
+								await writer.WriteAsync(noaarpts.GetNoaaYearReport(year));
+							}
 							break;
 						case "noaamonth":
-							if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
 							{
-								await writer.WriteAsync("Invalid year supplied: " + year);
-								Response.StatusCode = 406;
-								return;
-							}
+								using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
+								if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+								{
+									await writer.WriteAsync("Invalid year supplied: " + year);
+									Response.StatusCode = 406;
+									return;
+								}
 
-							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
-							{
-								await writer.WriteAsync("Invalid month supplied: " + month);
-								Response.StatusCode = 406;
-								return;
+								if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
+								{
+									await writer.WriteAsync("Invalid month supplied: " + month);
+									Response.StatusCode = 406;
+									return;
+								}
+								await writer.WriteAsync(noaarpts.GetNoaaMonthReport(year, month));
 							}
-							await writer.WriteAsync(noaarpts.GetNoaaMonthReport(year, month));
 							break;
 						case "simpleTemperature":
-							await writer.WriteAsync(SimpleReports.TemperatureReport(MetData.DayFile, cumulus.WindRunDPlaces));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.TemperatureReport(MetData.DayFile, cumulus.TempDPlaces, textFormat),
+								HttpContext.Response);
 							break;
 						case "simpleRainfall":
-							await writer.WriteAsync(SimpleReports.RainfallReport(MetData.DayFile, cumulus.RainDPlaces));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.RainfallReport(MetData.DayFile, cumulus.RainDPlaces, textFormat),
+								HttpContext.Response);
 							break;
 						case "simpleWindRun":
-							await writer.WriteAsync(SimpleReports.WindRunReport(MetData.DayFile, cumulus.WindRunDPlaces));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.WindRunReport(MetData.DayFile, cumulus.WindRunDPlaces, textFormat),
+								HttpContext.Response);
 							break;
 						case "simpleSunshine":
-							await writer.WriteAsync(SimpleReports.SunShineReport(MetData.DayFile));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.SunShineReport(MetData.DayFile, textFormat),
+								HttpContext.Response);
 							break;
 						case "simpleET":
-							await writer.WriteAsync(SimpleReports.ETReport(MetData.DayFile, cumulus.RainDPlaces));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.ETReport(MetData.DayFile, cumulus.RainDPlaces, textFormat),
+								HttpContext.Response);
 							break;
 						case "simpleDryDays":
 							if (cumulus.RainDayThreshold > 0)
@@ -1617,7 +1636,9 @@ namespace CumulusMX
 								}
 							}
 
-							await writer.WriteAsync(SimpleReports.WetDryDaysReport(MetData.DayFile, thresh, true));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.WetDryDaysReport(MetData.DayFile, thresh, true, textFormat),
+								HttpContext.Response);
 							break;
 						case "simpleWetDays":
 							if (cumulus.RainDayThreshold > 0)
@@ -1637,7 +1658,9 @@ namespace CumulusMX
 								}
 							}
 
-							await writer.WriteAsync(SimpleReports.WetDryDaysReport(MetData.DayFile, thresh, false));
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingString(
+								SimpleReports.WetDryDaysReport(MetData.DayFile, thresh, false, textFormat),
+								HttpContext.Response);
 							break;
 						default:
 							Response.StatusCode = 404;
@@ -2159,7 +2182,7 @@ namespace CumulusMX
 							var manager = new DashboardLocalisationManager();
 							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
-							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingFile(file, HttpContext.Response);
 						}
 					}
 					else
@@ -2203,7 +2226,7 @@ namespace CumulusMX
 							var manager = new DashboardLocalisationManager();
 							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
-							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreamingFile(file, HttpContext.Response);
 						}
 					}
 					else
