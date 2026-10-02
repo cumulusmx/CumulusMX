@@ -74,7 +74,7 @@ namespace CumulusMX
 								var recs = g.Where(d => d.Date.Month == m);
 								return new ReportMonthly
 								{
-									HasData = recs.Any(validSelector),
+									HasData = recs.Any() && recs.All(validSelector),
 									Value = recs.Sum(valueSelector)
 								};
 							})
@@ -101,20 +101,20 @@ namespace CumulusMX
 								.Select(g =>
 								{
 									var recs = g.Where(d => d.Date.Month == m);
-									return recs.Any(validSelector) ? recs.Sum(valueSelector) : (double?) null;
+									return recs.All(validSelector) ? recs.Sum(valueSelector) : (double?) null;
 								})
 								.Where(v => v.HasValue)
 								.Select(v => v.Value)
 								.ToList();
 
 						return perMonthTotals.Count > 0
-							? perMonthTotals.Sum()
+							? perMonthTotals.Average()
 							: double.NaN;   // no data for this month in any year
 					})
 					.ToArray();
 
 
-			// --- Annual average rainfall across all years ---
+			// --- Annual average value across all years ---
 
 			double avgAnnual =
 				dayfile
@@ -140,7 +140,7 @@ namespace CumulusMX
 								var recs = g.Where(d => d.Date.Month == m);
 								return new ReportMonthly
 								{
-									HasData = recs.Any(validSelector),
+									HasData = recs.Any() && recs.All(validSelector),
 									Value = recs.Any(validSelector) ? recs.Average(valueSelector) : double.NaN
 								};
 							})
@@ -187,7 +187,7 @@ namespace CumulusMX
 					.GroupBy(d => d.Date.Year)
 					.Average(g => g.Where(validSelector).Average(valueSelector));
 
-			return BuildReportText(perYear, decimals, monthlyAverages, avgAnnual, decimals);
+			return BuildReportText(perYear, decimals, monthlyAverages, avgAnnual, decimals, "Average");
 		}
 
 		private static string CountDryWet(List<LogFiles.DayFileRec> dayfile, Func<LogFiles.DayFileRec, bool> validSelector)
@@ -257,14 +257,14 @@ namespace CumulusMX
 		}
 
 
-		private static string BuildReportText(List<ReportSummary> perYear, int decimals, double[] monthlyAverages, double avgAnnual, int avgDecimals)
+		private static string BuildReportText(List<ReportSummary> perYear, int decimals, double[] monthlyAverages, double avgAnnual, int avgDecimals, string yearTotal = "Total")
 		{
 			// --- Build plain-text output table ---
 
 			var sb = new StringBuilder();
 			var mthNames = DateTimeFormatInfo.CurrentInfo.AbbreviatedMonthNames;
 
-			sb.AppendLine($"Year {mthNames[0].PadLeft(9)}{mthNames[1].PadLeft(9)}{mthNames[2].PadLeft(9)}{mthNames[3].PadLeft(9)}{mthNames[4].PadLeft(9)}{mthNames[5].PadLeft(9)}{mthNames[6].PadLeft(9)}{mthNames[7].PadLeft(9)}{mthNames[8].PadLeft(9)}{mthNames[9].PadLeft(9)}{mthNames[10].PadLeft(9)}{mthNames[11].PadLeft(9)}      Total");
+			sb.AppendLine($"Year {mthNames[0].PadLeft(9)}{mthNames[1].PadLeft(9)}{mthNames[2].PadLeft(9)}{mthNames[3].PadLeft(9)}{mthNames[4].PadLeft(9)}{mthNames[5].PadLeft(9)}{mthNames[6].PadLeft(9)}{mthNames[7].PadLeft(9)}{mthNames[8].PadLeft(9)}{mthNames[9].PadLeft(9)}{mthNames[10].PadLeft(9)}{mthNames[11].PadLeft(9)}{yearTotal.PadLeft(11)}");
 
 			foreach (var y in perYear)
 			{
