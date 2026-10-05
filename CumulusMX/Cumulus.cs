@@ -4367,7 +4367,7 @@ namespace CumulusMX
 					values.Append(sep + MetData.RainRate.ToString(RainFormat, inv));
 					values.Append(sep + MetData.RainToday.ToString(RainFormat, inv));
 					values.Append(sep + MetData.Pressure.ToString(PressFormat, inv));
-					values.Append(sep + MetData.RainCounter.ToString(RainFormat, inv));
+					values.Append(sep + MetData.RainAccumulator.RainCounter.ToString(RainFormat, inv));
 					values.Append(sep + MetData.TemperatureIn.ToFixed(TempFormat, "NULL"));
 					values.Append(sep + MetData.HumidityIn.ToText("NULL"));
 					values.Append(sep + MetData.WindLatest.ToString(WindFormat, inv));

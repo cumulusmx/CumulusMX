@@ -2553,7 +2553,7 @@ namespace CumulusMX.Stations
 										UpdateDegreeDays(interval);
 									}
 
-									var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + MetData.RainCounter;
+									var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + MetData.RainAccumulator.RainCounter;
 									var lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
 									if (lastRainrate < 0)
@@ -2722,7 +2722,7 @@ namespace CumulusMX.Stations
 								// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
 								if (notFirstRec)
 								{
-									var rain = ConvertRainClicksToUser(archiveData.Rainfall) + MetData.RainCounter;
+									var rain = ConvertRainClicksToUser(archiveData.Rainfall) + MetData.RainAccumulator.RainCounter;
 									var rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
 									if (rainrate < 0)

@@ -20,7 +20,6 @@ namespace CumulusMX.Stations
 
 		private int prevaddr = -1;
 		private int prevraintotal = -1;
-		private int ignoreraincount;
 		private DateTime previousSensorClock;
 		private DateTime previousStationClock;
 		private DateTime previousSolarClock;
@@ -1350,36 +1349,8 @@ namespace CumulusMX.Stations
 
 					var raindiff = Math.Abs(raintot - prevraintotal);
 
-					if (raindiff > cumulus.EwOptions.MaxRainTipDiff)
-					{
-						cumulus.LogWarningMessage("Warning: large difference in rain gauge tip count: " + raindiff);
-
-						ignoreraincount++;
-
-						if (ignoreraincount == 6)
-						{
-							cumulus.LogMessage("Six consecutive rain readings; accepting value. Adjusting start of day figure to compensate");
-							MetData.RainCounterDayStart += raindiff * 0.3;
-							// adjust current rain total counter
-							MetData.RainCounter += raindiff * 0.3;
-							cumulus.LogMessage("Setting raindaystart to " + MetData.RainCounterDayStart);
-							ignoreraincount = 0;
-						}
-						else
-						{
-							cumulus.LogMessage("Ignoring rain counter reading " + ignoreraincount);
-						}
-					}
-					else
-					{
-						ignoreraincount = 0;
-					}
-
-					if (ignoreraincount == 0)
-					{
-						DoRain(ConvertUnits.RainMMToUser(raintot * 0.3), -1, now);
-						prevraintotal = raintot;
-					}
+					DoRain(ConvertUnits.RainMMToUser(raintot * 0.3), -1, now);
+					prevraintotal = raintot;
 
 					// Solar/UV
 					if (hasSolar)

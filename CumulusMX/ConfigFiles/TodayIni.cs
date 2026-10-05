@@ -133,7 +133,7 @@ namespace CumulusMX
 			MetData.RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
 			MetData.RainCounterDayStart = ini.GetValue("Rain", "Start", -1.0);
 			MetData.MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
-			MetData.RainCounter = ini.GetValue("Rain", "Last", -1.0);
+			MetData.RainAccumulator.RainCounter = ini.GetValue("Rain", "Last", -1.0);
 
 			if (MetData.RainCounterDayStart < -0.5)
 			{
@@ -145,7 +145,7 @@ namespace CumulusMX
 				initialiseRainDayStart = false;
 			}
 
-			if (MetData.RainCounter < -0.5)
+			if (MetData.RainAccumulator.RainCounter < -0.5)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData true");
 				initialiseRainCounter = true;
@@ -174,7 +174,7 @@ namespace CumulusMX
 				initialiseMidnightRain = false;
 			}
 
-			cumulus.LogMessage($"ReadTodayfile: Rain day start: {MetData.RainCounterDayStart:F4}, midnight counter: {MetData.MidnightRainCount:F4}, last counter: {MetData.RainCounter:F4}");
+			cumulus.LogMessage($"ReadTodayfile: Rain day start: {MetData.RainCounterDayStart:F4}, midnight counter: {MetData.MidnightRainCount:F4}, last counter: {MetData.RainAccumulator.RainCounter:F4}");
 
 			// humidity
 			DailyHighLow.Today.LowHumidity = ini.GetValue("Humidity", "Low", 100);
@@ -309,7 +309,7 @@ namespace CumulusMX
 				ini.SetValue("Rain", "Yesterday", MetData.RainYesterday);
 				ini.SetValue("Rain", "Start", MetData.RainCounterDayStart);
 				ini.SetValue("Rain", "Midnight", MetData.MidnightRainCount);
-				ini.SetValue("Rain", "Last", MetData.RainCounter);
+				ini.SetValue("Rain", "Last", MetData.RainAccumulator.RainCounter);
 				ini.SetValue("Rain", "LastTip", MetData.LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", MetData.ConsecutiveRainDays);
 				ini.SetValue("Rain", "ConsecutiveDryDays", MetData.ConsecutiveDryDays);
@@ -394,7 +394,7 @@ namespace CumulusMX
 
 				if (Log)
 				{
-					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + MetData.RainCounterDayStart.ToString("F2") + " rain counter = " + MetData.RainCounter.ToString("F2"));
+					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + MetData.RainCounterDayStart.ToString("F2") + " rain counter = " + MetData.RainAccumulator.RainCounter.ToString("F2"));
 				}
 
 				ini.Flush();

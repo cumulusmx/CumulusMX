@@ -79,6 +79,7 @@ namespace CumulusMX.Stations
 		private void ProcessHistoryData(List<Observation> datalist)
 		{
 			var totalentries = datalist.Count;
+			double rainfallToday = 0.0;
 
 			if (totalentries == 0)
 			{
@@ -99,6 +100,7 @@ namespace CumulusMX.Stations
 			var snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			var ticks = Environment.TickCount;
+
 			foreach (var historydata in datalist)
 			{
 				var timestamp = historydata.Timestamp;
@@ -167,14 +169,14 @@ namespace CumulusMX.Stations
 					MetData.ChillHours += historydata.ReportInterval / 60.0;
 
 				var rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
-
-				var newRain = MetData.RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
+				rainfallToday += ConvertUnits.RainMMToUser((double) historydata.Precipitation);
+				var newRain = MetData.RainAccumulator.RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
 				cumulus.LogMessage(
 					$"TempestDoRainHist: New Precip: {historydata.Precipitation}, Type: {historydata.PrecipType}, Rate: {rainrate}, LocalDayRain: {historydata.LocalDayRain}, LocalRainChecked: {historydata.LocalRainChecked}, FinalRainChecked: {historydata.FinalRainChecked}");
 
 				DoRain(newRain, rainrate, timestamp);
 				cumulus.LogMessage(
-					$"TempestDoRainHist: Total Precip for Day: {MetData.RainCounter}");
+					$"TempestDoRainHist: Total Precip for Day: {MetData.RainAccumulator.RainCounter}");
 
 				// calculate dp
 				DoOutdoorDewpoint(-999, timestamp);
@@ -247,6 +249,7 @@ namespace CumulusMX.Stations
 					cumulus.LogMessage("Day rollover " + timestamp.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 					DayReset(timestamp);
 
+					rainfallToday = 0;
 					rolloverdone = true;
 				}
 
@@ -363,11 +366,11 @@ namespace CumulusMX.Stations
 						}
 						var rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
-						var newRain = MetData.RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
+						var newRain = MetData.RainAccumulator.RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
 						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
 						DoRain(newRain, rainrate, ts);
-						cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {MetData.RainCounter}");
+						//cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {MetData.RainAccumulator.RainCounter}");
 
 						DoOutdoorDewpoint(-999, ts);
 						DoApparentTemp(ts);

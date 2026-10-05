@@ -978,7 +978,7 @@ namespace CumulusMX.Stations
 										var rain = ConvertRainClicksToUser(data1.rainfall_year.Value, data1.rain_size.Value);
 										var rainrate = ConvertRainClicksToUser(data1.rain_rate_last.Value, data1.rain_size.Value);
 
-										if (rain > 0 && rain < MetData.RainCounter)
+										if (rain > 0 && rain < MetData.RainAccumulator.RainCounter)
 										{
 											cumulus.LogDebugMessage("Current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
 										}
@@ -2236,7 +2236,7 @@ namespace CumulusMX.Stations
 									{
 										cumulus.LogDebugMessage($"WL.com historic: Adding rain {rain.ToString(cumulus.RainFormat)}");
 									}
-									rain += MetData.RainCounter;
+									rain += MetData.RainAccumulator.RainCounter;
 
 									if (rainrate < 0)
 									{

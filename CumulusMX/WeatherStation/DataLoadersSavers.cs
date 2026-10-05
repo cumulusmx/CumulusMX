@@ -550,7 +550,7 @@ namespace CumulusMX
 					WindChill = MetData.WindChill,
 					WindDir = MetData.WindBearing,
 					WindSpeed = MetData.WindAverage,
-					raincounter = MetData.RainCounter,
+					raincounter = MetData.RainAccumulator.RainCounter,
 					FeelsLike = MetData.FeelsLike,
 					Humidex = MetData.Humidex,
 					AppTemp = MetData.ApparentTemperature,

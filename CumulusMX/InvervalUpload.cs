@@ -810,7 +810,9 @@ namespace CumulusMX
 
 					incremental = item.logFileLastLineNumber > 0;
 
-					data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
+					var res = await WeatherStation.GetIncrementalLogFileDataAsync(uploadfile, item.logFileLastLineNumber);
+					data = res.Data;
+					linesAdded = res.NewLines;
 
 					if (linesAdded == 0)
 					{

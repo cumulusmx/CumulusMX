@@ -52,8 +52,8 @@ namespace CumulusMX
 						cumulus.LogMessage("Before rain today edit, MidnightRain=" + MetData.RainSinceMidnight.ToString(cumulus.RainFormat) + " RainMidnightStart=" + MetData.MidnightRainCount.ToString(cumulus.RainFormat));
 						MetData.RainToday = raintoday;
 						MetData.RainSinceMidnight = midnightrain;
-						MetData.RainCounterDayStart = MetData.RainCounter - (MetData.RainToday / cumulus.Calib.Rain.Mult);
-						MetData.MidnightRainCount = MetData.RainCounter - (MetData.RainSinceMidnight / cumulus.Calib.Rain.Mult);
+						MetData.RainCounterDayStart = MetData.RainAccumulator.RainCounter - (MetData.RainToday / cumulus.Calib.Rain.Mult);
+						MetData.MidnightRainCount = MetData.RainAccumulator.RainCounter - (MetData.RainSinceMidnight / cumulus.Calib.Rain.Mult);
 						cumulus.LogMessage("After rain today edit,  RainToday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
 						cumulus.LogMessage("After rain today edit,  MidnightRain=" + MetData.RainSinceMidnight.ToString(cumulus.RainFormat) + " RainMidnightStart=" + MetData.MidnightRainCount.ToString(cumulus.RainFormat));
 						// force the rainthismonth/rainthisyear values to be recalculated
@@ -73,7 +73,7 @@ namespace CumulusMX
 			var response = new
 			{
 				raintoday = MetData.RainToday.ToString(cumulus.RainFormat, invC),
-				raincounter = MetData.RainCounter.ToString(cumulus.RainFormat, invC),
+				raincounter = MetData.RainAccumulator.RainCounter.ToString(cumulus.RainFormat, invC),
 				startofdayrain = MetData.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC)
 			};
@@ -88,7 +88,7 @@ namespace CumulusMX
 			var response = new
 			{
 				raintoday = MetData.RainToday.ToString(cumulus.RainFormat, invC),
-				raincounter = MetData.RainCounter.ToString(cumulus.RainFormat, invC),
+				raincounter = MetData.RainAccumulator.RainCounter.ToString(cumulus.RainFormat, invC),
 				startofdayrain = MetData.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC),
 				midnightcounter = MetData.MidnightRainCount.ToString(cumulus.RainFormat, invC),

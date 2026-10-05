@@ -2396,7 +2396,7 @@ namespace CumulusMX.Stations
 									{
 										cumulus.LogDebugMessage($"DecodeHistoric: Adding rain {rain.ToString(cumulus.RainFormat)}");
 									}
-									rain += MetData.RainCounter;
+									rain += MetData.RainAccumulator.RainCounter;
 
 									if (rainrate < 0)
 									{
@@ -2974,7 +2974,7 @@ namespace CumulusMX.Stations
 										{
 											cumulus.LogDebugMessage($"DecodeHistoric: Adding rain {rain.ToString(cumulus.RainFormat)}");
 										}
-										rain += MetData.RainCounter;
+										rain += MetData.RainAccumulator.RainCounter;
 
 										if (rainrate < 0)
 										{

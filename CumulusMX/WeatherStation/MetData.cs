@@ -238,8 +238,6 @@ namespace CumulusMX
 
 		public static double RainCounterDayStart { get; set; } = 0.0;
 
-		public static double RainCounter { get; set; } = 0.0;
-
 		public static string LastRainTip { get; set; }
 
 		public static double StormRain { get; set; }
@@ -253,6 +251,8 @@ namespace CumulusMX
 
 		public static double RG11RainToday { get; set; }
 		public static double RG11RainYesterday { get; set; }
+
+		public static RainCounterAccumulator RainAccumulator { get; set; }
 
 		#endregion
 

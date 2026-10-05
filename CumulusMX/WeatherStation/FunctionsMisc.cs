@@ -70,7 +70,7 @@ namespace CumulusMX
 
 
 					// calculate and display rainfall in last hour
-					if (MetData.RainCounter < retVals[0].raincounter)
+					if (MetData.RainAccumulator.RainCounter < retVals[0].raincounter)
 					{
 						// rain total is not available or has gone down, assume it was reset to zero, just use zero
 						MetData.RainLastHour = 0;
@@ -78,7 +78,7 @@ namespace CumulusMX
 					else
 					{
 						// normal case
-						trendval = MetData.RainCounter - retVals[0].raincounter;
+						trendval = MetData.RainAccumulator.RainCounter - retVals[0].raincounter;
 
 						// Round value as some values may have been read from log file and already rounded
 						trendval = Math.Round(trendval, cumulus.RainDPlaces);
@@ -143,13 +143,13 @@ namespace CumulusMX
 				{
 					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddMinutes(-5.5).ToUnixTime());
 
-					if (retVals.Count != 1 || MetData.RainCounter < retVals[0].raincounter)
+					if (retVals.Count != 1 || MetData.RainAccumulator.RainCounter < retVals[0].raincounter)
 					{
 						MetData.RainRate = 0;
 					}
 					else
 					{
-						var raindiff = Math.Round(MetData.RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
+						var raindiff = Math.Round(MetData.RainAccumulator.RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
 
 						var timediffhours = 1.0 / 12.0;
 
@@ -219,13 +219,13 @@ namespace CumulusMX
 			{
 				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddDays(-1).ToUnixTime());
 
-				if (retVals.Count != 1 || MetData.RainCounter < retVals[0].raincounter)
+				if (retVals.Count != 1 || MetData.RainAccumulator.RainCounter < retVals[0].raincounter)
 				{
 					MetData.RainLast24Hour = 0;
 				}
 				else
 				{
-					trendval = Math.Round(MetData.RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
+					trendval = Math.Round(MetData.RainAccumulator.RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
 
 					if (trendval < 0)
 					{

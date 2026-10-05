@@ -151,6 +151,10 @@ namespace CumulusMX
 				Records.MonthlyRecs[i] = new Records();
 			}
 
+			// current has jumped by more than 20 mm/0.75 inch
+			MetData.RainAccumulator = new(cumulus.Units.Rain == 0 ? 20 : 0.75);
+
+
 			MetData.CumulusForecast = cumulus.Trans.ForecastNotAvailable;
 			MetData.WsForecast = cumulus.Trans.ForecastNotAvailable;
 
@@ -532,15 +536,16 @@ namespace CumulusMX
 			// If we do not have a rain counter value for start of day from Today.ini, then use the last value from the log file
 			if (initialiseRainCounter && raincounterfound)
 			{
-				cumulus.LogMessage($"GetRainCounter: Rain counter found, setting existing rain counter {MetData.RainCounter:F4} to log file value {raincounter:F4}");
-				MetData.RainCounter = raincounter;
-				initialiseRainCounter = false;
-			}
+				cumulus.LogMessage($"GetRainCounter: Rain counter found, setting existing rain counter {MetData.RainAccumulator.RainCounter:F4} to log file value {raincounter:F4}");
+				if (raincounter < 0)
+				{ 
+					cumulus.LogMessage("GetRainCounter: Rain counter negative, setting to zero");
+					raincounter = 0;
 
-			if (MetData.RainCounter < 0)
-			{
-				cumulus.LogMessage("GetRainCounter: Rain counter negative, setting to zero");
-				MetData.RainCounter = 0;
+				}
+
+				MetData.RainAccumulator.RainCounter = raincounter;
+				initialiseRainCounter = false;
 			}
 		}
 
@@ -1552,10 +1557,10 @@ namespace CumulusMX
 
 			if (mrrday != MetData.MidnightRainResetDay)
 			{
-				MetData.MidnightRainCount = MetData.RainCounter;
+				MetData.MidnightRainCount = MetData.RainAccumulator.RainCounter;
 				MetData.RainSinceMidnight = 0;
 				MetData.MidnightRainResetDay = mrrday;
-				cumulus.LogMessage("Midnight rain reset, count = " + MetData.RainCounter + " time = " + timestamp.ToShortTimeString());
+				cumulus.LogMessage("Midnight rain reset, count = " + MetData.RainAccumulator.RainCounter + " time = " + timestamp.ToShortTimeString());
 				if (mrrday == 1 && mrrmonth == 1 && cumulus.StationType == StationTypes.VantagePro)
 				{
 					// special case: rain counter is about to be reset
@@ -1666,8 +1671,7 @@ namespace CumulusMX
 		public TWindVec[] WindVec { get; set; }
 
 		private DateTime snowSpikeTime;
-		private int rainResetCount = 0;
-		private bool SecondChanceRainReset = false;
+		private readonly int rainResetCount = 0;
 		private bool initialiseRainDayStart = true;
 		private bool initialiseMidnightRain = true;
 		private bool initialiseRainCounter = true;
@@ -1734,11 +1738,11 @@ namespace CumulusMX
 					cumulus.DoLogFile(timestamp, cumulus.NormalRunning).Wait();
 				}
 
-				cumulus.LogMessage("Raincounter = " + MetData.RainCounter + " Raindaystart = " + MetData.RainCounterDayStart);
+				cumulus.LogMessage("Raincounter = " + MetData.RainAccumulator.RainCounter + " Raindaystart = " + MetData.RainCounterDayStart);
 
 				// Calculate yesterday"s rain, allowing for the multiplier -
 				// raintotal && raindaystart are not calibrated
-				MetData.RainYesterday = (MetData.RainCounter - MetData.RainCounterDayStart) * cumulus.Calib.Rain.Mult;
+				MetData.RainYesterday = (MetData.RainAccumulator.RainCounter - MetData.RainCounterDayStart) * cumulus.Calib.Rain.Mult;
 				cumulus.LogMessage("Rainyesterday (calibrated) set to " + MetData.RainYesterday);
 
 				int rdthresh1000;
@@ -2201,7 +2205,7 @@ namespace CumulusMX
 				// && as we do the roll-over before processing the entry, the
 				// current items may not be set up.
 
-				MetData.RainCounterDayStart = MetData.RainCounter;
+				MetData.RainCounterDayStart = MetData.RainAccumulator.RainCounter;
 				cumulus.LogMessage("Raindaystart set to " + MetData.RainCounterDayStart);
 
 				MetData.RainToday = 0;
