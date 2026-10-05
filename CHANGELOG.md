@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5022\] - 2026-10-10][37]
+## [5.2.0 \[b5023\] - 2026-10-10][37]
+
+### BETA b5023
+
+- Adds the high rain rate for today to Todays Rain Editor
 
 ### BETA b5022
 
@@ -71,6 +75,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The old behaviour of the full key=value format will still continue to function
 	- The current parameters to use y/n are: `rc, tc, tcstr, diags, showdate, dateonly`
 - Change to how rainfall is handled. CMX now uses a monotonically increasing rainfall counter. This simplifies many things!
+- Adds the high rain rate for today to Todays Rain Editor
 
 ### Fixed
 

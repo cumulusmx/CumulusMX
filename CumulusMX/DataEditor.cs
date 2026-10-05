@@ -46,12 +46,17 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (double.TryParse(parsed["raintoday"], invC, out double raintoday) && double.TryParse(parsed["midnightrain"], invC, out double midnightrain))
+					if (double.TryParse(parsed["raintoday"], invC, out double raintoday) && double.TryParse(parsed["midnightrain"], invC, out double midnightrain) && double.TryParse(parsed["rainratetoday"], invC, out double rainratetoday))
 					{
 						cumulus.LogMessage("Before rain today edit, RainToday=" + station.RainToday.ToString(cumulus.RainFormat) + " RainDayStart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
 						cumulus.LogMessage("Before rain today edit, MidnightRain=" + station.RainSinceMidnight.ToString(cumulus.RainFormat) + " RainMidnightStart=" + station.MidnightRainCount.ToString(cumulus.RainFormat));
 						station.RainToday = raintoday;
 						station.RainSinceMidnight = midnightrain;
+						station.HiLoToday.HighRainRate = rainratetoday;
+						if (rainratetoday == 0)
+						{
+							station.HiLoToday.HighRainRateTime = DateTime.Now.Date;
+						}
 						station.RainCounterDayStart = station.RainAccumulator.RainCounter - (station.RainToday / cumulus.Calib.Rain.Mult);
 						station.MidnightRainCount = station.RainAccumulator.RainCounter - (station.RainSinceMidnight / cumulus.Calib.Rain.Mult);
 						cumulus.LogMessage("After rain today edit,  RainToday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
@@ -92,7 +97,8 @@ namespace CumulusMX
 				startofdayrain = station.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC),
 				midnightcounter = station.MidnightRainCount.ToString(cumulus.RainFormat, invC),
-				midnightrain = station.RainSinceMidnight.ToString(cumulus.RainFormat, invC)
+				midnightrain = station.RainSinceMidnight.ToString(cumulus.RainFormat, invC),
+				rainratetoday = station.HiLoToday.HighRainRate.ToString(cumulus.RainFormat, invC)
 			};
 
 			return JsonSerializer.Serialize(response);
