@@ -20,7 +20,6 @@ namespace CumulusMX.Stations
 
 		private int prevaddr = -1;
 		private int prevraintotal = -1;
-		private int ignoreraincount;
 		private DateTime previousSensorClock;
 		private DateTime previousStationClock;
 		private DateTime previousSolarClock;
@@ -658,7 +657,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainAccumulator.RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -1350,38 +1349,9 @@ namespace CumulusMX.Stations
 						cumulus.LogMessage("Rain total count from station = " + raintot);
 					}
 
-					var raindiff = Math.Abs(raintot - prevraintotal);
+					DoRain(ConvertUnits.RainMMToUser(raintot * 0.3), -1, now);
+					prevraintotal = raintot;
 
-					if (raindiff > cumulus.EwOptions.MaxRainTipDiff)
-					{
-						cumulus.LogWarningMessage("Warning: large difference in rain gauge tip count: " + raindiff);
-
-						ignoreraincount++;
-
-						if (ignoreraincount == 6)
-						{
-							cumulus.LogMessage("Six consecutive rain readings; accepting value. Adjusting start of day figure to compensate");
-							RainCounterDayStart += raindiff * 0.3;
-							// adjust current rain total counter
-							RainCounter += raindiff * 0.3;
-							cumulus.LogMessage("Setting raindaystart to " + RainCounterDayStart);
-							ignoreraincount = 0;
-						}
-						else
-						{
-							cumulus.LogMessage("Ignoring rain counter reading " + ignoreraincount);
-						}
-					}
-					else
-					{
-						ignoreraincount = 0;
-					}
-
-					if (ignoreraincount == 0)
-					{
-						DoRain(ConvertUnits.RainMMToUser(raintot * 0.3), -1, now);
-						prevraintotal = raintot;
-					}
 
 					// Solar/UV
 					if (hasSolar)

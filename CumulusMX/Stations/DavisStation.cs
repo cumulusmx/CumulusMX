@@ -2555,7 +2555,7 @@ namespace CumulusMX.Stations
 										UpdateDegreeDays(interval);
 									}
 
-									var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+									var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + RainAccumulator.RainCounter;
 									var lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
 									if (lastRainrate < 0)
@@ -2724,7 +2724,7 @@ namespace CumulusMX.Stations
 								// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
 								if (notFirstRec)
 								{
-									var rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+									var rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainAccumulator.RainCounter;
 									var rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
 									if (rainrate < 0)
@@ -2904,7 +2904,7 @@ namespace CumulusMX.Stations
 								}
 
 								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainAccumulator.RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 
 
 								UpdateStatusPanel(timestamp.ToUniversalTime());

@@ -15,6 +15,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### BETA b5022
 
 - Simple reports now default to HTML table output (plain text is still an option), and they are localisable
+- Change to how rainfall is handled. CMX now uses a monotonically increasing rainfall counter. This simplifies many things! Oh that it had been done from day one.
+	However there is scope for some issues to have been introduced especially with some of the older weather stations which do a bit of DIY their rainfall counter handling to some extent
+- Fix Cumulus.ini being rewritten at every restart
 
 ### BETA b5021
 
@@ -67,11 +70,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- For example, previously you had to use the parameter `rc=y` to remove commas, now simply add the parameter `rc` has the same effect
 	- The old behaviour of the full key=value format will still continue to function
 	- The current parameters to use y/n are: `rc, tc, tcstr, diags, showdate, dateonly`
+- Change to how rainfall is handled. CMX now uses a monotonically increasing rainfall counter. This simplifies many things!
 
 ### Fixed
 
 - Tempest station not updating the Station and Altimeter pressures during live running
 - Ecowitt Soil EC Temperatures not being converted to user units
+- The dashboard Extra Sensors page failing to hide the Humidity block when no sensors are enabled
+- Fix Cumulus.ini being rewritten at every restart
 
 ### Package Updates
 

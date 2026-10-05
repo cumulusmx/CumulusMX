@@ -228,7 +228,7 @@ namespace CumulusMX.LogFiles
 				station.RainRate.ToString(cumulus.RainFormat, inv),
 				station.RainToday.ToString(cumulus.RainFormat, inv),
 				station.Pressure.ToString(cumulus.PressFormat, inv),
-				station.RainCounter.ToString(cumulus.RainFormat, inv),
+				station.RainAccumulator.RainCounter.ToString(cumulus.RainFormat, inv),
 				station.IndoorTemperature.ToFixed(cumulus.TempFormat),
 				station.IndoorHumidity.ToText(),
 				station.WindLatest.ToString(cumulus.WindFormat, inv),

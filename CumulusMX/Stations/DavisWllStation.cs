@@ -978,7 +978,7 @@ namespace CumulusMX.Stations
 										var rain = ConvertRainClicksToUser(data1.rainfall_year.Value, data1.rain_size.Value);
 										var rainrate = ConvertRainClicksToUser(data1.rain_rate_last.Value, data1.rain_size.Value);
 
-										if (rain > 0 && rain < RainCounter)
+										if (rain > 0 && rain < RainAccumulator.RainCounter)
 										{
 											cumulus.LogDebugMessage("Current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
 										}
@@ -1872,7 +1872,7 @@ namespace CumulusMX.Stations
 					}
 
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainAccumulator.RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2238,7 +2238,7 @@ namespace CumulusMX.Stations
 									{
 										cumulus.LogDebugMessage($"WL.com historic: Adding rain {rain.ToString(cumulus.RainFormat)}");
 									}
-									rain += RainCounter;
+									rain += RainAccumulator.RainCounter;
 
 									if (rainrate < 0)
 									{

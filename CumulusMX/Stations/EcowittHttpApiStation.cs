@@ -863,7 +863,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainAccumulator.RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
 				cumulus.AddToWebServiceLists(DataDateTime);

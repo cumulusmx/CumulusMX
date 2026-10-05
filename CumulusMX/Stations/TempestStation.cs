@@ -79,6 +79,7 @@ namespace CumulusMX.Stations
 		private void ProcessHistoryData(List<Observation> datalist)
 		{
 			var totalentries = datalist.Count;
+			double rainfallToday = 0.0;
 
 			if (totalentries == 0)
 			{
@@ -99,6 +100,7 @@ namespace CumulusMX.Stations
 			var snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			var ticks = Environment.TickCount;
+
 			foreach (var historydata in datalist)
 			{
 				var timestamp = historydata.Timestamp;
@@ -167,14 +169,14 @@ namespace CumulusMX.Stations
 					ChillHours += historydata.ReportInterval / 60.0;
 
 				var rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
-
-				var newRain = RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
+				rainfallToday += ConvertUnits.RainMMToUser((double) historydata.Precipitation);
+				var newRain = RainAccumulator.RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
 				cumulus.LogMessage(
 					$"TempestDoRainHist: New Precip: {historydata.Precipitation}, Type: {historydata.PrecipType}, Rate: {rainrate}, LocalDayRain: {historydata.LocalDayRain}, LocalRainChecked: {historydata.LocalRainChecked}, FinalRainChecked: {historydata.FinalRainChecked}");
 
 				DoRain(newRain, rainrate, timestamp);
 				cumulus.LogMessage(
-					$"TempestDoRainHist: Total Precip for Day: {RainCounter}");
+					$"TempestDoRainHist: Total Precip for Day: {rainfallToday}");
 
 				// calculate dp
 				DoOutdoorDewpoint(-999, timestamp);
@@ -247,6 +249,7 @@ namespace CumulusMX.Stations
 					cumulus.LogMessage("Day rollover " + timestamp.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 					DayReset(timestamp);
 
+					rainfallToday = 0;
 					rolloverdone = true;
 				}
 
@@ -283,7 +286,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainAccumulator.RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -364,11 +367,11 @@ namespace CumulusMX.Stations
 						}
 						var rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
-						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
+						var newRain = RainAccumulator.RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
 						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
 						DoRain(newRain, rainrate, ts);
-						cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {RainCounter}");
+						//cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {RainAccumulator.RainCounter}");
 
 						DoOutdoorDewpoint(-999, ts);
 						DoApparentTemp(ts);

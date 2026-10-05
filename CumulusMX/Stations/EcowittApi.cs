@@ -1981,7 +1981,7 @@ namespace CumulusMX.Stations
 				}
 
 				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
-					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
+					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainAccumulator.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

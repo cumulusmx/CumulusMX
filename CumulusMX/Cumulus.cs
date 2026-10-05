@@ -5923,14 +5923,6 @@ namespace CumulusMX
 			// Custom HTTP - seconds
 			CustomHttpSecondsEnabled = ini.GetValue("HTTP", "CustomHttpSecondsEnabled", false);
 
-			var httpSecsIntvl = 10;
-			if (ini.ValueExists("HTTP", "CustomHttpSecondsInterval"))
-			{
-				httpSecsIntvl = ini.GetValue("HTTP", "CustomHttpSecondsInterval", httpSecsIntvl, 1, 30);
-				ini.DeleteValue("HTTP", "CustomHttpSecondsInterval");
-				rewriteRequired = true;
-			}
-
 			if (!string.IsNullOrWhiteSpace(ini.GetValue("HTTP", "CustomHttpSecondsString", string.Empty)))
 			{
 				CustomHttpSeconds.Add(new ThirdParty.CustomHttpSettings
@@ -5939,7 +5931,7 @@ namespace CumulusMX
 					Post = ini.GetValue("HTTP", "CustomHttpSecondsPost", false),
 					PostJson = ini.GetValue("HTTP", "CustomHttpSecondsBodyJson", true),
 					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpSecondsBody", string.Empty)),
-					Interval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", httpSecsIntvl)
+					Interval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10)
 				});
 
 				for (var i = 1; i < 10; i++)
@@ -8790,7 +8782,7 @@ namespace CumulusMX
 					values.Append(sep + station.RainRate.ToString(RainFormat, inv));
 					values.Append(sep + station.RainToday.ToString(RainFormat, inv));
 					values.Append(sep + station.Pressure.ToString(PressFormat, inv));
-					values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
+					values.Append(sep + station.RainAccumulator.RainCounter.ToString(RainFormat, inv));
 					values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
 					values.Append(sep + station.IndoorHumidity.ToText("NULL"));
 					values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
