@@ -46,12 +46,17 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (double.TryParse(parsed["raintoday"], invC, out double raintoday) && double.TryParse(parsed["midnightrain"], invC, out double midnightrain))
+					if (double.TryParse(parsed["raintoday"], invC, out double raintoday) && double.TryParse(parsed["midnightrain"], invC, out double midnightrain) && double.TryParse(parsed["rainratetoday"], invC, out double rainratetoday))
 					{
 						cumulus.LogMessage("Before rain today edit, RainToday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " RainDayStart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
 						cumulus.LogMessage("Before rain today edit, MidnightRain=" + MetData.RainSinceMidnight.ToString(cumulus.RainFormat) + " RainMidnightStart=" + MetData.MidnightRainCount.ToString(cumulus.RainFormat));
 						MetData.RainToday = raintoday;
 						MetData.RainSinceMidnight = midnightrain;
+						DailyHighLow.Today.HighRainRate = rainratetoday;
+						if (rainratetoday == 0)
+						{
+							DailyHighLow.Today.HighRainRateTime = DateTime.Now.Date;
+						}
 						MetData.RainCounterDayStart = MetData.RainAccumulator.RainCounter - (MetData.RainToday / cumulus.Calib.Rain.Mult);
 						MetData.MidnightRainCount = MetData.RainAccumulator.RainCounter - (MetData.RainSinceMidnight / cumulus.Calib.Rain.Mult);
 						cumulus.LogMessage("After rain today edit,  RainToday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + MetData.RainCounterDayStart.ToString(cumulus.RainFormat));
@@ -93,6 +98,7 @@ namespace CumulusMX
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC),
 				midnightcounter = MetData.MidnightRainCount.ToString(cumulus.RainFormat, invC),
 				midnightrain = MetData.RainSinceMidnight.ToString(cumulus.RainFormat, invC)
+				rainratetoday = DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat, invC)
 			};
 
 			return JsonSerializer.Serialize(response);
