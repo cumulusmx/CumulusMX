@@ -487,7 +487,7 @@ namespace CumulusMX
 			{
 				for (var i = 0; i < result.Count; i++)
 				{
-					AddNewWindSample(result[i].Gust, result[i].Speed, result[i].DateTime);
+					AddNewWindSample(result[i].Gust, result[i].Speed, result[i].Timestamp);
 				}
 			}
 			catch (Exception e)
@@ -514,7 +514,7 @@ namespace CumulusMX
 				{
 					foreach (var node in WindRecent)
 					{
-						if (node.DateTime > DateTime.MinValue)
+						if (node.Timestamp > 0)
 							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp, node.Gust, node.Speed);
 					}
 

@@ -388,8 +388,8 @@ namespace CumulusMX
 				   ErrorCode == MySqlErrorCode.DuplicateUnique ||
 				   ErrorCode == MySqlErrorCode.PrimaryCannotHaveNull ||
 				   ErrorCode == MySqlErrorCode.DivisionByZero ||
-				   ErrorCode == MySqlErrorCode.DuplicateKeyEntry;
-
+				   ErrorCode == MySqlErrorCode.DuplicateKeyEntry ||
+				   ErrorCode == MySqlErrorCode.UnknownError;
 		}
 
 		private static string MySqlErrorToText(MySqlErrorCode ErrorCode)

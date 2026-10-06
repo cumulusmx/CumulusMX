@@ -1671,7 +1671,6 @@ namespace CumulusMX
 		public TWindVec[] WindVec { get; set; }
 
 		private DateTime snowSpikeTime;
-		private readonly int rainResetCount = 0;
 		private bool initialiseRainDayStart = true;
 		private bool initialiseMidnightRain = true;
 		private bool initialiseRainCounter = true;
@@ -3066,13 +3065,6 @@ namespace CumulusMX
 	{
 		[PrimaryKey]
 		public long Timestamp { get; set; }
-
-		[Ignore]
-		public DateTime DateTime
-		{
-			get => Timestamp.LocalFromUnixTime();
-			set => Timestamp = value.ToUnixTime();
-		}
 		public double Gust { get; set; }  // calibrated "gust" as read from Stations
 		public double Speed { get; set; } // calibrated "speed" as read from Stations
 	}

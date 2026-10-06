@@ -115,7 +115,7 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.CalcuateAverageWindSpeed)
 			{
-				var fromTime = timestamp - cumulus.AvgSpeedTime;
+				var fromTime = timestamp.ToUniversalTime() - cumulus.AvgSpeedTime;
 
 				var avg = GetWindAverageFromArray(fromTime);
 
@@ -271,7 +271,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void AddNewWindSample(double gustUnCal, double speedUncal, DateTime time)
+		public void AddNewWindSample(double gustUnCal, double speedUncal, long timestamp)
 		{
 			lock (recentwindLock)
 			{
@@ -279,10 +279,18 @@ namespace CumulusMX
 				{
 					Gust = gustUnCal,
 					Speed = speedUncal,
-					DateTime = time.ToUniversalTime()
+					Timestamp = timestamp
 				});
 
 			}
+		}
+
+		public void AddNewWindSample(double gustUnCal, double speedUncal, DateTime time)
+		{
+			if (time.Kind == DateTimeKind.Unspecified)
+				AddNewWindSample(gustUnCal, speedUncal, DateTime.SpecifyKind(time, DateTimeKind.Local).ToUnixTime());
+			else
+				AddNewWindSample(gustUnCal, speedUncal, time.ToUnixTime());
 		}
 
 		private void RemoveOldWindSamples(DateTime time)
@@ -317,19 +325,26 @@ namespace CumulusMX
 				}
 			}
 
-			// average the values, if we have enough samples
-			if (numvalues > 10 || cumulus.StationOptions.UseSpeedForAvgCalc)
+			try
 			{
-				avg = totalwind / numvalues;
-			}
-			else
-			{
-				// take a log scale third to whole of the gust values
-				var div = 3.0 + 7.0 * Math.Pow((Math.Log(numvalues) / Math.Log(10.0)), 1.3);
-				avg = totalwind / div;
+				// average the values, if we have enough samples
+				if (numvalues > 10 || cumulus.StationOptions.UseSpeedForAvgCalc)
+				{
+					avg = totalwind / numvalues;
+				}
+				else
+				{
+					// take a log scale third to whole of the gust values
+					var div = 3.0 + 7.0 * Math.Pow((Math.Log(numvalues) / Math.Log(10.0)), 1.3);
+					avg = totalwind / div;
 #if DEBUGWIND
 				cumulus.LogDebugMessage($"Wind Samples:{numvalues} Total:{totalwind:F1} Divisor:{div:F2} Avg:{avg:F1}");
 #endif
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, $"GetWindAverageFromArray: Error calculating average. numvalues={numvalues}, totalwind={totalwind}");
 			}
 
 			return avg;

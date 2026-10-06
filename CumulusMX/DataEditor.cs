@@ -97,7 +97,7 @@ namespace CumulusMX
 				startofdayrain = MetData.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC),
 				midnightcounter = MetData.MidnightRainCount.ToString(cumulus.RainFormat, invC),
-				midnightrain = MetData.RainSinceMidnight.ToString(cumulus.RainFormat, invC)
+				midnightrain = MetData.RainSinceMidnight.ToString(cumulus.RainFormat, invC),
 				rainratetoday = DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat, invC)
 			};
 
