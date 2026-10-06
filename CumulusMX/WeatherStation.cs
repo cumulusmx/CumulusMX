@@ -7676,7 +7676,7 @@ namespace CumulusMX
 					bartrend = 1;
 
 				// get one hour average wind direction
-				var avgDir = GetWindCompassAvgFromArray(DateTime.Now.AddHours(-1));
+				var avgDir = GetWindCompassAvgFromArray(DateTime.UtcNow.AddHours(-1));
 
 				if (avgDir == "-")
 				{
@@ -7826,7 +7826,7 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.CalcuateAverageWindSpeed)
 			{
-				var fromTime = timestamp - cumulus.AvgSpeedTime;
+				var fromTime = timestamp.ToUniversalTime() - cumulus.AvgSpeedTime;
 
 				var avg = GetWindAverageFromArray(fromTime);
 
@@ -7985,7 +7985,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void AddNewWindSample(double gustUnCal, double speedUncal, DateTime time)
+		public void AddNewWindSample(double gustUnCal, double speedUncal, long timestamp)
 		{
 			lock (recentwindLock)
 			{
@@ -7993,10 +7993,18 @@ namespace CumulusMX
 				{
 					Gust = gustUnCal,
 					Speed = speedUncal,
-					DateTime = time.ToUniversalTime()
+					Timestamp = timestamp
 				});
 
 			}
+		}
+
+		public void AddNewWindSample(double gustUnCal, double speedUncal, DateTime time)
+		{
+			if (time.Kind == DateTimeKind.Unspecified)
+				AddNewWindSample(gustUnCal, speedUncal, DateTime.SpecifyKind(time, DateTimeKind.Local).ToUnixTime());
+			else
+				AddNewWindSample(gustUnCal, speedUncal, time.ToUnixTime());
 		}
 
 		private void RemoveOldWindSamples(DateTime time)
@@ -8031,20 +8039,26 @@ namespace CumulusMX
 				}
 			}
 
-			// average the values, if we have enough samples
-			if (numvalues > 10 || cumulus.StationOptions.UseSpeedForAvgCalc)
+			try
 			{
-				avg = totalwind / numvalues;
-			}
-			else
-			{
-				// take a log scale third to whole of the gust values
-				var div = 3.0 + 7.0 * Math.Pow((Math.Log(numvalues) / Math.Log(10.0)), 1.3);
-				avg = totalwind / div;
+				// average the values, if we have enough samples
+				if (numvalues > 10 || cumulus.StationOptions.UseSpeedForAvgCalc)
+				{
+					avg = totalwind / numvalues;
+				}
+				else
+				{
+					// take a log scale third to whole of the gust values
+					var div = 3.0 + 7.0 * Math.Pow((Math.Log(numvalues) / Math.Log(10.0)), 1.3);
+					avg = totalwind / div;
 #if DEBUGWIND
-				cumulus.LogDebugMessage($"Wind Samples:{numvalues} Total:{totalwind:F1} Divisor:{div:F2} Avg:{avg:F1}");
+					cumulus.LogDebugMessage($"Wind Samples:{numvalues} Total:{totalwind:F1} Divisor:{div:F2} Avg:{avg:F1}");
 #endif
-
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, $"GetWindAverageFromArray: Error calculating average. numvalues={numvalues}, totalwind={totalwind}");
 			}
 
 			return avg;
@@ -8441,7 +8455,6 @@ namespace CumulusMX
 		public TWindVec[] WindVec { get; set; }
 
 		private DateTime snowSpikeTime;
-		private readonly int rainResetCount = 0;
 		private bool initialiseRainDayStart = true;
 		private bool initialiseMidnightRain = true;
 		private bool initialiseRainCounter = true;
@@ -10803,7 +10816,7 @@ namespace CumulusMX
 			{
 				for (var i = 0; i < result.Count; i++)
 				{
-					AddNewWindSample(result[i].Gust, result[i].Speed, result[i].DateTime);
+					AddNewWindSample(result[i].Gust, result[i].Speed, result[i].Timestamp);
 				}
 			}
 			catch (Exception e)
@@ -10830,7 +10843,7 @@ namespace CumulusMX
 				{
 					foreach (var node in WindRecent)
 					{ 
-						if (node.DateTime > DateTime.MinValue)
+						if (node.Timestamp > 0)
 							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", node.Timestamp, node.Gust, node.Speed);
 					}
 
@@ -16654,13 +16667,6 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 	{
 		[PrimaryKey]
 		public long Timestamp { get; set; }
-
-		[Ignore]
-		public DateTime DateTime
-		{
-			get => Timestamp.LocalFromUnixTime();
-			set => Timestamp = value.ToUnixTime();
-		}
 		public double Gust { get; set; }  // calibrated "gust" as read from station
 		public double Speed { get; set; } // calibrated "speed" as read from station
 	}

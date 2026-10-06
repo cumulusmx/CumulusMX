@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### BETA b5023
 
 - Adds the high rain rate for today to Todays Rain Editor
+- Fix GetWindAverageFromArray() when the clocks go forward
 
 ### BETA b5022
 
@@ -83,6 +84,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt Soil EC Temperatures not being converted to user units
 - The dashboard Extra Sensors page failing to hide the Humidity block when no sensors are enabled
 - Fix Cumulus.ini being rewritten at every restart
+- Fix calculated wind speed average when the clocks go forward
 
 ### Package Updates
 

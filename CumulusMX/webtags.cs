@@ -611,7 +611,7 @@ namespace CumulusMX
 		{
 			// m parater is the minutes to average
 			int mins = int.TryParse(tagParams.Get("m"), out mins) ? mins : cumulus.AvgSpeedTime.Minutes;
-			var fromTime = DateTime.Now.AddMinutes(-mins);
+			var fromTime = DateTime.UtcNow.AddMinutes(-mins);
 			var ws = station.GetWindAverageFromArray(fromTime);
 			// we want any calibration to be applied from uncalibrated values
 			ws = cumulus.Calib.WindSpeed.Calibrate(ws);
