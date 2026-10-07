@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds the high rain rate for today to Todays Rain Editor
 - Fix GetWindAverageFromArray() when the clocks go forward
+- Allow for null values in all WLL broadcast fields
 
 ### BETA b5022
 
@@ -85,6 +86,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The dashboard Extra Sensors page failing to hide the Humidity block when no sensors are enabled
 - Fix Cumulus.ini being rewritten at every restart
 - Fix calculated wind speed average when the clocks go forward
+- Allow for null values in all WLL broadcast fields
 
 ### Package Updates
 

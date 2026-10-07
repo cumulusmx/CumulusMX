@@ -606,8 +606,8 @@ namespace CumulusMX.Stations
 						{
 							try
 							{
-								var rain = ConvertRainClicksToUser(rec.rainfall_year, rec.rain_size);
-								var rainrate = ConvertRainClicksToUser(rec.rain_rate_last, rec.rain_size);
+								var rain = ConvertRainClicksToUser(rec.rainfall_year.Value, rec.rain_size);
+								var rainrate = ConvertRainClicksToUser(rec.rain_rate_last ?? 0, rec.rain_size);
 
 								if (rainrate < 0)
 								{
@@ -627,7 +627,7 @@ namespace CumulusMX.Stations
 							try
 							{
 								// All rainfall values supplied as *tip counts*, each count = 1/100th of an hour of sunshine
-								DoSunHours(rec.rainfall_year / 100.0);
+								DoSunHours(rec.rainfall_year.Value / 100.0);
 							}
 							catch (Exception ex)
 							{
@@ -3429,15 +3429,15 @@ namespace CumulusMX.Stations
 			public double? wind_speed_last { get; set; }
 			public int? wind_dir_last { get; set; }
 			public int rain_size { get; set; }
-			public double rain_rate_last { get; set; }
-			public int rain_15_min { get; set; }
-			public int rain_60_min { get; set; }
-			public int rain_24_hr { get; set; }
+			public double? rain_rate_last { get; set; }
+			public int? rain_15_min { get; set; }
+			public int? rain_60_min { get; set; }
+			public int? rain_24_hr { get; set; }
 			public int? rain_storm { get; set; }
 			public long? rain_storm_start_at { get; set; }
-			public int rainfall_daily { get; set; }
-			public int rainfall_monthly { get; set; }
-			public int rainfall_year { get; set; }
+			public int? rainfall_daily { get; set; }
+			public int? rainfall_monthly { get; set; }
+			public int? rainfall_year { get; set; }
 			public double? wind_speed_hi_last_10_min { get; set; }
 			public int? wind_dir_at_hi_speed_last_10_min { get; set; }
 		}
