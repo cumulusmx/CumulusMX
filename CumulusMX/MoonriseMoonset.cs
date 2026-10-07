@@ -1575,10 +1575,7 @@ namespace CumulusMX
 
 						// finally save the image and clean-up
 						Program.cumulus.LogDebugMessage("CreateMoonImage: Saving new image to: " + destination ?? "./web/moon.png");
-						if (destination is null)
-							bmp.SaveAsPng("./web/moon.png");
-						else
-							bmp.SaveAsPng(destination);
+						bmp.SaveAsPng(destination ?? "./web/moon.png");
 					});
 				});
 			}
