@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 
 using SkiaSharp;
 
@@ -1463,10 +1464,10 @@ namespace CumulusMX
 			return (now - lastNewMoon).TotalDays;
 		}
 
-		public static bool CreateMoonImage(double phaseAngle, double latitude, int size, bool transparent)
+		public static async Task<bool> CreateMoonImage(double phaseAngle, double latitude, int size, bool transparent, string destination)
 		{
 			const string basePath = "./web/MoonBaseImage.png";
-			const string outPath = "./web/moon.png";
+			string outPath = destination ?? "./web/moon.png";
 
 			if (!File.Exists(basePath))
 			{
@@ -1474,115 +1475,120 @@ namespace CumulusMX
 				return false;
 			}
 
-			try
+			return await Task.Run(() =>
 			{
-				using var input = File.OpenRead(basePath);
-				using var bitmap = SKBitmap.Decode(input);
-
-				int srcSize = bitmap.Width;
-				int srcSize2 = srcSize / 2;
-
-				// Reverse settings beyond full moon
-				int corr = -1;
-				if (phaseAngle > 180)
+				try
 				{
-					corr = 1;
-					phaseAngle = -(phaseAngle - 360);
-				}
+					using var input = File.OpenRead(basePath);
+					using var bitmap = SKBitmap.Decode(input);
 
-				double phase = (1 - Math.Cos(phaseAngle * Math.PI / 180.0)) / 2.0;
+					int srcSize = bitmap.Width;
+					int srcSize2 = srcSize / 2;
 
-				int xPos = corr == -1 ? 0 : srcSize - 1;
-
-				// Direct pixel access
-				for (int yPos = 0; yPos <= srcSize2; yPos++)
-				{
-					double xe = 1 - (yPos / (double) srcSize2);
-					xe = Math.Sqrt(1 - (xe * xe));
-					int xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
-
-					int start = Math.Min(xPos, xPos2);
-					int end = Math.Max(xPos, xPos2);
-
-					int y1 = yPos;
-					int y2 = srcSize - 1 - yPos;
-
-					for (int x = start; x <= end; x++)
+					// Reverse settings beyond full moon
+					int corr = -1;
+					if (phaseAngle > 180)
 					{
-						if (transparent)
-						{
-							// Set transparent
-							var c1 = bitmap.GetPixel(x, y1);
-							bitmap.SetPixel(x, y1, c1.WithAlpha(0));
+						corr = 1;
+						phaseAngle = -(phaseAngle - 360);
+					}
 
-							if (yPos != srcSize2)
+					double phase = (1 - Math.Cos(phaseAngle * Math.PI / 180.0)) / 2.0;
+
+					int xPos = corr == -1 ? 0 : srcSize - 1;
+
+					// Direct pixel access
+					for (int yPos = 0; yPos <= srcSize2; yPos++)
+					{
+						double xe = 1 - (yPos / (double) srcSize2);
+						xe = Math.Sqrt(1 - (xe * xe));
+						int xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
+
+						int start = Math.Min(xPos, xPos2);
+						int end = Math.Max(xPos, xPos2);
+
+						int y1 = yPos;
+						int y2 = srcSize - 1 - yPos;
+
+						for (int x = start; x <= end; x++)
+						{
+							if (transparent)
 							{
-								var c2 = bitmap.GetPixel(x, y2);
-								bitmap.SetPixel(x, y2, c2.WithAlpha(0));
+								// Set transparent
+								var c1 = bitmap.GetPixel(x, y1);
+								bitmap.SetPixel(x, y1, c1.WithAlpha(0));
+
+								if (yPos != srcSize2)
+								{
+									var c2 = bitmap.GetPixel(x, y2);
+									bitmap.SetPixel(x, y2, c2.WithAlpha(0));
+								}
 							}
-						}
-						else
-						{
-							// Darken RGB by 0.3
-							var c1 = bitmap.GetPixel(x, y1);
-							var d1 = new SKColor(
-								(byte) (c1.Red * 0.3),
-								(byte) (c1.Green * 0.3),
-								(byte) (c1.Blue * 0.3),
-								c1.Alpha);
-							bitmap.SetPixel(x, y1, d1);
-
-							if (yPos != srcSize2)
+							else
 							{
-								var c2 = bitmap.GetPixel(x, y2);
-								var d2 = new SKColor(
-									(byte) (c2.Red * 0.3),
-									(byte) (c2.Green * 0.3),
-									(byte) (c2.Blue * 0.3),
-									c2.Alpha);
-								bitmap.SetPixel(x, y2, d2);
+								// Darken RGB by 0.3
+								var c1 = bitmap.GetPixel(x, y1);
+								var d1 = new SKColor(
+									(byte) (c1.Red * 0.3),
+									(byte) (c1.Green * 0.3),
+									(byte) (c1.Blue * 0.3),
+									c1.Alpha);
+								bitmap.SetPixel(x, y1, d1);
+
+								if (yPos != srcSize2)
+								{
+									var c2 = bitmap.GetPixel(x, y2);
+									var d2 = new SKColor(
+										(byte) (c2.Red * 0.3),
+										(byte) (c2.Green * 0.3),
+										(byte) (c2.Blue * 0.3),
+										c2.Alpha);
+									bitmap.SetPixel(x, y2, d2);
+								}
 							}
 						}
 					}
-				}
 
-				// Rotate for southern hemisphere
-				SKBitmap working = bitmap;
-				if (latitude < 0)
-				{
-					var rotated = new SKBitmap(srcSize, srcSize);
-					using (var canvas = new SKCanvas(rotated))
+					// Rotate for southern hemisphere
+					SKBitmap working = bitmap;
+					if (latitude < 0)
 					{
-						canvas.Translate(srcSize / 2f, srcSize / 2f);
-						canvas.RotateDegrees(180);
-						canvas.Translate(-srcSize / 2f, -srcSize / 2f);
-						canvas.DrawBitmap(working, 0, 0, SKSamplingOptions.Default, null);
+						var rotated = new SKBitmap(srcSize, srcSize);
+						using (var canvas = new SKCanvas(rotated))
+						{
+							canvas.Translate(srcSize / 2f, srcSize / 2f);
+							canvas.RotateDegrees(180);
+							canvas.Translate(-srcSize / 2f, -srcSize / 2f);
+							canvas.DrawBitmap(working, 0, 0, SKSamplingOptions.Default, null);
+						}
+						working = rotated;
 					}
-					working = rotated;
-				}
 
-				// Resize to desired output size
-				var resized = new SKBitmap(size, size);
-				using (var canvas = new SKCanvas(resized))
+					// Resize to desired output size
+					var resized = new SKBitmap(size, size);
+					using (var canvas = new SKCanvas(resized))
+					{
+						canvas.Clear(SKColors.Transparent);
+						var destRect = new SKRect(0, 0, size, size);
+						canvas.DrawBitmap(working, destRect, SKSamplingOptions.Default, null);
+					}
+
+					// Save as PNG
+					using var image = SKImage.FromBitmap(resized);
+					using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+
+					Program.cumulus.LogDebugMessage("CreateMoonImage: Saving new image to: " + outPath ?? "./web/moon.png");
+					using var output = File.Open(outPath, FileMode.Create, FileAccess.Write);
+					data.SaveTo(output);
+
+					return true;
+				}
+				catch (Exception ex)
 				{
-					canvas.Clear(SKColors.Transparent);
-					var destRect = new SKRect(0, 0, size, size);
-					canvas.DrawBitmap(working, destRect, SKSamplingOptions.Default, null);
+					Program.cumulus.LogExceptionMessage(ex, "Error creating the Moon image (SkiaSharp)");
+					return false;
 				}
-
-				// Save as PNG
-				using var image = SKImage.FromBitmap(resized);
-				using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-				using var output = File.Open(outPath, FileMode.Create, FileAccess.Write);
-				data.SaveTo(output);
-
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Program.cumulus.LogExceptionMessage(ex, "Error creating the Moon image (SkiaSharp)");
-				return false;
-			}
+			});
 		}
 	}
 }
