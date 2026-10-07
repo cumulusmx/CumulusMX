@@ -17,6 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds the high rain rate for today to Todays Rain Editor
 - Fix GetWindAverageFromArray() when the clocks go forward
 - Allow for null values in all WLL broadcast fields
+- Moon Image change: If Moon Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
 
 ### BETA b5022
 
@@ -78,6 +79,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The current parameters to use y/n are: `rc, tc, tcstr, diags, showdate, dateonly`
 - Change to how rainfall is handled. CMX now uses a monotonically increasing rainfall counter. This simplifies many things!
 - Adds the high rain rate for today to Todays Rain Editor
+- Moon Image: If Moon image Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
 
 ### Fixed
 

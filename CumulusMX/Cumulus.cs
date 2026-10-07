@@ -3436,12 +3436,16 @@ namespace CumulusMX
 				MoonPhaseString = Trans.NewMoon;
 		}
 
-		internal void DoMoonImage()
+		internal async void DoMoonImage()
 		{
 			if (MoonImage.Enabled)
 			{
 				LogDebugMessage("Generating new Moon image");
-				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double) Latitude, MoonImage.Size, MoonImage.Transparent);
+
+				// If a copy is required but no FTP, then just create the image directly in the copy destination
+				string dest = MoonImage.Copy && !MoonImage.Ftp ? MoonImage.CopyDest : null;
+
+				var ret = await MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double) Latitude, MoonImage.Size, MoonImage.Transparent, dest);
 
 				if (ret)
 				{
@@ -10161,8 +10165,9 @@ namespace CumulusMX
 			}
 			LogDebugMessage($"LocalCopy: Done copying daily graph data files - Success: {success}, Failed: {failed}");
 
-			if (MoonImage.Copy && MoonImage.ReadyToCopy)
+			if (MoonImage.Copy && MoonImage.ReadyToCopy && !MoonImage.Ftp)
 			{
+				// Only copy the moon image if FTP is enabled, otherwise it is just created in the copy destination
 				try
 				{
 					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
@@ -10174,6 +10179,11 @@ namespace CumulusMX
 				{
 					LogErrorMessage($"LocalCopy: Error copying moon image to {MoonImage.CopyDest} - {e.Message}");
 				}
+			}
+			else
+			{
+				// clear the image ready for copy flag, only upload once an hour
+				MoonImage.ReadyToCopy = false;
 			}
 
 			LogDebugMessage("LocalCopy: Copy process complete");

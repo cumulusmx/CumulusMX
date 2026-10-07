@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Memory;
@@ -1466,7 +1467,7 @@ namespace CumulusMX
 			return (now - lastNewMoon).TotalDays;
 		}
 
-		public static bool CreateMoonImage(double phaseAngle, double latitude, int size, bool transparent)
+		public static async Task<bool> CreateMoonImage(double phaseAngle, double latitude, int size, bool transparent, string destination)
 		{
 			if (!System.IO.File.Exists("./web/MoonBaseImage.png"))
 			{
@@ -1491,87 +1492,94 @@ namespace CumulusMX
 
 			try
 			{
-				using var bmp = Image.Load<Rgba32>("./web/MoonBaseImage.png");
-				bmp.ProcessPixelRows(accessor =>
+				using var bmp = await Image.LoadAsync<Rgba32>("./web/MoonBaseImage.png");
+				await Task.Run(() =>
 				{
-					// we need to reverse a couple of settings beyond full moon
-					int corr = -1;
-
-					if (phaseAngle > 180)
+					bmp.ProcessPixelRows(accessor =>
 					{
-						corr = 1;
-						phaseAngle = -(phaseAngle - 360);
-					}
+						// we need to reverse a couple of settings beyond full moon
+						int corr = -1;
 
-					double phase = (1 - cosd(phaseAngle)) / 2;
-
-					int srcSize = bmp.Width;
-					int srcSize2 = srcSize / 2;
-					int xPos = corr == -1 ? 0 : srcSize - 1;
-
-					for (int yPos = 0; yPos <= srcSize2; yPos++)
-					{
-						// Determine the edges of the illuminated part of the moon
-						double xe = 1 - (yPos / (double) srcSize2);
-						xe = Math.Sqrt(1 - (xe * xe));
-						var xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
-
-						var pixels1 = accessor.GetRowSpan(yPos);
-						var pixels2 = accessor.GetRowSpan(srcSize - 1 - yPos);
-
-
-						var start = Math.Min(xPos, xPos2);
-						var end = Math.Max(xPos, xPos2);
-
-						for (int x = start; x <= end; x++)
+						if (phaseAngle > 180)
 						{
-							if (transparent)
-							{
-								pixels1[x] = Color.Transparent;
-								pixels2[x] = Color.Transparent;
-							}
-							else
-							{
-								var pixel = pixels1[x];
-								pixel.R = (byte) (pixel.R * 0.3);
-								pixel.G = (byte) (pixel.G * 0.3);
-								pixel.B = (byte) (pixel.B * 0.3);
-								pixels1[x] = pixel;
+							corr = 1;
+							phaseAngle = -(phaseAngle - 360);
+						}
 
-								// suppress double drawing of the last line
-								if (yPos != srcSize2)
+						double phase = (1 - cosd(phaseAngle)) / 2;
+
+						int srcSize = bmp.Width;
+						int srcSize2 = srcSize / 2;
+						int xPos = corr == -1 ? 0 : srcSize - 1;
+
+						for (int yPos = 0; yPos <= srcSize2; yPos++)
+						{
+							// Determine the edges of the illuminated part of the moon
+							double xe = 1 - (yPos / (double) srcSize2);
+							xe = Math.Sqrt(1 - (xe * xe));
+							var xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
+
+							var pixels1 = accessor.GetRowSpan(yPos);
+							var pixels2 = accessor.GetRowSpan(srcSize - 1 - yPos);
+
+
+							var start = Math.Min(xPos, xPos2);
+							var end = Math.Max(xPos, xPos2);
+
+							for (int x = start; x <= end; x++)
+							{
+								if (transparent)
 								{
-									var pixel2 = pixels2[x];
-									pixel2.R = (byte) (pixel2.R * 0.3);
-									pixel2.G = (byte) (pixel2.G * 0.3);
-									pixel2.B = (byte) (pixel2.B * 0.3);
-									pixels2[x] = pixel2;
+									pixels1[x] = Color.Transparent;
+									pixels2[x] = Color.Transparent;
+								}
+								else
+								{
+									var pixel = pixels1[x];
+									pixel.R = (byte) (pixel.R * 0.3);
+									pixel.G = (byte) (pixel.G * 0.3);
+									pixel.B = (byte) (pixel.B * 0.3);
+									pixels1[x] = pixel;
+
+									// suppress double drawing of the last line
+									if (yPos != srcSize2)
+									{
+										var pixel2 = pixels2[x];
+										pixel2.R = (byte) (pixel2.R * 0.3);
+										pixel2.G = (byte) (pixel2.G * 0.3);
+										pixel2.B = (byte) (pixel2.B * 0.3);
+										pixels2[x] = pixel2;
+									}
 								}
 							}
 						}
-					}
 
-					// Rotate for southern hemisphere
-					if (latitude < 0)
-					{
-						bmp.Mutate(x => x.Rotate(RotateMode.Rotate180));
-					}
+						// Rotate for southern hemisphere
+						if (latitude < 0)
+						{
+							bmp.Mutate(x => x.Rotate(RotateMode.Rotate180));
+						}
 
-					// resize to desired output size
-					bmp.Mutate(x => x.Resize(size, size));
+						// resize to desired output size
+						bmp.Mutate(x => x.Resize(size, size));
 
-					// add a bit of meta data
-					if (bmp.Metadata.ExifProfile == null)
-					{
-						bmp.Metadata.ExifProfile = new ExifProfile();
-					}
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPAuthor, "Cumulus MX");
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPTitle, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.Software, "Cumulus MX");
-					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.DateTimeOriginal, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
+						// add a bit of meta data
+						if (bmp.Metadata.ExifProfile == null)
+						{
+							bmp.Metadata.ExifProfile = new ExifProfile();
+						}
+						bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPAuthor, "Cumulus MX");
+						bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPTitle, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
+						bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.Software, "Cumulus MX");
+						bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.DateTimeOriginal, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
 
-					// finally save the image and clean-up
-					bmp.SaveAsPng("./web/moon.png");
+						// finally save the image and clean-up
+						Program.cumulus.LogDebugMessage("CreateMoonImage: Saving new image to: " + destination ?? "./web/moon.png");
+						if (destination is null)
+							bmp.SaveAsPng("./web/moon.png");
+						else
+							bmp.SaveAsPng(destination);
+					});
 				});
 			}
 			catch (Exception ex)
