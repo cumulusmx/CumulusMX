@@ -633,7 +633,7 @@ namespace CumulusMX
 							raincounterfound = true;
 
 							// get date of this entry
-							logdate = st[0][..8];
+							logdate = st[1];
 
 							if (logdate != prevlogdate && todaydatestring == logdate && initialiseMidnightRain && !midnightrainfound || cumulus.RolloverHour == 0 && initialiseRainDayStart && !raindaystartfound)
 							{
@@ -701,6 +701,7 @@ namespace CumulusMX
 
 			}
 
+/*
 			if (logdate[..2] == "01" && logdate.Substring(3, 2) == cumulus.RainSeasonStart.ToString("D2") && cumulus.Manufacturer == Cumulus.StationManufacturer.DAVIS)
 			{
 				// special case: rain counter is about to be reset
@@ -709,7 +710,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"GetRainCounter: Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
 				MidnightRainCount = 0;
 			}
-
+*/
 			if (initialiseRainDayStart && raindaystartfound)
 			{
 				cumulus.LogMessage($"GetRainCounter: Rain day start counter found, setting existing start rain counter {RainCounterDayStart:F4} to log file value {raindaystart:F4}");
