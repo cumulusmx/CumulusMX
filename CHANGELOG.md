@@ -12,14 +12,47 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [5.2.0 \[b5023\] - 2026-10-10][37]
 
-### RC b5023
+### BETA b5023
 
 - Adds the high rain rate for today to Todays Rain Editor
 - Fix GetWindAverageFromArray() when the clocks go forward
 - Allow for null values in all WLL broadcast fields
 - Moon Image change: If Moon Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
-- Replaces SixLabors.ImageSharp with SkiaSharp for moon image creation
 
+### BETA b5022
+
+- Simple reports now default to HTML table output (plain text is still an option), and they are localisable
+- Change to how rainfall is handled. CMX now uses a monotonically increasing rainfall counter. This simplifies many things! Oh that it had been done from day one.
+	However there is scope for some issues to have been introduced especially with some of the older weather stations which do a bit of DIY their rainfall counter handling to some extent
+- Fix Cumulus.ini being rewritten at every restart
+
+### BETA b5021
+
+- Implements a new `startyear=YYYY` parameter for `<#AllYearsSunshineAvg>`
+- Implements a disgnostics mode for the AllYears**** web tags to show how the average was derived
+	- Use the parameter `diags` to display the information
+- Boolean web tag parameters that accept y/n now default to "y" if no value is supplied (see full changelog below)
+- Adds new simple reports for some weather variables: Tabular text summaries of monthly and annual values
+
+### BETA b5020
+
+- Fixes to Month dry/wet day thresholds if you have defined your own rain threshold
+- Implements new all time year average web tags for average temperature, rainfall, annual windrun, annual sunshine, total ET, total chill hours, total dry & wet days. See below
+- New web tag for local solar noon time
+- New web tag for current absolute humidity
+- Third party package updates
+
+### BETA b5019 Fixes
+
+- Extra Web Files
+	- Real-time uploads were uploading all the extra files that were NOT flagged as real-time - Ooops!
+	- UTF8 option now permanently available in the settings as the form logic does not have required capabilities. Doing it in JS code also turns out to very non-trivial for an array of settings
+
+### BETA b5018 Fixes
+
+- Extra Web Files
+	- Real-time updates fixed
+	- Interval has a default value for newly created entries
 
 ### New
 
@@ -63,8 +96,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - MailKit
 - NLog
 - NLog.Extensions.Logging
-- SixLabors.ImageSharp [REMOVED] - New versions require keys to compile, even for free licences
-- SkiaSharp [NEW] - Replaces SixLabors
 
 ---
 
