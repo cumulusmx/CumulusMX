@@ -18,7 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix GetWindAverageFromArray() when the clocks go forward
 - Allow for null values in all WLL broadcast fields
 - Moon Image change: If Moon Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
-- Replaces SixLabors.ImageSharp with SkiaSharp for moon image creation and Bluesky uploads
+- Replaces SixLabors.ImageSharp with SkiaSharp for moon image creation
 
 
 ### New
