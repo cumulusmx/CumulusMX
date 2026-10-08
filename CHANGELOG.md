@@ -96,6 +96,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - MailKit
 - NLog
 - NLog.Extensions.Logging
+- SixLabors.ImageSharp
 
 ---
 

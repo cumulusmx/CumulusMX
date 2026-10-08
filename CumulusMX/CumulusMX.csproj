@@ -95,7 +95,7 @@
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="10.0.12" />
     <PackageReference Include="NLog" Version="6.2.1" />
     <PackageReference Include="NLog.Extensions.Logging" Version="6.2.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="4.1.2" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     <PackageReference Include="System.CodeDom" Version="10.0.12" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />

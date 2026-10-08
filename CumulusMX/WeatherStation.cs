@@ -633,7 +633,7 @@ namespace CumulusMX
 							raincounterfound = true;
 
 							// get date of this entry
-							logdate = st[0][..8];
+							logdate = st[1];
 
 							if (logdate != prevlogdate && todaydatestring == logdate && initialiseMidnightRain && !midnightrainfound || cumulus.RolloverHour == 0 && initialiseRainDayStart && !raindaystartfound)
 							{

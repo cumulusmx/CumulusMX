@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+sixlabors.lic
 
 # Build results
 [Dd]ebug/

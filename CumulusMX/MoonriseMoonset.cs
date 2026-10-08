@@ -1530,8 +1530,8 @@ namespace CumulusMX
 							{
 								if (transparent)
 								{
-									pixels1[x] = Color.Transparent;
-									pixels2[x] = Color.Transparent;
+									pixels1[x] = Color.Transparent.ToPixel<Rgba32>();
+									pixels2[x] = Color.Transparent.ToPixel<Rgba32>();
 								}
 								else
 								{
