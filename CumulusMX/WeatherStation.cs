@@ -633,7 +633,7 @@ namespace CumulusMX
 							raincounterfound = true;
 
 							// get date of this entry
-							logdate = st[1];
+							logdate = st[0][..8];
 
 							if (logdate != prevlogdate && todaydatestring == logdate && initialiseMidnightRain && !midnightrainfound || cumulus.RolloverHour == 0 && initialiseRainDayStart && !raindaystartfound)
 							{
@@ -15404,7 +15404,10 @@ namespace CumulusMX
 				sb.Append("\"wbgt\":" + wbgt.ToString() + "],");
 			}
 
-			sb.Length--;
+			if (sb.Length > 1)
+			{
+				sb.Length--;
+			}
 			sb.Append('}');
 
 			return sb.ToString();
