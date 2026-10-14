@@ -49,6 +49,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Cumulus.ini being rewritten at every restart
 - Fix calculated wind speed average when the clocks go forward
 - Allow for null values in all WLL broadcast fields
+- Fix local copy of Moon image if uploads are disabled
+- A PHP upload compression test being performed at start-up when uploads are not enabled
 
 ### Package Updates
 

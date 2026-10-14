@@ -1174,7 +1174,7 @@ namespace CumulusMX
 
 			SetupMyHttpClient();
 
-			if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			if (FtpOptions.Enabled && FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
 				SetupPhpUploadClients();
 				TestPhpUploadCompression();
@@ -10165,7 +10165,7 @@ namespace CumulusMX
 			}
 			LogDebugMessage($"LocalCopy: Done copying daily graph data files - Success: {success}, Failed: {failed}");
 
-			if (MoonImage.Copy && MoonImage.ReadyToCopy && !MoonImage.Ftp)
+			if (MoonImage.Copy && MoonImage.ReadyToCopy && MoonImage.Ftp)
 			{
 				// Only copy the moon image if FTP is enabled, otherwise it is just created in the copy destination
 				try
