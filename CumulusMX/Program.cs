@@ -571,7 +571,8 @@ namespace CumulusMX
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = configFile.runtimeOptions.configProperties.LogFileCount,
 				Layout = "${longdate} ${pad:padding=-5:inner=${level:uppercase=true}} ${message}",
-				Footer = "------ LOG CLOSED ${longdate} ------"
+				Footer = "------ LOG CLOSED ${longdate} ------",
+				Header = "------ LOG OPENED &{longdate} ------"
 			};
 
 			// Async wrapper

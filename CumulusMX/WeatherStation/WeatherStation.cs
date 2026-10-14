@@ -517,6 +517,7 @@ namespace CumulusMX
 
 			}
 
+			/*
 			if (logdate[..2] == "01" && logdate.Substring(3, 2) == cumulus.RainSeasonStart.ToString("D2") && cumulus.Manufacturer == Cumulus.StationManufacturer.DAVIS)
 			{
 				// special case: rain counter is about to be reset
@@ -525,6 +526,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"GetRainCounter: Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
 				MetData.MidnightRainCount = 0;
 			}
+*/
 
 			if (initialiseRainDayStart && raindaystartfound)
 			{
@@ -538,7 +540,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage($"GetRainCounter: Rain counter found, setting existing rain counter {MetData.RainAccumulator.RainCounter:F4} to log file value {raincounter:F4}");
 				if (raincounter < 0)
-				{ 
+				{
 					cumulus.LogMessage("GetRainCounter: Rain counter negative, setting to zero");
 					raincounter = 0;
 

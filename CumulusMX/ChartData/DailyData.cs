@@ -571,7 +571,10 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				sb.Append("\"wbgt\":" + wbgt.ToString() + "],");
 			}
 
-			sb.Length--;
+			if (sb.Length > 1)
+			{
+				sb.Length--;
+			}
 			sb.Append('}');
 
 			return sb.ToString();
