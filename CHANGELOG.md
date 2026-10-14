@@ -56,9 +56,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - FluentFTP
 - MailKit
+- Microsoft.Win32.SystemEvents
 - NLog
 - NLog.Extensions.Logging
 - SixLabors.ImageSharp
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
 
 ---
 
