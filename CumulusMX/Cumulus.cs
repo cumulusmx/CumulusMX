@@ -3285,8 +3285,7 @@ namespace CumulusMX
 				{
 					// trailing standalone token (no '=')
 					var standalone = line[start..idx].ToLowerInvariant();
-					if (!parts.ContainsKey(standalone))
-						parts.Add(standalone, "y");
+					parts.TryAdd(standalone, "y");
 					break;
 				}
 
@@ -3299,8 +3298,7 @@ namespace CumulusMX
 				{
 					// key found
 					var key = line[start..idx].Trim().ToLowerInvariant();
-					if (!parts.ContainsKey(key))
-						parts.Add(key, "y");
+					parts.TryAdd(key, "y");
 
 					// move idx to character after '='
 					idx = scan + 1;
@@ -3373,8 +3371,7 @@ namespace CumulusMX
 				{
 					// standalone token (no '=' found)
 					var standalone = line[start..idx].ToLowerInvariant();
-					if (!parts.ContainsKey(standalone))
-						parts.Add(standalone, "y");
+					parts.TryAdd(standalone, "y");
 				}
 
 				// skip whitespace before next pair
@@ -3400,17 +3397,29 @@ namespace CumulusMX
 		{
 			DateTime now = DateTime.Now;
 			DateTime utcNow = now.ToUniversalTime();
-			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZoneInfo.Local.GetUtcOffset(now).TotalHours, (double) Latitude, (double) Longitude);
+			double[] moonriseset = MoonriseMoonset.MoonRise(now.Date, (double) Latitude, (double) Longitude);
 			MoonRiseTime = TimeSpan.FromHours(moonriseset[0]);
 			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
 
-			MoonPhaseAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour);
+			var moonPos = MoonriseMoonset.MoonPos(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour + utcNow.Minute / 60.0, (double) Latitude, (double) Longitude);
+
+			//MoonPhaseAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour + utcNow.Minute / 60.0);
+			MoonPhaseAngle = moonPos.PhaseAngle;
 			MoonPercent = (100.0 * (1.0 + Math.Cos(MoonPhaseAngle * Math.PI / 180)) / 2.0);
 
 			// If between full moon and new moon, angle is between 180 and 360, make percent negative to indicate waning
 			if (MoonPhaseAngle > 180)
 			{
 				MoonPercent = -MoonPercent;
+			}
+
+			if (MoonImage.Rotate)
+			{
+				MoonApparentAngle = moonPos.ApparantPA;
+			}
+			else
+			{
+				MoonApparentAngle = 0;
 			}
 
 			// Use Phase Angle to determine string - it's linear unlike Illuminated Percentage
@@ -3445,7 +3454,14 @@ namespace CumulusMX
 				// If a copy is required but no FTP, then just create the image directly in the copy destination
 				string dest = MoonImage.Copy && !MoonImage.Ftp ? MoonImage.CopyDest : null;
 
-				var ret = await MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double) Latitude, MoonImage.Size, MoonImage.Transparent, dest);
+				var ret = await MoonriseMoonset.CreateMoonImage(
+					MoonPhaseAngle,
+					MoonApparentAngle,
+					(double) Latitude,
+					MoonImage.Size,
+					MoonImage.Transparent,
+					dest
+					);
 
 				if (ret)
 				{
@@ -3463,6 +3479,8 @@ namespace CumulusMX
 		public double MoonPhaseAngle { get; set; }
 
 		public double MoonPercent { get; set; }
+
+		public double MoonApparentAngle { get; set; }
 
 		public TimeSpan MoonSetTime { get; set; }
 
@@ -4876,6 +4894,7 @@ namespace CumulusMX
 			MoonImage.Transparent = ini.GetValue("Graphs", "MoonImageShadeTransparent", false);
 			MoonImage.FtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
 			MoonImage.CopyDest = ini.GetValue("Graphs", "MoonImageCopyDest", FtpOptions.LocalCopyFolder + "images" + sep1 + "moon.png");
+			MoonImage.Rotate = ini.GetValue("Graphs", "MoonImageRotate", false);
 			GraphOptions.Visible.Temp.Val = ini.GetValue("Graphs", "TempVisible", 1, 0, 2);
 			GraphOptions.Visible.InTemp.Val = ini.GetValue("Graphs", "InTempVisible", 1, 0, 2);
 			GraphOptions.Visible.HeatIndex.Val = ini.GetValue("Graphs", "HIVisible", 1, 0, 2);
@@ -7372,6 +7391,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "MoonImageShadeTransparent", MoonImage.Transparent);
 			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImage.FtpDest);
 			ini.SetValue("Graphs", "MoonImageCopyDest", MoonImage.CopyDest);
+			ini.SetValue("Graphs", "MoonImageRotate", MoonImage.Rotate);
 			ini.SetValue("Graphs", "TempVisible", GraphOptions.Visible.Temp.Val);
 			ini.SetValue("Graphs", "InTempVisible", GraphOptions.Visible.InTemp.Val);
 			ini.SetValue("Graphs", "HIVisible", GraphOptions.Visible.HeatIndex.Val);
@@ -15840,6 +15860,7 @@ namespace CumulusMX
 		public string CopyDest { get; set; }
 		public bool ReadyToFtp { get; set; }
 		public bool ReadyToCopy { get; set; }
+		public bool Rotate { get; set; }
 	}
 
 	public class DavisOptions

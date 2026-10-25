@@ -262,9 +262,12 @@ namespace CumulusMX.Settings
 							cumulus.MoonImage.Size = 10;
 
 						cumulus.MoonImage.Transparent = settings.moonimage.transparent;
+
 						cumulus.MoonImage.Ftp = settings.moonimage.includemoonimage;
 						if (cumulus.MoonImage.Ftp)
 							cumulus.MoonImage.FtpDest = settings.moonimage.ftpdest;
+
+						cumulus.MoonImage.Rotate = settings.moonimage.rotate;
 
 						cumulus.MoonImage.Copy = settings.moonimage.copyimage;
 						if (cumulus.MoonImage.Copy)
@@ -517,7 +520,8 @@ namespace CumulusMX.Settings
 				transparent = cumulus.MoonImage.Transparent,
 				ftpdest = cumulus.MoonImage.FtpDest,
 				copyimage = cumulus.MoonImage.Copy,
-				copydest = cumulus.MoonImage.CopyDest
+				copydest = cumulus.MoonImage.CopyDest,
+				rotate = cumulus.MoonImage.Rotate
 			};
 
 			var httpproxy = new JsonInternetSettingsHttpProxySettings()
@@ -679,6 +683,7 @@ namespace CumulusMX.Settings
 		public string ftpdest { get; set; }
 		public bool copyimage { get; set; }
 		public string copydest { get; set; }
+		public bool rotate { get; set; }
 	}
 
 	public class JsonInternetSettingsProxySettings

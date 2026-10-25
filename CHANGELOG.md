@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5024\] - 2026-10-17][37]
+## [5.2.0 \[b5024\] - 2026-10-24][37]
 
 ### New
 
@@ -40,6 +40,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Moon Image: If Moon image Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
 - Reduced the number of supported runtime environments
 - Upload.php has been updated to avoid issues when the brotli package is not available, and compression probing issues
+- Moon image updates:
+	- Updated the base Moon image to a less contrasty version that is better centered on the mean libration position
+	- Added a new option to create the Moon image correctly orientated to your local horizon. If this option is enabled then the Moon image is updated every 30 minutes rather than hourly
+	- Softened the transition of the terminator slightly
 
 ### Fixed
 
