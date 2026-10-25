@@ -1579,6 +1579,7 @@ namespace CumulusMX
 		/// Meeus, Astronomical Algorithms, 2nd Ed. Chapter 15
 		/// </summary>
 		/// <returns type="Array" />
+		/*
 		public static MoonRiseTransitSetData MoonRise2(DateTime localTime, double latitude, double longitude)
 		{
 			var retVal = new MoonRiseTransitSetData();
@@ -1721,7 +1722,7 @@ namespace CumulusMX
 
 		}
 
-
+		*/
 
 
 		/*

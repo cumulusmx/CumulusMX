@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -10,15 +10,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5024\] - 2026-10-24][37]
+## [5.2.0 \[b5025\] - 2026-10-26][37]
 
 ### New
 
 - New web tags for average annual values
-	- `<#AllYearsTempAvg> <#AllYearsRainfallAvg> <#AllYearsWindRunAvg> <#AllYearsSunshineAvg>** <#AllYearsTotalETAvg> <#AllYearsTotalChillHoursAvg>`<br>
-	`<#AllYearsDryDaysAvg> <#AllYearsWetDaysAvg>`
+	- `<#AllYearsTempAvg>` `<#AllYearsRainfallAvg>` `<#AllYearsWindRunAvg>` `<#AllYearsSunshineAvg>`** `<#AllYearsTotalETAvg>` `<#AllYearsTotalChillHoursAvg>`<br>
+	`<#AllYearsDryDaysAvg>` `<#AllYearsWetDaysAvg>`<br><br>
+	** Note: `<#AllYearsSunshineAvg>` assumes you have had sunshine hours being recorded for your whole history. If this is not the case add a parameter to specify the first **FULL YEAR** of your history that contains solar data `startyear=YYYY`
 	- Accept a parameter of `mindays=nnn`, which defines the minimum number of days in a year for it to be included in the averaging. This defaults to 360 days
-	- ** Note: `<#AllYearsSunshineAvg>` assumes you have had sunshine hours being recorded for your whole history. If this is not the case add a parameter to specify the first **FULL YEAR** of your history that contains solar data `startyear=YYYY`
 	- Some diagnostics that give an indication how the averages were arrived at can be displayed by adding the web tag parameter `diags`
 - New web tag for solar noon time `<#solarnoon>`
 - New web tag for current absolute humidity `<#AbsHum>` which returns the total water content in g/m³
@@ -37,12 +37,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The current parameters to use y/n are: `rc, tc, tcstr, diags, showdate, dateonly`
 - Change to how rainfall is handled. CMX now uses a monotonically increasing rainfall counter. This simplifies many things!
 - Adds the high rain rate for today to Todays Rain Editor
-- Moon Image: If Moon image Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
 - Reduced the number of supported runtime environments
 - Upload.php has been updated to avoid issues when the brotli package is not available, and compression probing issues
 - Moon image updates:
+	- If Moon image Copy is enabled, and Upload is Disabled, then the image is now created directly in the copy destination, rather than being created in the /web folder and later copied to the copy destination
 	- Updated the base Moon image to a less contrasty version that is better centered on the mean libration position
-	- Added a new option to create the Moon image correctly orientated to your local horizon. If this option is enabled then the Moon image is updated every 30 minutes rather than hourly
+	- Added a new option to create the Moon image correctly orientated to your local horizon. If this option is enabled, then the Moon image is updated every 30 minutes rather than hourly
 	- Softened the transition of the terminator slightly
 
 ### Fixed
@@ -129,6 +129,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	|   3   |     28.0   |     81.0   |     84.6   |     87.0   | High         | Yellow |
 	|   4   |     30.0   |     84.2   |     87.7   |     90.0   | Very High    | Red    |
 	|   5   |  >= 32.5   |  >= 86.2   |  >= 89.8   |  >= 92.0   | Extreme      | Black  |
+
 - Adds 'Rain Since Midnight' to 'Today's Rain Editor'
 
 ### Changed
@@ -137,8 +138,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The Cumulus forecast now uses the average wind direction for the last hour rather than the last 10 minutes
 - The Cumulus calculated sea level pressure now uses the average temperature for the last 12 hours:
 	```
-	(10_min_average_12h_ago + current_10_min_average) / 2
+	>(10_min_average_12h_ago + current_10_min_average) / 2
 	```
+
 - Comments are now allowed in JSON Station input JSON
 - Improved some error logging messages in `upload.php`
 
@@ -259,7 +261,7 @@ Withdrawn
 - Add missing rollover processing for BGT/WBGT high values
 - Add BGT/WBGT to all time record detection
 - Add new web tags for BGT/WBGT all-time record set<br>
-	`<#HighBgtRecordSet> <#HighWbgtRecordSet>`
+	`<#HighBgtRecordSet>` `<#HighWbgtRecordSet>`
 - Fix web tags `<#SoilEc6>` and `<#SoilEc15>` returning soil moisture values
 - Ecowitt Soil EC values not being read from SD card files during catch-up
 - Fix web tags `<#AirQuality10Idx[1-4]>` returning the PM2.5 Index
@@ -296,18 +298,18 @@ Withdrawn
 	- File header files updated
 	- Dashboard and default web site Historic charts updated
 	- New web tags<br>
-	`<#BgtTH> <#TBgtTH>`<br>
-	`<#BgtYH> <#TBgtYH>`<br>
-	`<#BgtH> <#TBgtH>`<br>
-	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`<br>
-	`<#YearBgtH> <#YearBgtHT>`<br>
-	`<#ByMonthBgtH> <#ByMonthBgtHT>`<br>
-	`<#WbgtTH> <#TWbgtTH>`<br>
-	`<#WbgtYH> <#TWbgtYH>`<br>
-	`<#WbgtH> <#TWbgtH>`<br>
-	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`<br>
-	`<#YearWbgtH> <#YearWbgtHT>`<br>
-	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
+	`<#BgtTH>` `<#TBgtTH>`<br>
+	`<#BgtYH>` `<#TBgtYH>`<br>
+	`<#BgtH>` `<#TBgtH>`<br>
+	`<#MonthBgtH>` `<#MonthBgtHT>` `<#MonthBgtHD>`<br>
+	`<#YearBgtH>` `<#YearBgtHT>`<br>
+	`<#ByMonthBgtH>` `<#ByMonthBgtHT>`<br>
+	`<#WbgtTH>` `<#TWbgtTH>`<br>
+	`<#WbgtYH>` `<#TWbgtYH>`<br>
+	`<#WbgtH>` `<#TWbgtH>`<br>
+	`<#MonthWbgtH>` `<#MonthWbgtHT>` `<#MonthWbgtHD>`<br>
+	`<#YearWbgtH>` `<#YearWbgtHT>`<br>
+	`<#ByMonthWbgtH>` `<#ByMonthWbgtHT>`
 - Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station, and Ecowitt HTTP Station
 	- Also supported on the following Extra Sensor stations: Ecowitt Cloud and Ecowitt HTTP Station
 	- Sixteen new web tags
@@ -1667,4 +1669,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
-[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5024
+[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5025
