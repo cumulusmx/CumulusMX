@@ -3411,9 +3411,11 @@ namespace CumulusMX
 		{
 			DateTime now = DateTime.Now;
 			DateTime utcNow = now.ToUniversalTime();
-			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZoneInfo.Local.GetUtcOffset(now).TotalHours, (double) Latitude, (double) Longitude);
-			MoonRiseTime = TimeSpan.FromHours(moonriseset[0]);
-			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
+			double[] moonriseset = MoonriseMoonset.MoonRise(now.Date, (double) Latitude, (double) Longitude);
+			// avoid DST issues - work in UTC and convert to local
+			var utcToday = now.Date.ToUniversalTime();
+			MoonRiseTime = utcToday.AddHours(moonriseset[0]).ToLocalTime().TimeOfDay;
+			MoonSetTime = utcToday.AddHours(moonriseset[1]).ToLocalTime().TimeOfDay;
 
 			var moonPos = MoonriseMoonset.MoonPos(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour + utcNow.Minute / 60.0, (double) Latitude, (double) Longitude);
 
@@ -3427,14 +3429,7 @@ namespace CumulusMX
 				MoonPercent = -MoonPercent;
 			}
 
-			if (MoonImage.Rotate)
-			{
-				MoonApparentAngle = moonPos.ApparantPA;
-			}
-			else
-			{
-				MoonApparentAngle = 0;
-			}
+			MoonApparentAngle = MoonImage.Rotate ? moonPos.ApparantPA : 0;
 
 			// Use Phase Angle to determine string - it's linear unlike Illuminated Percentage
 			// New  = 186 - 180 - 174
