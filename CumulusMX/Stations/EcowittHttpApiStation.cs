@@ -2153,7 +2153,7 @@ namespace CumulusMX.Stations
 
 			cumulus.LogMessage("Reading station info");
 			var info = await localApi.GetDeviceInfo(Program.ExitSystemToken);
-			if (Program.ExitSystemToken.IsCancellationRequested)
+			if (Program.ExitSystemToken.IsCancellationRequested || info == null)
 			{
 				return;
 			}

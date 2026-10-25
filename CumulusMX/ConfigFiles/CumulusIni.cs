@@ -940,6 +940,7 @@ namespace CumulusMX
 			MoonImage.Transparent = ini.GetValue("Graphs", "MoonImageShadeTransparent", false);
 			MoonImage.FtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
 			MoonImage.CopyDest = ini.GetValue("Graphs", "MoonImageCopyDest", FtpOptions.LocalCopyFolder + "images" + sep1 + "moon.png");
+			MoonImage.Rotate = ini.GetValue("Graphs", "MoonImageRotate", false);
 			GraphOptions.Visible.Temp.Val = ini.GetValue("Graphs", "TempVisible", 1, 0, 2);
 			GraphOptions.Visible.InTemp.Val = ini.GetValue("Graphs", "InTempVisible", 1, 0, 2);
 			GraphOptions.Visible.HeatIndex.Val = ini.GetValue("Graphs", "HIVisible", 1, 0, 2);
@@ -3397,6 +3398,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "MoonImageShadeTransparent", MoonImage.Transparent);
 			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImage.FtpDest);
 			ini.SetValue("Graphs", "MoonImageCopyDest", MoonImage.CopyDest);
+			ini.SetValue("Graphs", "MoonImageRotate", MoonImage.Rotate);
 			ini.SetValue("Graphs", "TempVisible", GraphOptions.Visible.Temp.Val);
 			ini.SetValue("Graphs", "InTempVisible", GraphOptions.Visible.InTemp.Val);
 			ini.SetValue("Graphs", "HIVisible", GraphOptions.Visible.HeatIndex.Val);

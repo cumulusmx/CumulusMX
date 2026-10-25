@@ -907,7 +907,7 @@ namespace CumulusMX
 
 				if (timeNow.Minute % 10 == 0)
 				{
-					TenMinuteChanged();
+					TenMinuteChanged(timeNow);
 				}
 
 				if (timeNow.Hour != lastHour)
@@ -1340,10 +1340,16 @@ namespace CumulusMX
 			}
 		}
 
-		private void TenMinuteChanged()
+		private void TenMinuteChanged(DateTime now)
 		{
 			cumulus.DoMoonPhase();
 			cumulus.MoonAge = MoonriseMoonset.MoonAge();
+
+			// If the Moon image is rotated, then the change in 1 hour can be considerable, so update every half hour
+			if (cumulus.MoonImage.Rotate && now.Minute == 30)
+			{
+				cumulus.DoMoonImage();
+			}
 
 			ClearAlarms();
 		}
