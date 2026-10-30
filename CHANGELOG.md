@@ -55,6 +55,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Allow for null values in all WLL broadcast fields
 - Fix local copy of Moon image if uploads are disabled
 - A PHP upload compression test being performed at start-up when uploads are not enabled
+- Davis VP2 clock check was stilling using 30 secs during normal running
 
 ### Package Updates
 

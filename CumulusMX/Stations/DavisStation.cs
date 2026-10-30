@@ -144,53 +144,7 @@ namespace CumulusMX.Stations
 
 			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime.ToCmxLogFormat());
 
-			var consoleclock = GetTime();
-
-			if (consoleclock > DateTime.MinValue)
-			{
-				cumulus.LogMessage("Console clock: " + consoleclock.ToCmxLogFormat());
-
-				clockDiff = consoleclock.Subtract(DateTime.Now); // we will use this later when fetching the archive data
-				var timeDiffStr = ((int) clockDiff.TotalSeconds).ToString("+#;-#;0");
-
-				if (Math.Abs(clockDiff.TotalSeconds) >= 15)
-				{
-					if (cumulus.StationOptions.SyncTime)
-					{
-						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift, resetting it...");
-
-						SetTime();
-						// Pause whilst the console sorts itself out
-						cumulus.LogMessage("Console clock: Pausing to allow Davis console to process the new date/time");
-						Cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
-						Utils.WaitWithCancellation(TimeSpan.FromSeconds(5), Program.ExitSystemToken);
-
-						consoleclock = GetTime();
-
-						if (consoleclock > DateTime.MinValue)
-						{
-							cumulus.LogMessage("Console clock: " + consoleclock);
-						}
-						else
-						{
-							cumulus.LogWarningMessage("Console clock: Failed to read console time");
-						}
-					}
-					else
-					{
-						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift but automatic setting is disabled - you should set the clock manually.");
-					}
-				}
-				else
-				{
-					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={timeDiffStr}s)");
-				}
-			}
-			else
-			{
-				cumulus.LogWarningMessage("Console clock: Failed to read console time");
-			}
-
+			CheckClock();
 
 			var tooold = new DateTime(0, DateTimeKind.Local);
 
@@ -207,11 +161,12 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Starting Davis Station");
 
 				bw = new BackgroundWorker();
-				bw.DoWork += ((object sender, DoWorkEventArgs e) => {
+				bw.DoWork += (sender, e) =>
+				{
 					Cumulus.SyncInit.Wait();
 					StartLoop();
 					Cumulus.SyncInit.Release();
-				});
+				};
 				bw.RunWorkerAsync();
 			}
 			else
@@ -1094,42 +1049,7 @@ namespace CumulusMX.Stations
 				{
 					if (clockSetNeeded && !stop)
 					{
-						// set the console clock
-						var consoleclock = GetTime();
-						var nowTime = DateTime.Now;
-
-						if (consoleclock > DateTime.MinValue)
-						{
-							cumulus.LogMessage("Console clock: " + consoleclock);
-
-							if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
-							{
-								SetTime();
-
-								cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
-								Thread.Sleep(1000 * 5);
-
-								consoleclock = GetTime();
-
-								if (consoleclock > DateTime.MinValue)
-								{
-									cumulus.LogMessage("Console clock: " + consoleclock);
-								}
-								else
-								{
-									cumulus.LogWarningMessage("Console clock: Failed to read console time");
-								}
-							}
-							else
-							{
-								cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int) nowTime.Subtract(consoleclock).TotalSeconds}s)");
-							}
-						}
-						else
-						{
-							cumulus.LogWarningMessage("Console clock: Failed to read console time");
-						}
-
+						CheckClock();
 						clockSetNeeded = false;
 					}
 
@@ -3868,6 +3788,56 @@ namespace CumulusMX.Stations
 			}
 		}
 
+
+		private void CheckClock()
+		{
+			var consoleclock = GetTime();
+
+			if (consoleclock > DateTime.MinValue)
+			{
+				cumulus.LogMessage("Console clock: " + consoleclock.ToCmxLogFormat());
+
+				clockDiff = consoleclock.Subtract(DateTime.Now); // we will use this later when fetching the archive data
+				var timeDiffStr = ((int) clockDiff.TotalSeconds).ToString("+#;-#;0");
+
+				if (Math.Abs(clockDiff.TotalSeconds) >= 15)
+				{
+					if (cumulus.StationOptions.SyncTime)
+					{
+						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift, resetting it...");
+
+						SetTime();
+						// Pause whilst the console sorts itself out
+						cumulus.LogMessage("Console clock: Pausing to allow Davis console to process the new date/time");
+						Cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
+						Utils.WaitWithCancellation(TimeSpan.FromSeconds(5), Program.ExitSystemToken);
+
+						consoleclock = GetTime();
+
+						if (consoleclock > DateTime.MinValue)
+						{
+							cumulus.LogMessage("Console clock: " + consoleclock);
+						}
+						else
+						{
+							cumulus.LogWarningMessage("Console clock: Failed to read console time");
+						}
+					}
+					else
+					{
+						cumulus.LogWarningMessage($"Console clock: Console is {timeDiffStr} seconds adrift but automatic setting is disabled - you should set the clock manually.");
+					}
+				}
+				else
+				{
+					cumulus.LogMessage($"Console clock: Accurate to +/- 15 seconds, no need to set it (diff={timeDiffStr}s)");
+				}
+			}
+			else
+			{
+				cumulus.LogWarningMessage("Console clock: Failed to read console time");
+			}
+		}
 
 		/// <summary>
 		/// Converts VP rain gauge tips/clicks to user units
