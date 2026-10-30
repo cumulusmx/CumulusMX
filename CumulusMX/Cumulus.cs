@@ -3449,9 +3449,15 @@ namespace CumulusMX
 				// If a copy is required but no FTP, then just create the image directly in the copy destination
 				string dest = MoonImage.Copy && !MoonImage.Ftp ? MoonImage.CopyDest : null;
 
+				// Create rhe image for half the update interval in the future
+				var incMins = MoonImage.Rotate ? 15 : 30;
+
+				var imageDate = DateTime.Now.AddMinutes(incMins).ToUniversalTime();
+				var pos = MoonriseMoonset.MoonPos(imageDate.Year, imageDate.Month, imageDate.Day, imageDate.Hour + imageDate.Minute / 60.0, (double) Latitude, (double) Longitude);
+
 				var ret = await MoonriseMoonset.CreateMoonImage(
-					MoonPhaseAngle,
-					MoonApparentAngle,
+					pos.PhaseAngle,
+					MoonImage.Rotate ? pos.ApparantPA : 0,
 					(double) Latitude,
 					MoonImage.Size,
 					MoonImage.Transparent,

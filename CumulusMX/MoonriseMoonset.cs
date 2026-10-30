@@ -84,7 +84,7 @@ namespace CumulusMX
 				327,    -323,    299,    294,       0
 		];
 
-		private static readonly int[] T45AR =
+		private static readonly int[] T47AR =
 		[
 			 -20905355, -3699111, -2955968, -569925,   48888,
 				 -3149,   246158,  -152138, -170733, -204586,
@@ -1214,6 +1214,7 @@ namespace CumulusMX
 		#endregion helperfunctions
 
 		// MoonPos calculates the Moon position, based on Meeus chapter 45
+		// Date input is in UTC
 		public static MoonPosData MoonPos(int year, int month, int day, double hours, double latitude, double longitude)
 		{
 			var result = new MoonPosData();
@@ -1278,7 +1279,7 @@ namespace CumulusMX
 				if (Math.Abs(T47AM[ii]) == 1) Eterm = E;
 				if (Math.Abs(T47AM[ii]) == 2) Eterm = E2;
 				Σl += T47AL[ii] * Eterm * sind(rev(T47AD[ii] * D + T47AM[ii] * M + T47AMP[ii] * M1 + T47AF[ii] * F));
-				Σr += T45AR[ii] * Eterm * cosd(rev(T47AD[ii] * D + T47AM[ii] * M + T47AMP[ii] * M1 + T47AF[ii] * F));
+				Σr += T47AR[ii] * Eterm * cosd(rev(T47AD[ii] * D + T47AM[ii] * M + T47AMP[ii] * M1 + T47AF[ii] * F));
 			}
 
 			var Σb = 0.0;
@@ -1300,11 +1301,10 @@ namespace CumulusMX
 
 			// λ = geocentric Longitude
 			var λ = rev(L1 + Σl / 1000000.0);
-			if (λ > 180.0) λ -= 360;
 			// β = geocentric Latitude
 			var β = Σb / 1000000.0;
 			// Δ = geocentric distance
-			var Δ = Math.Round(385000.56 + Σr / 1000.0);
+			var Δ =385000.56 + Σr / 1000.0;
 
 
 			// equitorial horizontal parallax π
@@ -1314,8 +1314,7 @@ namespace CumulusMX
 			var α = rev(atan2d(sind(λ) * cosd(ε) - tand(β) * sind(ε), cosd(λ)));
 			result.RA = α;
 			// geocentric Declination
-			var δ = rev(asind(sind(β) * cosd(ε) + cosd(β) * sind(ε) * sind(λ)));
-			if (δ > 180.0) δ -= 360;
+			var δ = asind(sind(β) * cosd(ε) + cosd(β) * sind(ε) * sind(λ));
 			result.Dec = δ;
 
 			//var Hλ = rev(λ0 + 180 + (180 / Math.PI) * R3 * cosd(β) * sind(λ0 - λ));
@@ -1342,29 +1341,41 @@ namespace CumulusMX
 			//	I	- Inclination of (mean) lunar orbit to ecliptic
 			//	EL	- Selenographic longitude of sub Earth point
 			//	EB	- Sel Lat of sub Earth point
-			//	W	- angle variable
+			//	Wmoon	- angle variable
 			//	X	- Rectangular coordinate
 			//	Y	- Rectangular coordinate
 			//	A	- Angle variable (see Meeus ch 51 for notation)
 			//
 			var I = 1.54242;
-			var W = rev(λ - Ω1);
-			//var Y = cosd(W) * cosd(β);
-			//var X = sind(W) * cosd(β) * cosd(I) - sind(β) * sind(I);
+			var Wmoon = rev(λ - Ω1);
+			//var Y = cosd(Wmoon) * cosd(β);
+			//var X = sind(Wmoon) * cosd(β) * cosd(I) - sind(β) * sind(I);
 			//var A = atan2d(X, Y);
 			//var EL = A - F;
-			var EB = asind(-sind(W) * cosd(β) * sind(I) - sind(β) * cosd(I));
+			var EB = asind(-sind(Wmoon) * cosd(β) * sind(I) - sind(β) * cosd(I));
 
 
 			//	Iluminated fraction
 			var cosψ = cosd(β) * cosd(λ - λ0);
 			var ψ = acosd(cosψ);
 			//var Psi = 90 - atand(A / Math.Sqrt(1 - A * A));
-			var X = R * sind(ψ);
-			var Y = Δ - R * cosψ;
+			var Y = R * sind(ψ);
+			var X = Δ - R * cosψ;
 			// i = Phase angle
-			var i = atan2d(X, Y);
-			result.PhaseAngle = i;
+			var i = atan2d(Y, X);
+			// need to transform into 0-360 range to know which way the phase angle is seen
+			// old method - less accurate
+			//var iOld = 180.0 - D - 6.289 * sind(M1) + 2.1 * sind(M) - 1.274 * sind(2 * D - M1) - 0.658 * sind(2 * D) - 0.214 * sind(2 * M1) - 0.11 * sind(D);
+
+			var i360 = rev(λ - λ0);
+			if (i360 <= 180.0)
+			{
+				result.PhaseAngle = i;
+			}
+			else
+			{
+				result.PhaseAngle = 360.0 - i;
+			}
 
 			// k = illuminated fraction
 			//var k = (1 + cosd(i)) / 2;
@@ -1381,8 +1392,8 @@ namespace CumulusMX
 			//	V is just Om2
 			X = sind(I) * sind(Ω1);
 			Y = sind(I) * cosd(Ω1) * cosd(ε) - cosd(I) * sind(ε);
-			W = atan2d(X, Y);
-			var A = Math.Sqrt(X * X + Y * Y) * cosd(α - W);
+			var Wpole = atan2d(X, Y);
+			var A = Math.Sqrt(X * X + Y * Y) * cosd(α - Wpole);
 			//	PA Moon's rotation axis
 			var P2 = asind(A / cosd(EB));
 			//result.RotationAxisPA = P2;
@@ -1398,7 +1409,9 @@ namespace CumulusMX
 			var lstHours = LocalSidereal(year, month, day, hours, longitude);
 			var lstDeg = lstHours * 15;
 
-			var H = rev(lstDeg - α);
+			var H = lstDeg - α;
+			if (H > 180) H -= 360;
+			if (H < -180) H += 360;
 
 			X = cosd(latitude) * sind(H);
 			Y = cosd(δ) * sind(latitude) - sind(δ) * cosd(latitude) * cosd(H);
@@ -1430,8 +1443,10 @@ namespace CumulusMX
 			var q = atan2d(Y, X);
 
 			//result.ParallacticAngle = q;
-			result.ApparantPA = q - topPaAxis;
+			result.ApparantPA = rev(q - topPaAxis);
 
+			if (result.ApparantPA > 180)
+				result.ApparantPA -= 360;
 
 			return result;
 		}
@@ -1444,10 +1459,11 @@ namespace CumulusMX
 			// -2 rise or set event not found and moon was up   at 00:00
 			// WARNING code changes on 6/7 May 2003 these are now local times
 			// NOT UTC and rise/set not found codes changed.
-			var hours = 0.0;
+			double hours = 12;
 			double[] riseset;
 
-			var utcDate = new DateTime(localTime.Year, localTime.Month, localTime.Day, 0, 0, 0, DateTimeKind.Local).ToUniversalTime();
+			var utcBaseDate = localTime.Date.ToUniversalTime();
+			var utcDate = utcBaseDate.AddHours(hours);
 
 			// elh is the elevation at the hour elhdone is true if elh calculated
 			var elh = new double[25];
@@ -1472,10 +1488,10 @@ namespace CumulusMX
 				riseset = [-1, -1];
 			}
 			hours = 24;
-			var tmpDate = utcDate.AddDays(1);
+			utcDate = utcBaseDate.AddHours(hours);
 
-			rad = MoonPos(utcDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0, latitude, longitude);
-			altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0, latitude, longitude);
+			rad = MoonPos(utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0, latitude, longitude);
+			altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0, latitude, longitude);
 			elh[24] = altaz[0];
 			elhdone[24] = true;
 			// search for moonrise and set
@@ -1493,9 +1509,9 @@ namespace CumulusMX
 						if (!elhdone[hmid])
 						{
 							hours = hmid;
-							tmpDate = utcDate.AddHours(hours);
-							rad = MoonPos(tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0 + tmpDate.Second / 3600.0, latitude, longitude);
-							altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0 + tmpDate.Second / 3600.0, latitude, longitude);
+							utcDate = utcBaseDate.AddHours(hours);
+							rad = MoonPos(utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0 + utcDate.Second / 3600.0, latitude, longitude);
+							altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0 + utcDate.Second / 3600.0, latitude, longitude);
 							elh[hmid] = altaz[0];
 							elhdone[hmid] = true;
 						}
@@ -1523,9 +1539,9 @@ namespace CumulusMX
 						if (!elhdone[i + 1])
 						{
 							hours = i + 1;
-							tmpDate = utcDate.AddHours(hours);
-							rad = MoonPos(tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0 + tmpDate.Second / 3600.0, latitude, longitude);
-							altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0 + tmpDate.Second / 3600.0, latitude, longitude);
+							utcDate = utcBaseDate.AddHours(hours);
+							rad = MoonPos(utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0 + utcDate.Second / 3600.0, latitude, longitude);
+							altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0 + utcDate.Second / 3600.0, latitude, longitude);
 							elh[(int) hours] = altaz[0];
 							elhdone[(int) hours] = true;
 						}
@@ -1544,9 +1560,9 @@ namespace CumulusMX
 					var elfirst = elh[(int) hfirst];
 					var ellast = elh[(int) hlast];
 					hours = hfirst + 0.5;
-					tmpDate = utcDate.AddHours(hours);
-					rad = MoonPos(tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0 + tmpDate.Second / 3600.0, latitude, longitude);
-					altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, tmpDate.Year, tmpDate.Month, tmpDate.Day, tmpDate.Hour + tmpDate.Minute / 60.0 + tmpDate.Second / 3600.0, latitude, longitude);
+					utcDate = utcBaseDate.AddHours(hours);
+					rad = MoonPos(utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0 + utcDate.Second / 3600.0, latitude, longitude);
+					altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0 + utcDate.Second / 3600.0, latitude, longitude);
 					if ((rise == 0) && (altaz[0] <= 0.0))
 					{
 						hfirst = hours;
@@ -1571,6 +1587,20 @@ namespace CumulusMX
 					riseset[rise] = hfirst + (hlast - hfirst) * Math.Abs(elfirst) / eld;
 				}
 			} // End of rise/set loop
+
+			// Allow for DST change today
+			if (riseset[0] >= 0)
+			{
+				var tmp = utcBaseDate.AddHours(riseset[0]).ToLocalTime();
+				riseset[0] = tmp.Hour + tmp.Minute / 60.0 + tmp.Second / 3600.0;
+			}
+
+			if (riseset[1] >= 0)
+			{
+				var tmp = utcBaseDate.AddHours(riseset[1]).ToLocalTime();
+				riseset[1] = tmp.Hour + tmp.Minute / 60.0 + tmp.Second / 3600.0;
+			}
+
 			return (riseset);
 		}
 
@@ -1990,14 +2020,36 @@ namespace CumulusMX
 							}
 
 							// plot the shade fade out
+							if (!transparent && yPos != srcSize2)
+							{
+								var z = corr == 0 ? Math.Max(start - 1, 0) : Math.Min(end + 1, bmp.Width - 1);
+								var pixel1 = pixels1[z];
+								pixel1.R = (byte) (pixel1.R * 0.6);
+								pixel1.G = (byte) (pixel1.G * 0.6);
+								pixel1.B = (byte) (pixel1.B * 0.6);
+								pixels1[z] = pixel1;
+								var pixel2 = pixels2[z];
+								pixel2.R = (byte) (pixel2.R * 0.6);
+								pixel2.G = (byte) (pixel2.G * 0.6);
+								pixel2.B = (byte) (pixel2.B * 0.6);
+								pixels2[z] = pixel2;
+							}
+
+							/*
+							// Phase angle = 0 at full Moon when we want to reduce the fade out to zero, +-180 at new Moon
 							end = (int) Math.Min(bmp.Width - start, end + bmp.Width * 0.1);
 							start = Math.Max(xPos, xPos2) + 1;
 							var mPow = 1.0;
-							var range = bmp.Width * 0.1;
+							var absPhaseAngle = Math.Abs(phaseAngle);
 							for (int x = start; x < end; x++)
 							{
 								double factor = Math.Max(0.3 / mPow, 0.35);
 								mPow = mPow / 1.15;
+								if (absPhaseAngle < 20)
+								{
+									// reduce the fade out
+									mPow /= absPhaseAngle / 20;
+								}
 								if (factor > 0.95) break;
 								var pixel = pixels1[x];
 								pixel.R = (byte) (pixel.R * factor);
@@ -2014,8 +2066,8 @@ namespace CumulusMX
 									pixel2.B = (byte) (pixel2.B * factor);
 									pixels2[x] = pixel2;
 								}
-
 							}
+							*/
 						}
 					});
 
