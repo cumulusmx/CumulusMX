@@ -24,12 +24,16 @@ namespace CumulusMX
 
 			var langFile = Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard", $"{lang}.json");
 			if (!File.Exists(langFile))
+			{
+				lang = "en";
 				langFile = Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard", "en.json"); // fallback
+			}
 
 			try
 			{
 				var json = await File.ReadAllTextAsync(langFile);
 				_cache = JsonSerializer.Deserialize<Dictionary<string, string>>(json)!;
+				_cache.TryAdd("LANG", lang.ToUpper());
 			}
 			catch
 			{
@@ -46,6 +50,7 @@ namespace CumulusMX
 			var langFile = Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard", "json", lang, $"lang-{Path.GetFileNameWithoutExtension(filename)}.json");
 			if (!File.Exists(langFile))
 			{
+				lang = "en";
 				langFile = Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard", "json", "en", $"lang-{Path.GetFileNameWithoutExtension(filename)}.json"); // fallback
 			}
 
@@ -53,6 +58,7 @@ namespace CumulusMX
 			{
 				var json = await File.ReadAllTextAsync(langFile);
 				_cache = JsonSerializer.Deserialize<Dictionary<string, string>>(json)!;
+				_cache.TryAdd("LANG", lang.ToUpper());
 			}
 			catch
 			{
