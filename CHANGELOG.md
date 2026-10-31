@@ -44,7 +44,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Updated the base Moon image to a less contrasty version that is better centered on the mean libration position
 	- Added a new option to create the Moon image correctly orientated to your local horizon. If this option is enabled, then the Moon image is updated every 30 minutes rather than hourly
 	- Softened the transition of the terminator slightly
-- The Dashboard Gauges page now attempts to local the same language as MX is running
+- The Dashboard Gauges page now attempts to set the locale to the same language as MX is running
 
 ### Fixed
 
