@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.2.0 \[b5025\] - 2026-10-31][37]
+## [5.2.0 \[b5026\] - 2026-11-02][37]
 
 ### New
 
@@ -45,6 +45,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Added a new option to create the Moon image correctly orientated to your local horizon. If this option is enabled, then the Moon image is updated every 30 minutes rather than hourly
 	- Softened the transition of the terminator slightly
 - The Dashboard Gauges page now attempts to set the locale to the same language as MX is running
+- Optimisations to the Ecowitt SD card file reading on catch-up
 
 ### Fixed
 
@@ -1671,4 +1672,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [34]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5011
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
-[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5025
+[37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5026

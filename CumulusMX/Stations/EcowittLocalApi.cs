@@ -610,8 +610,9 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					using var fileStream = await cumulus.MyHttpClient.GetStreamAsync(url, token);
-					using var streamReader = new StreamReader(fileStream, Encoding.UTF8);
+					using var response = await cumulus.MyHttpClient.GetAsync(url, token);
+					using var stream = await response.Content.ReadAsStreamAsync(token);
+					using var streamReader = new StreamReader(stream, Encoding.UTF8);
 
 					string line;
 					var count = 1;
@@ -692,7 +693,12 @@ namespace CumulusMX.Stations
 						}
 
 						// quick check if there is any data in the line!
-						if (line.Split(',').Length < 20)
+						int cnt = 0;
+						foreach (char c in line)
+						{
+							if (c == ',' && ++cnt == 20) break;
+						}
+						if (cnt < 20)
 						{
 							cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
 							cumulus.LogDataMessage($"line # {count} = " + line);
