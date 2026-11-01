@@ -34,7 +34,7 @@ namespace CumulusMX.Stations
 		private const string soilMoistUnit = "cb";
 		private TimeSpan clockDiff = TimeSpan.FromSeconds(0);
 
-		private readonly int[,] ForecastLookup =
+		private static readonly int[,] ForecastLookup =
 		{
 			{14, 0, 0}, {13, 0, 0}, {12, 0, 0}, {11, 0, 0}, {13, 0, 0}, {25, 0, 0}, {24, 0, 0}, {24, 0, 0}, {10, 0, 0}, {24, 0, 0}, {24, 0, 0},
 			{13, 0, 0}, {7, 2, 0}, {24, 0, 0}, {13, 0, 0}, {6, 3, 0}, {13, 0, 0}, {24, 0, 0}, {13, 0, 0}, {6, 6, 0}, {13, 0, 0}, {24, 0, 0},

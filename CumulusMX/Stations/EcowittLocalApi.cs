@@ -600,6 +600,7 @@ namespace CumulusMX.Stations
 
 			var mayBeMore = true;
 			var retries = 1;
+			var startUnixTime = startTime.ToUnixTime();
 
 			var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
 
@@ -610,9 +611,9 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					using var response = await cumulus.MyHttpClient.GetAsync(url, token);
+					using var response = await cumulus.MyHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
 					using var stream = await response.Content.ReadAsStreamAsync(token);
-					using var streamReader = new StreamReader(stream, Encoding.UTF8);
+					using var streamReader = new StreamReader(stream, Encoding.UTF8, false, 8192);
 
 					string line;
 					var count = 1;
@@ -668,7 +669,7 @@ namespace CumulusMX.Stations
 							// timestamp is in the second field
 							if (long.TryParse(line.AsSpan(17, 10), out long ts))
 							{
-								if (Utils.RoundDownUnixTimestamp(ts, SdCardInterval).LocalFromUnixTime() < startTime)
+								if (Utils.RoundDownUnixTimestamp(ts, SdCardInterval) < startUnixTime)
 								{
 									mayBeMore = false;
 									continue;
