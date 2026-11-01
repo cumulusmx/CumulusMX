@@ -368,14 +368,14 @@ namespace CumulusMX.Stations
 
 			if (DayResetInProgress)
 			{
-				cumulus.LogMessage("ProcessData: Rollover in progress, incoming data ignored");
+				cumulus.LogMessage($"{procName}: Rollover in progress, incoming data ignored");
 				context.Response.StatusCode = 200;
 				return "success";
 			}
 
 			if (starting || stopping)
 			{
-				cumulus.LogMessage($"ProcessData: Station {(starting ? "starting" : "stopping")}, incoming data ignored");
+				cumulus.LogMessage($"{procName}: Station {(starting ? "starting" : "stopping")}, incoming data ignored");
 				context.Response.StatusCode = 200;
 				return "success";
 			}

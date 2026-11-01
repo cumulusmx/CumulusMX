@@ -31,6 +31,7 @@ namespace CumulusMX.Stations
 		private int maxArchiveRuns = 2;
 		private bool stop;
 		private int loggerInterval;
+		private TimeSpan clockDiff = TimeSpan.FromSeconds(0);
 
 		private readonly int[,] ForecastLookup =
 		{
