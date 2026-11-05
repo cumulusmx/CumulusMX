@@ -3429,7 +3429,7 @@ namespace CumulusMX
 				MoonPercent = -MoonPercent;
 			}
 
-			MoonApparentAngle = MoonImage.Rotate ? moonPos.ApparantPA : 0;
+			MoonApparentAngle = moonPos.ApparantPA;
 
 			// Use Phase Angle to determine string - it's linear unlike Illuminated Percentage
 			// New  = 186 - 180 - 174
@@ -3463,10 +3463,16 @@ namespace CumulusMX
 				// If a copy is required but no FTP, then just create the image directly in the copy destination
 				string dest = MoonImage.Copy && !MoonImage.Ftp ? MoonImage.CopyDest : null;
 
+				// Create rhe image for half the update interval in the future
+				var incMins = MoonImage.Rotate ? 15 : 30;
+
+				var imageDate = DateTime.Now.AddMinutes(incMins).ToUniversalTime();
+				var pos = MoonriseMoonset.MoonPos(imageDate.Year, imageDate.Month, imageDate.Day, imageDate.Hour + imageDate.Minute / 60.0, (double) Latitude, (double) Longitude);
+
 				var ret = await MoonriseMoonset.CreateMoonImage(
-					MoonPhaseAngle,
-					MoonApparentAngle,
-					(double) Latitude,
+					pos.PhaseAngle,
+					MoonImage.Rotate ? pos.ApparantPA : null,
+					Latitude < 0,
 					MoonImage.Size,
 					MoonImage.Transparent,
 					dest

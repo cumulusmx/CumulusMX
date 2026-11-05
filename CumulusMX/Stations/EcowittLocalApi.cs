@@ -1095,6 +1095,7 @@ namespace CumulusMX.Stations
 			//	"rainWeek": "5.3",
 			//	"rainMonth": "6.8",
 			//	"rainYear": "572.5",
+			//	"rainTotal: "30145.2",
 			//	"rainGain": "1.01",
 			//	"rainFallPriority": "1",
 			//	"rstRainDay": "0",

@@ -356,7 +356,7 @@ namespace CumulusMX.Stations
 									if (hour == 13)
 									{
 										_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
-										Task.Delay(1000, Program.ExitSystemToken);
+										Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(1000), Program.ExitSystemToken);
 										GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 									}
 								}

@@ -1326,7 +1326,7 @@ namespace CumulusMX
 			//  Δε = Nuation in obliquity
 			//var Δε = 9.20 * cosd(Ω1) + 0.57 * cosd(2 * L1_Sun) + 0.10 * cosd(2 * L1) - 0.09 * cosd(2 * Ω1);
 			// Obliquity of the ecliptic
-			//ε = 
+			//ε =
 
 
 			//
@@ -1459,7 +1459,7 @@ namespace CumulusMX
 			// -2 rise or set event not found and moon was up   at 00:00
 			// WARNING code changes on 6/7 May 2003 these are now local times
 			// NOT UTC and rise/set not found codes changed.
-			double hours = 12;
+			double hours = 0;
 			double[] riseset;
 
 			var utcBaseDate = localTime.Date.ToUniversalTime();
@@ -1468,16 +1468,14 @@ namespace CumulusMX
 			// elh is the elevation at the hour elhdone is true if elh calculated
 			var elh = new double[25];
 			var elhdone = new bool[25];
-			for (var i = 0; i <= 24; i++)
-			{
-				elhdone[i] = false;
-			}
+
 			// Compute the moon elevation at start and end of day
 			// store elevation at the hours in an array elh to save search time
 			var rad = MoonPos(utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0, latitude, longitude);
 			var altaz = RaDecToAltAz(rad.RA / 15, rad.Dec, utcDate.Year, utcDate.Month, utcDate.Day, utcDate.Hour + utcDate.Minute / 60.0, latitude, longitude);
 			elh[0] = altaz[0];
 			elhdone[0] = true;
+
 			// set the return code to allow for always up or never rises
 			if (elh[0] > 0.0)
 			{
@@ -1917,7 +1915,18 @@ namespace CumulusMX
 			return (now - lastNewMoon).TotalDays;
 		}
 
-		public static async Task<bool> CreateMoonImage(double phaseAngle, double apparentAngle, double latitude, int size, bool transparent, string destination)
+
+		/// <summary>
+		/// Generates the Moon image for the requested parameters
+		/// </summary>
+		/// <param name="phaseAngle">0-360 degrees</param>
+		/// <param name="apparentAngle">Rotation angle relative to the horizon. Null indicates no rotation required</param>
+		/// <param name="southernHemisphere">Used to flip the image when no rotation is required</param>
+		/// <param name="size"></param>
+		/// <param name="transparent"></param>
+		/// <param name="destination"></param>
+		/// <returns></returns>
+		public static async Task<bool> CreateMoonImage(double phaseAngle, double? apparentAngle, bool southernHemisphere, int size, bool transparent, string destination)
 		{
 			if (!System.IO.File.Exists("./web/MoonBaseImage.png"))
 			{
@@ -2024,14 +2033,26 @@ namespace CumulusMX
 							{
 								var z = corr == 0 ? Math.Max(start - 1, 0) : Math.Min(end + 1, bmp.Width - 1);
 								var pixel1 = pixels1[z];
-								pixel1.R = (byte) (pixel1.R * 0.6);
-								pixel1.G = (byte) (pixel1.G * 0.6);
-								pixel1.B = (byte) (pixel1.B * 0.6);
-								pixels1[z] = pixel1;
 								var pixel2 = pixels2[z];
-								pixel2.R = (byte) (pixel2.R * 0.6);
-								pixel2.G = (byte) (pixel2.G * 0.6);
-								pixel2.B = (byte) (pixel2.B * 0.6);
+
+								if (transparent)
+								{
+									// 0-255, 64 = 75% transparent
+									pixel1.A = 64;
+									pixel2.A = 64;
+								}
+								else
+								{
+									pixel1.R = (byte) (pixel1.R * 0.6);
+									pixel1.G = (byte) (pixel1.G * 0.6);
+									pixel1.B = (byte) (pixel1.B * 0.6);
+
+									pixel2.R = (byte) (pixel2.R * 0.6);
+									pixel2.G = (byte) (pixel2.G * 0.6);
+									pixel2.B = (byte) (pixel2.B * 0.6);
+								}
+
+								pixels1[z] = pixel1;
 								pixels2[z] = pixel2;
 							}
 
@@ -2072,7 +2093,7 @@ namespace CumulusMX
 					});
 
 					// Rotate for Parallactic Angle and axis rotation
-					if (apparentAngle != 0)
+					if (apparentAngle.HasValue)
 					{
 						bmp.Mutate(x => {
 							x.Rotate((float) apparentAngle);
@@ -2082,10 +2103,9 @@ namespace CumulusMX
 							x.Crop(new Rectangle(x0, y0, origSize.Width, origSize.Height));
 						});
 					}
-
-					// Rotate for southern hemisphere
-					if (latitude < 0)
+					else if (southernHemisphere)
 					{
+						// Rotate for southern hemisphere
 						bmp.Mutate(x => x.Rotate(RotateMode.Rotate180));
 					}
 
