@@ -356,7 +356,7 @@ namespace CumulusMX.Stations
 									if (hour == 13)
 									{
 										_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
-										Task.Delay(1000, Program.ExitSystemToken);
+										Utils.WaitWithCancellation(TimeSpan.FromMilliseconds(1000), Program.ExitSystemToken);
 										GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 									}
 								}
@@ -1396,11 +1396,11 @@ namespace CumulusMX.Stations
 		{
 			//"rain": [
 			//	{
-			//		"id": "0x0D",
+			//		"id": "0x0D",		//Rain Event
 			//		"val": "0.0 mm"
 			//	},
 			//	{
-			//		"id": "0x0E",
+			//		"id": "0x0E",		//Rain Rate
 			//		"val": "0.0 mm/Hr"
 			//	},
 			//	{
@@ -1420,7 +1420,7 @@ namespace CumulusMX.Stations
 			//		"val": "27.1 mm"
 			//	},
 			//	{
-			//		"id": "0x13",
+			//		"id": "0x13",		//Rain Year
 			//		"val": "681.4 mm",
 			//		"battery": "5"
 			//	}
@@ -1431,11 +1431,11 @@ namespace CumulusMX.Stations
 			//		"val": "0"
 			//	},
 			//	{
-			//		"id": "0x0D",
+			//		"id": "0x0D",		//Rain Event
 			//		"val": "0.0 mm"
 			//	},
 			//	{
-			//		"id": "0x0E",
+			//		"id": "0x0E",		//Rain Rate
 			//		"val": "0.0 mm/Hr"
 			//	},
 			//	{
@@ -1455,7 +1455,7 @@ namespace CumulusMX.Stations
 			//		"val": "0.0 mm"
 			//	},
 			//	{
-			//		"id": "0x13",
+			//		"id": "0x13",		//Rain Year
 			//		"val": "0.0 mm",
 			//		"battery": "5",
 			//		"voltage": "3.24",

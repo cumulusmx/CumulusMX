@@ -3415,7 +3415,7 @@ namespace CumulusMX
 				MoonPercent = -MoonPercent;
 			}
 
-			MoonApparentAngle = MoonImage.Rotate ? moonPos.ApparantPA : 0;
+			MoonApparentAngle = moonPos.ApparantPA;
 
 			// Use Phase Angle to determine string - it's linear unlike Illuminated Percentage
 			// New  = 186 - 180 - 174
@@ -3455,14 +3455,16 @@ namespace CumulusMX
 				var imageDate = DateTime.Now.AddMinutes(incMins).ToUniversalTime();
 				var pos = MoonriseMoonset.MoonPos(imageDate.Year, imageDate.Month, imageDate.Day, imageDate.Hour + imageDate.Minute / 60.0, (double) Latitude, (double) Longitude);
 
+				LogDebugMessage($"Moon image params: PhaseAngle={pos.PhaseAngle:F2}, Rotation={pos.ApparantPA:F1}, Rotate={MoonImage.Rotate}, Hemisphere={(Latitude > 0 ? "N" : "S")}");
+
 				var ret = await MoonriseMoonset.CreateMoonImage(
 					pos.PhaseAngle,
-					MoonImage.Rotate ? pos.ApparantPA : 0,
-					(double) Latitude,
+					MoonImage.Rotate ? pos.ApparantPA : null,
+					Latitude < 0,
 					MoonImage.Size,
 					MoonImage.Transparent,
 					dest
-					);
+				);
 
 				if (ret)
 				{
