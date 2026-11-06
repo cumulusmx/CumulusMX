@@ -187,12 +187,12 @@ namespace CumulusMX.Stations
 				DoHumidex(timestamp);
 				DoCloudBaseHeatIndex(timestamp);
 
-				if (!cumulus.ExtraSensorUseUv)
+				if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 				{
 					DoUV((double) historydata.UV, timestamp);
 				}
 
-				if (!cumulus.ExtraSensorUseSolar)
+				if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 				{
 					DoSolarRad(historydata.SolarRadiation, timestamp);
 
@@ -357,11 +357,11 @@ namespace CumulusMX.Stations
 						DoStationPressure(ConvertUnits.PressMBToUser((double) wp.Observation.StationPressure));
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
-						if (!cumulus.ExtraSensorUseSolar)
+						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 						{
 							DoSolarRad(wp.Observation.SolarRadiation, ts);
 						}
-						if (!cumulus.ExtraSensorUseUv)
+						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 						{
 							DoUV((double) wp.Observation.UV, ts);
 						}

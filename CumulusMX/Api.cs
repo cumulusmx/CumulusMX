@@ -1888,7 +1888,7 @@ namespace CumulusMX
 						case "ambientextra":
 							if (stationAmbientExtra != null)
 							{
-								await writer.WriteAsync(stationAmbient.ProcessData(HttpContext, false));
+								await writer.WriteAsync(stationAmbientExtra.ProcessData(HttpContext, false));
 							}
 							else
 							{

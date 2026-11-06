@@ -10,6 +10,26 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.2.1 \[b5027\] - 2026-11-20][38]
+
+### New
+
+Nothing
+
+### Changed
+
+Nothing
+
+### Fixed
+
+- "Extra Sensor" Solar and UV handling for the following stations: HTTP WUnderground, Tempest, WMR1000, WMR2000
+
+### Package Updates
+
+None
+
+---
+
 ## [5.2.0 \[b5026\] - 2026-11-02][37]
 
 ### New
@@ -1672,3 +1692,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [35]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5012
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
 [37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5026
+[38]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5027
