@@ -23,6 +23,7 @@ Nothing
 ### Fixed
 
 - "Extra Sensor" Solar and UV handling for the following stations: HTTP WUnderground, Tempest, WMR1000, WMR2000
+- Saving/reading Custom HTTP uploads JSON state
 
 ### Package Updates
 

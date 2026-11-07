@@ -5957,7 +5957,7 @@ namespace CumulusMX
 				{
 					Url = ini.GetValue("HTTP", "CustomHttpSecondsString", string.Empty),
 					Post = ini.GetValue("HTTP", "CustomHttpSecondsPost", false),
-					PostJson = ini.GetValue("HTTP", "CustomHttpSecondsBodyJson", true),
+					PostJson = ini.GetValue("HTTP", "CustomHttpSecondsPostJson", true),
 					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpSecondsBody", string.Empty)),
 					Interval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10)
 				});
@@ -5970,7 +5970,7 @@ namespace CumulusMX
 						{
 							Url = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, string.Empty),
 							Post = ini.GetValue("HTTP", "CustomHttpSecondsPost" + i, false),
-							PostJson = ini.GetValue("HTTP", "CustomHttpSecondsBodyJson" + i, true),
+							PostJson = ini.GetValue("HTTP", "CustomHttpSecondsPostJson" + i, true),
 							PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpSecondsBody" + i, string.Empty)),
 							Interval = ini.GetValue("HTTP", "CustomHttpSecondsInterval" + i, 10)
 						});
@@ -6002,7 +6002,7 @@ namespace CumulusMX
 				{
 					Url = ini.GetValue("HTTP", "CustomHttpMinutesString", string.Empty),
 					Post = ini.GetValue("HTTP", "CustomHttpMinutesPost", false),
-					PostJson = ini.GetValue("HTTP", "CustomHttpMinutesBodyJson", true),
+					PostJson = ini.GetValue("HTTP", "CustomHttpMinutesPostJson", true),
 					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpMinutesBody", string.Empty)),
 					Interval = ini.GetValue("HTTP", "CustomHttpMinutesInterval", httpMinsIntvl)
 				});
@@ -6032,7 +6032,7 @@ namespace CumulusMX
 				{
 					Url = ini.GetValue("HTTP", "CustomHttpRolloverString", string.Empty),
 					Post = ini.GetValue("HTTP", "CustomHttpRolloverPost", false),
-					PostJson = ini.GetValue("HTTP", "CustomHttpRolloverBodyJson", true),
+					PostJson = ini.GetValue("HTTP", "CustomHttpRolloverPostJson", true),
 					PostBody = Utils.DeEncodeMultiLineString(ini.GetValue("HTTP", "CustomHttpRolloverBody", string.Empty))
 				});
 
