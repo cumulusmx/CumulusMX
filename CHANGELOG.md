@@ -24,6 +24,7 @@ Nothing
 
 - "Extra Sensor" Solar and UV handling for the following stations: HTTP WUnderground, Tempest, WMR1000, WMR2000
 - Saving/reading Custom HTTP uploads JSON state
+- Custom HTTP rollover entries 2-10 being added to the Custom Minutes list
 
 ### Package Updates
 

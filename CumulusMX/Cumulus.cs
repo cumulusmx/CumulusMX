@@ -5891,7 +5891,7 @@ namespace CumulusMX
 			MySqlFuncs.MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", string.Empty);
 			MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
 			MySqlFuncs.MySqlSettings.CustomMins.CatchUp[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", false);
-			if (MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
+			if (MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] < 0 || MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
 			{
 				MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] = 6;
 			}
@@ -5904,7 +5904,7 @@ namespace CumulusMX
 					MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0]);
 					MySqlFuncs.MySqlSettings.CustomMins.CatchUp[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, false);
 
-					if (MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
+					if (MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] < 0 || MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] >= FactorsOf60.Length)
 					{
 						MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
 					}
