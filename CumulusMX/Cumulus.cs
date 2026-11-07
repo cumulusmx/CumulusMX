@@ -14152,6 +14152,7 @@ namespace CumulusMX
 					var tim = Bluesky.VariablePostsTime[i] switch
 					{
 						"sunrise" => SunRiseTime,
+						"noon" => SolarNoonTime,
 						"sunset" => SunSetTime,
 						"dawn" => Dawn,
 						"dusk" => Dusk,

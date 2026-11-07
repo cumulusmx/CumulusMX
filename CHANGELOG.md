@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-Nothing
+- Adds Solar Noon to the BlueSky variable posting time options
 
 ### Changed
 
