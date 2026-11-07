@@ -6040,7 +6040,7 @@ namespace CumulusMX
 				{
 					if (ini.ValueExists("HTTP", "CustomHttpRolloverString" + i))
 					{
-						CustomHttpMinutes.Add(new ThirdParty.CustomHttpSettings
+						CustomHttpRollover.Add(new ThirdParty.CustomHttpSettings
 						{
 							Url = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, string.Empty),
 							Post = ini.GetValue("HTTP", "CustomHttpRolloverPost" + i, false),
