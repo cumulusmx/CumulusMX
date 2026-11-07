@@ -3955,6 +3955,8 @@ namespace CumulusMX
 			{
 				ProgramOptions.DebugLogging = true;
 				ProgramOptions.DataLogging = true;
+				ProgramOptions.Debug_DebugLogging = ini.GetValue("Station", "Logging", false);
+				ProgramOptions.Debug_DataLogging = ini.GetValue("Station", "DataLogging", false);
 			}
 			else
 			{
@@ -6339,7 +6341,12 @@ namespace CumulusMX
 			ini.SetValue("Station", "LeafWetnessIsRainingIdx", StationOptions.LeafWetnessIsRainingIdx);
 			ini.SetValue("Station", "LeafWetnessIsRainingVal", StationOptions.LeafWetnessIsRainingThrsh);
 
-			if (!DebuggingEnabled)
+			if (DebuggingEnabled)
+			{
+				 ini.SetValue("Station", "Logging", ProgramOptions.Debug_DebugLogging);
+				 ini.SetValue("Station", "DataLogging", ProgramOptions.Debug_DataLogging);
+			}
+			else
 			{
 				ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
 				ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
@@ -15701,6 +15708,8 @@ namespace CumulusMX
 		public string ShutdownTaskParams { get; set; }
 		public bool DebugLogging { get; set; }
 		public bool DataLogging { get; set; }
+		public bool Debug_DebugLogging { get; set; }
+		public bool Debug_DataLogging { get; set; }
 		public bool WarnMultiple { get; set; }
 		public bool ListWebTags { get; set; }
 		public CultureConfig Culture { get; set; }
