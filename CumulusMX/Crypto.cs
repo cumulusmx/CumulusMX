@@ -94,6 +94,36 @@ namespace CumulusMX
 			}
 		}
 
+		/// <summary>Decrypts a value that may be in plain text instead, without logging: false if it doesn't decrypt</summary>
+		public static bool TryDecryptString(string encryptedText, byte[] key, out string plainText)
+		{
+			plainText = encryptedText;
+			try
+			{
+				if (string.IsNullOrEmpty(encryptedText))
+					return true;
+
+				var data = Convert.FromBase64String(encryptedText);
+				byte ivSize = data[0];
+				var iv = new byte[ivSize];
+				Array.Copy(data, 1, iv, 0, ivSize);
+				var encrypted = new byte[data.Length - ivSize - 1];
+				Array.Copy(data, ivSize + 1, encrypted, 0, encrypted.Length);
+
+				using var aes = Aes.Create();
+				aes.Key = key;
+				aes.IV = iv;
+
+				plainText = Decrypt(encrypted, aes.CreateDecryptor(aes.Key, aes.IV));
+				return true;
+			}
+			catch (Exception)
+			{
+				plainText = encryptedText;
+				return false;
+			}
+		}
+
 		private static byte[] Encrypt(string data, ICryptoTransform cryptoTransform)
 		{
 			if (data == null || data.Length <= 0)

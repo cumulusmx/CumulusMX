@@ -6185,6 +6185,13 @@ namespace CumulusMX
 				WllApiSecret = Crypto.DecryptString(WllApiSecret, Program.InstanceId, "WllApiSecret");
 				JsonStationOptions.MqttUsername = Crypto.DecryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername");
 				JsonStationOptions.MqttPassword = Crypto.DecryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword");
+				// Older versions wrote the extra JSON station's MQTT credentials in plain text. A value that doesn't decrypt is
+				// one of those: it is kept as it is, and encrypted on the next save.
+				Crypto.TryDecryptString(JsonExtraStationOptions.MqttUsername, Program.InstanceId, out var jsonExtraMqttUsername);
+				JsonExtraStationOptions.MqttUsername = jsonExtraMqttUsername;
+				Crypto.TryDecryptString(JsonExtraStationOptions.MqttPassword, Program.InstanceId, out var jsonExtraMqttPassword);
+				JsonExtraStationOptions.MqttPassword = jsonExtraMqttPassword;
+
 				AirLinkApiKey = Crypto.DecryptString(AirLinkApiKey, Program.InstanceId, "AirLinkApiKey");
 				AirLinkApiSecret = Crypto.DecryptString(AirLinkApiSecret, Program.InstanceId, "AirLinkApiSecret");
 				FtpOptions.Username = Crypto.DecryptString(FtpOptions.Username, Program.InstanceId, "FtpOptions.Username");
@@ -6652,8 +6659,8 @@ namespace CumulusMX
 			ini.SetValue("JsonExtraStation", "FileIgnore", JsonExtraStationOptions.FileIgnoreTime);
 			ini.SetValue("JsonExtraStation", "MqttServer", JsonExtraStationOptions.MqttServer);
 			ini.SetValue("JsonExtraStation", "MqttServerPort", JsonExtraStationOptions.MqttPort);
-			ini.SetValue("JsonExtraStation", "MqttUsername", JsonExtraStationOptions.MqttUsername);
-			ini.SetValue("JsonExtraStation", "MqttPassword", JsonExtraStationOptions.MqttPassword);
+			ini.SetValue("JsonExtraStation", "MqttUsername", Crypto.EncryptString(JsonExtraStationOptions.MqttUsername, Program.InstanceId, "JsonExtraStationMqttUsername"));
+			ini.SetValue("JsonExtraStation", "MqttPassword", Crypto.EncryptString(JsonExtraStationOptions.MqttPassword, Program.InstanceId, "JsonExtraStationMqttPassword"));
 			ini.SetValue("JsonExtraStation", "MqttUseTls", JsonExtraStationOptions.MqttUseTls);
 			ini.SetValue("JsonExtraStation", "MqttTopic", JsonExtraStationOptions.MqttTopic);
 
