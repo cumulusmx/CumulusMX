@@ -25,6 +25,7 @@ Nothing
 - "Extra Sensor" Solar and UV handling for the following stations: HTTP WUnderground, Tempest, WMR1000, WMR2000
 - Saving/reading Custom HTTP uploads JSON state
 - Custom HTTP rollover entries 2-10 being added to the Custom Minutes list
+- JSON Extra station MQTT credentials (username/password) were not being encrypted in Cumulus.ini
 
 ### Package Updates
 
