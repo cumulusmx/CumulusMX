@@ -106,7 +106,7 @@ namespace CumulusMX.Stations
 			else
 			{
 				// We are not using the primary indoor T/H sensor
-				cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
+				cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
 			}
 
 
