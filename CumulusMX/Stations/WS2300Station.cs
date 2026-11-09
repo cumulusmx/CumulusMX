@@ -699,7 +699,7 @@ namespace CumulusMX.Stations
 			{
 				var pressure = Ws2300AbsolutePressure();
 
-				if (Pressure > 850 && Pressure < 1200)
+				if (pressure > 850 && pressure < 1200)
 				{
 					DoStationPressure(ConvertUnits.PressMBToUser(pressure));
 				}
