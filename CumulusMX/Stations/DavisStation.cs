@@ -2786,7 +2786,7 @@ namespace CumulusMX.Stations
 								DoTrendValues(timestamp);
 
 								// we don't want to do the this for the first instant of the day
-								if (cumulus.StationOptions.CalculatedET && h != rollHour && timestamp.Minute != 0)
+								if (cumulus.StationOptions.CalculatedET && h != rollHour && timestamp.Minute == 0)
 								{
 									// Start of a new hour, and we want to calculate ET in Cumulus
 									CalculateEvapotranspiration(timestamp);
