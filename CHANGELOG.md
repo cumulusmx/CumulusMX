@@ -30,6 +30,7 @@ Nothing
 - Error in IMet station snow 24h at rollover
 - WMR200 catch-up wind run is 3.6 times too large
 - WS2300 resets the 9 am values at the first record, whatever the hour
+- Fix an error in the Cumulus MX calcutes ET for Davis VP2 station catch-up
 
 ### Package Updates
 

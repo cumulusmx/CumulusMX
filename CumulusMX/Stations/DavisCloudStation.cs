@@ -815,7 +815,7 @@ namespace CumulusMX.Stations
 					if (timestamp.Hour != cumulus.GetRolloverHour(timestamp) || timestamp.Minute != 0)
 					{
 						// Only log data if not in the roll-over hour and not on the hour
-						_ = cumulus.DoLogFile(timestamp, true);
+						_ = cumulus.DoLogFile(timestamp, false);
 					}
 					cumulus.MySqlRealtimeFile(999, false, timestamp);
 					cumulus.DoCustomIntervalLogs(timestamp);
