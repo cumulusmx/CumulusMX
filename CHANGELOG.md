@@ -26,6 +26,7 @@ Nothing
 - Saving/reading Custom HTTP uploads JSON state
 - Custom HTTP rollover entries 2-10 being added to the Custom Minutes list
 - JSON Extra station MQTT credentials (username/password) were not being encrypted in Cumulus.ini
+- IMet station windchill always in Celsius rather than user units
 
 ### Package Updates
 

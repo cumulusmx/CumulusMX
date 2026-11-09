@@ -860,7 +860,7 @@ namespace CumulusMX.Stations
 					DoOutdoorTemp(ConvertUnits.TempCToUser(temp1), now);
 					if (windspeed > -99)
 					{
-						var windchill = MeteoLib.WindChill(temp1, windspeed * 3.6);
+						var windchill = ConvertUnits.TempCToUser(MeteoLib.WindChill(temp1, windspeed * 3.6));
 						DoWindChill(windchill, now);
 					}
 				}
