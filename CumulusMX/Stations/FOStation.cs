@@ -408,6 +408,8 @@ namespace CumulusMX.Stations
 					{
 						Snow24h[i] = null;
 					}
+
+					snowhourdone = true;
 				}
 
 				// Indoor Humidity ======================================================
