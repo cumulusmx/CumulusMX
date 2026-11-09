@@ -2534,6 +2534,17 @@ namespace CumulusMX.Stations
 
 			// Do all the derived values after the primary data
 
+			// === Chill Hours ===
+			// update chill hours
+			if (station.OutdoorTemperature < cumulus.ChillHourThreshold && station.OutdoorTemperature > cumulus.ChillHourBase)
+			{
+				// add interval minutes to chill hours 
+				station.ChillHours += (rec.Value.Interval / 60.0);
+			}
+
+			// update heating/cooling degree days
+			station.UpdateDegreeDays(rec.Value.Interval);
+
 			// === Dewpoint ===
 			try
 			{
