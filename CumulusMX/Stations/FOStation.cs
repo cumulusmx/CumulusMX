@@ -440,7 +440,7 @@ namespace CumulusMX.Stations
 				}
 				else
 				{
-					DoStationPressure(historydata.stationPress);
+					DoStationPressure(ConvertUnits.PressMBToUser(historydata.stationPress));
 
 					if (cumulus.StationOptions.CalculateSLP)
 					{
