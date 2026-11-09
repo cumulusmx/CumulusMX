@@ -266,11 +266,11 @@ namespace CumulusMX.Stations
 				}
 
 				// 9am rollover items
-				if (h == 9 )
+				if (h != 9 )
 				{
 					rollover9amdone = false;
 				}
-				if (!rollover9amdone)
+				else if (!rollover9amdone)
 				{
 					Reset9amTemperatures(timestamp);
 					rollover9amdone = true;
