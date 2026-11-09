@@ -27,6 +27,9 @@ Nothing
 - Custom HTTP rollover entries 2-10 being added to the Custom Minutes list
 - JSON Extra station MQTT credentials (username/password) were not being encrypted in Cumulus.ini
 - IMet station windchill always in Celsius rather than user units
+- Error in IMet station snow 24h at rollover
+- WMR200 catch-up wind run is 3.6 times too large
+- WS2300 resets the 9 am values at the first record, whatever the hour
 
 ### Package Updates
 
