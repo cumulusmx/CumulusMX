@@ -4313,7 +4313,7 @@ namespace CumulusMX
 			RG11DTRmode = ini.GetValue("Station", "RG11DTRmode", true);
 
 			RG11Enabled2 = ini.GetValue("Station", "RG11Enabled2", false);
-			RG11Port2 = ini.GetValue("Station", "RG11port2Name", DefaultComportName);
+			RG11Port2 = ini.GetValue("Station", "RG11portName2", DefaultComportName);
 			RG11TBRmode2 = ini.GetValue("Station", "RG11TBRmode2", false);
 			RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0, 0.0);
 			RG11IgnoreFirst2 = ini.GetValue("Station", "RG11IgnoreFirst2", false);
