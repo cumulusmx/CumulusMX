@@ -4714,9 +4714,7 @@ namespace CumulusMX
 
 			// PHP upload options
 			FtpOptions.PhpUrl = ini.GetValue("FTP site", "PHP-URL", string.Empty);
-			FtpOptions.PhpSecret = ini.GetValue("FTP site", "PHP-Secret", string.Empty);
-			if (FtpOptions.PhpSecret == string.Empty)
-				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
+			FtpOptions.PhpSecret = ini.GetValue("FTP site", "PHP-Secret", Guid.NewGuid().ToString());
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", 2, 1);
 			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
