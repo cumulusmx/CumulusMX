@@ -130,6 +130,7 @@ namespace CumulusMX.Settings
 
 			var mqttsettings = new MqttConfig()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				server = cumulus.MQTT.Server,
 				port = cumulus.MQTT.Port,
 				username = cumulus.MQTT.Username,
@@ -144,6 +145,7 @@ namespace CumulusMX.Settings
 
 		private sealed class MqttConfig
 		{
+			public bool accessible { get; set; }
 			public string server { get; set; }
 			public int port { get; set; }
 			public string username { get; set; }

@@ -3817,6 +3817,16 @@ namespace CumulusMX.Stations
 						if (consoleclock > DateTime.MinValue)
 						{
 							cumulus.LogMessage("Console clock: " + consoleclock);
+							clockDiff = consoleclock.Subtract(DateTime.Now);
+
+							if (Math.Abs(clockDiff.TotalSeconds) < 15)
+							{
+								clockDiff = TimeSpan.FromSeconds(0);
+							}
+							else
+							{
+								cumulus.LogWarningMessage("Console clock: After setting, the clock difference is still > 15 seconds");
+							}
 						}
 						else
 						{
@@ -3837,6 +3847,9 @@ namespace CumulusMX.Stations
 			{
 				cumulus.LogWarningMessage("Console clock: Failed to read console time");
 			}
+
+			// Round to lowest minute (towards zero) - it's close enough
+			clockDiff = TimeSpan.FromTicks(clockDiff.Ticks / TimeSpan.TicksPerMinute * TimeSpan.TicksPerMinute);
 		}
 
 		/// <summary>
