@@ -4468,7 +4468,7 @@ namespace CumulusMX
 
 			if (!cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
 			{
-				return "{}";
+				return incremental ? null : "{}" ;
 			}
 
 			/* returns data in the form of an object with properties for each data series

@@ -32,6 +32,7 @@ Nothing
 - WS2300 resets the 9 am values at the first record, whatever the hour
 - Fix an error in the Cumulus MX calcutes ET for Davis VP2 station catch-up
 - Fix Davis VP2 still using the console clock difference from before the clock reset
+- Minor fix in `upload.php` for returned error codes
 
 ### Package Updates
 
