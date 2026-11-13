@@ -2487,7 +2487,7 @@ namespace CumulusMX
 				"usertempdata.json" => GetUserTempGraphData(incremental, false),
 				"co2sensordata.json" => GetCo2SensorGraphData(incremental, false),
 				"laserdepthdata.json" => GetLaserDepthGraphData(incremental, false),
-				"snow24data.json" => GetSnow24hGraphData(incremental, false),
+				"snow24hdata.json" => GetSnow24hGraphData(incremental, false),
 				_ => "{}",
 			};
 		}
