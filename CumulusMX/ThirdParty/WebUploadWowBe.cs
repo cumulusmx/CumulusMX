@@ -144,7 +144,7 @@ namespace CumulusMX.ThirdParty
 				bodyObj.Add("model", cumulus.StationModel);
 
 			if (station.Pressure > 0)
-				bodyObj.Add("baromin", Math.Round(ConvertUnits.UserPressToIN(station.Pressure), 1));
+				bodyObj.Add("baromin", Math.Round(ConvertUnits.UserPressToIN(station.Pressure), 3));
 
 			bodyObj.Add("dailyrainin", Math.Round(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight), 2));
 			bodyObj.Add("rainin", Math.Round(ConvertUnits.UserRainToIN(station.RainLastHour), 2));

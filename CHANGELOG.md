@@ -34,6 +34,7 @@ Nothing
 - Fix Davis VP2 still using the console clock difference from before the clock reset
 - Minor fix in `upload.php` for returned error codes
 - The graph file `snow24hdata.json` being empty
+- WOW-BE was only uploading the pressure to 1dp of inHg
 
 ### Package Updates
 
