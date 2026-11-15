@@ -479,14 +479,21 @@ namespace CumulusMX.Stations
 
 				try
 				{
-					if (data["model"].Contains("_V"))
+					if (data["model"].Contains("_V") || data["stationtype"].Contains("_V"))
 					{
 						var modelVer = data["model"].Split("_V");
+						var stationVer = data["stationtype"].Split("_V");
+						deviceModel = modelVer[0];
+
 						if (modelVer.Length == 2)
 						{
-							deviceModel = modelVer[0];
 							deviceFirmware = new Version(modelVer[1]);
 							GW1000FirmwareVersion = modelVer[1];
+						}
+						else if (stationVer.Length == 2)
+						{
+							deviceFirmware = new Version(stationVer[1]);
+							GW1000FirmwareVersion = stationVer[1];
 						}
 					}
 					else
