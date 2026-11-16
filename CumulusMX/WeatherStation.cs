@@ -2242,6 +2242,11 @@ namespace CumulusMX
 			if (!DataStopped)
 			{
 				CheckUserAlarms();
+
+				if (cumulus.PurpleAirEnabled && cumulus.purpleAir is not null)
+				{
+					cumulus.purpleAir.GetPaLiveData();
+				}
 			}
 
 			// If not on windows, check for CPU temp

@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
 
 
 namespace CumulusMX.Stations
@@ -12,9 +11,6 @@ namespace CumulusMX.Stations
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
 
-		private readonly System.Timers.Timer tmrCurrent;
-
-		private int taskCancelledCount = 0;
 		private bool updateInProgress;
 
 		private readonly JsonSerializerOptions jsonOptions = new();
@@ -25,8 +21,6 @@ namespace CumulusMX.Stations
 			this.station = station;
 
 			cumulus.LogMessage($"Extra Sensor = PurpleAir");
-
-			tmrCurrent = new System.Timers.Timer();
 
 			jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
 			jsonOptions.Converters.Add(new JsonConverters.JsonDoubleConverter());
@@ -40,13 +34,13 @@ namespace CumulusMX.Stations
 			try
 			{
 				// Get the live values immediately to populate the web tags
-				GetPaLiveData(null, null);
-
-				// Create a current conditions thread to poll readings every 30 seconds
-				tmrCurrent.Elapsed += GetPaLiveData;
-				tmrCurrent.Interval = 59.5 * 1000;  // Every 59.5 seconds
-				tmrCurrent.AutoReset = true;
-				tmrCurrent.Start();
+				// The PA locks up if we poll it at the same time it is uploading - on the minute
+				// It is normally polled at 10 seconds past the minute, so only do this if we are after that and before 5 seconds to the minute
+				var now = DateTime.Now;
+				if (now.Second > 10 && now.Second < 55)
+				{
+					GetPaLiveData();
+				}
 			}
 			catch (ThreadAbortException)
 			{
@@ -60,8 +54,6 @@ namespace CumulusMX.Stations
 			try
 			{
 				cumulus.LogMessage("PurpleAir Stopping");
-				tmrCurrent.Stop();
-				cumulus.LogMessage("PurpleAir Stopped");
 			}
 			catch
 			{
@@ -69,7 +61,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private async void GetPaLiveData(object source, ElapsedEventArgs e)
+		public async void GetPaLiveData()
 		{
 			if (updateInProgress)
 			{
@@ -87,40 +79,34 @@ namespace CumulusMX.Stations
 					{
 						var url = $"http://{cumulus.PurpleAirIpAddress[i]}/json";
 
-						cumulus.LogDebugMessage("GetPaLiveData: Sending live data request - " + url);
+						cumulus.LogDebugMessage($"GetPaLiveData[{i + 1}]: Sending live data request - {url}");
 
-						using (var cts = new CancellationTokenSource(new TimeSpan(0, 0, 5)))
-						using (var response = await cumulus.MyHttpClient.GetAsync(url, cts.Token))
+						using var cts = new CancellationTokenSource(new TimeSpan(0, 0, 5));
+						using var request = new HttpRequestMessage()
 						{
-							response.EnsureSuccessStatusCode();
-							var responseBody = await response.Content.ReadAsStringAsync();
+							RequestUri = new Uri(url),
+							Method = HttpMethod.Get,
+						};
+						request.Headers.ConnectionClose = true;
 
-							if (string.IsNullOrWhiteSpace(responseBody))
-							{
-								cumulus.LogMessage("GetPaLiveData: Error, an empty reponse received from the PA sensor");
-							}
-							else if (responseBody[0] != '{')
-							{
-								cumulus.LogMessage("GetPaLiveData: Error, an invalid reponse received from the PA sensor");
-								cumulus.LogMessage("GetPaLiveData:  Response = " + responseBody);
-							}
-							else
-							{
-								cumulus.LogDataMessage($"GetPaLiveData: Response = {responseBody}");
-								DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
-							}
+						using var response = await cumulus.MyHttpClient.GetAsync(url, cts.Token);
+						response.EnsureSuccessStatusCode();
+						var responseBody = await response.Content.ReadAsStringAsync();
+
+						if (string.IsNullOrWhiteSpace(responseBody))
+						{
+							cumulus.LogMessage($"GetPaLiveData[{i + 1}]: Error, an empty reponse received from the PA sensor");
 						}
-						taskCancelledCount = 0;
-					}
-				}
-				catch (TaskCanceledException ex)
-				{
-					taskCancelledCount++;
-					if (taskCancelledCount > 3)
-					{
-						cumulus.LogExceptionMessage(ex, "GetPaLiveData: Error - Request failed four times in a row");
-						taskCancelledCount = 0;
-
+						else if (responseBody[0] != '{')
+						{
+							cumulus.LogMessage($"GetPaLiveData[{i + 1}]: Error, an invalid reponse received from the PA sensor");
+							cumulus.LogMessage($"GetPaLiveData[{i + 1}]:  Response = {responseBody}");
+						}
+						else
+						{
+							cumulus.LogDataMessage($"GetPaLiveData[{i + 1}]: Response = {responseBody}");
+							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
+						}
 					}
 				}
 				catch (Exception ex)
