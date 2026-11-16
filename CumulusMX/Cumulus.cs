@@ -14911,7 +14911,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, "CustomHttpSeconds: Error occurred");
+						LogExceptionMessage(ex, $"CustomHttpSeconds[{count}]: Error occurred");
 					}
 					finally
 					{
@@ -14992,7 +14992,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, "CustomHttpMinutes: Error ocurred");
+						LogExceptionMessage(ex, $"CustomHttpMinutes[{count}]: Error ocurred");
 					}
 					finally
 					{
@@ -15065,7 +15065,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, "CustomHttpRollover: Error occurred");
+						LogExceptionMessage(ex, $"CustomHttpRollover[{count}]: Error occurred");
 					}
 					finally
 					{
