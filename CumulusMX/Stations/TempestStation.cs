@@ -351,12 +351,15 @@ namespace CumulusMX.Stations
 							ConvertUnits.WindMSToUser((double) wp.Observation.WindAverage),
 							ts);
 
+
+						DoStationPressure(ConvertUnits.PressMBToUser((double) wp.Observation.StationPressure));
+						// Calculate MSLP using the calibrated station pressure
 						var alt = ConvertUnits.AltitudeM(cumulus.Altitude);
 						var avgTemp = CalculateBaro12hAvgTemp(ts);
-						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
-						DoStationPressure(ConvertUnits.PressMBToUser((double) wp.Observation.StationPressure));
+						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, StationPressure, ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
-						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
+						cumulus.LogDebugMessage($"TempestPressure: RawStation:{wp.Observation.StationPressure} mb, CalStation:{StationPressure} mb,MSLP:{seaLevel} mb, Altitude:{alt} m");
+
 						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 						{
 							DoSolarRad(wp.Observation.SolarRadiation, ts);

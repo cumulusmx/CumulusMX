@@ -36,6 +36,7 @@ Nothing
 - The graph file `snow24hdata.json` being empty
 - WOW-BE was only uploading the pressure to 1dp of inHg
 - Changes to Purple Air polling to avoid clashes with its uploads
+- Fix Tempest station pressure calibration not being carried into MSLP calculation
 
 ### Package Updates
 
