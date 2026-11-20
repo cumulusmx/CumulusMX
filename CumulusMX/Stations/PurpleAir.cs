@@ -35,9 +35,9 @@ namespace CumulusMX.Stations
 			{
 				// Get the live values immediately to populate the web tags
 				// The PA locks up if we poll it at the same time it is uploading - on the minute
-				// It is normally polled at 10 seconds past the minute, so only do this if we are after that and before 5 seconds to the minute
+				// It is normally polled at 30 seconds past the minute, so only do this if we are near that window
 				var now = DateTime.Now;
-				if (now.Second > 10 && now.Second < 55)
+				if (now.Second > 20 && now.Second < 40)
 				{
 					GetPaLiveData();
 				}
@@ -81,7 +81,7 @@ namespace CumulusMX.Stations
 
 						cumulus.LogDebugMessage($"GetPaLiveData[{i + 1}]: Sending live data request - {url}");
 
-						using var cts = new CancellationTokenSource(new TimeSpan(0, 0, 5));
+						using var cts = new CancellationTokenSource(new TimeSpan(0, 0, 20));
 						using var request = new HttpRequestMessage()
 						{
 							RequestUri = new Uri(url),
@@ -100,7 +100,7 @@ namespace CumulusMX.Stations
 						else if (responseBody[0] != '{')
 						{
 							cumulus.LogMessage($"GetPaLiveData[{i + 1}]: Error, an invalid reponse received from the PA sensor");
-							cumulus.LogMessage($"GetPaLiveData[{i + 1}]:  Response = {responseBody}");
+							cumulus.LogMessage($"GetPaLiveData[{i + 1}]: Response = {responseBody}");
 						}
 						else
 						{

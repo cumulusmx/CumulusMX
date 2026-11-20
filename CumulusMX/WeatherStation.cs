@@ -1824,6 +1824,11 @@ namespace CumulusMX
 				MinutePlus10Changed();
 			}
 
+			if (millisecs >= 30000 && millisecs < 30500)
+			{
+				MinutePlus30Changed();
+			}
+
 			if (cumulus.MySqlFuncs.MySqlSettings.CustomSecs.Enabled && (int) timeNow.TimeOfDay.TotalSeconds % cumulus.MySqlFuncs.MySqlSettings.CustomSecs.Interval == 0)
 			{
 				cumulus.CustomMysqlSecondsChanged();
@@ -2242,11 +2247,6 @@ namespace CumulusMX
 			if (!DataStopped)
 			{
 				CheckUserAlarms();
-
-				if (cumulus.PurpleAirEnabled && cumulus.purpleAir is not null)
-				{
-					cumulus.purpleAir.GetPaLiveData();
-				}
 			}
 
 			// If not on windows, check for CPU temp
@@ -2269,6 +2269,17 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogDebugMessage($"Error reading CPU temperature - {ex.Message}");
+			}
+		}
+
+		private void MinutePlus30Changed()
+		{
+			if (!DataStopped)
+			{
+				if (cumulus.PurpleAirEnabled && cumulus.purpleAir is not null)
+				{
+					cumulus.purpleAir.GetPaLiveData();
+				}
 			}
 		}
 
@@ -12501,6 +12512,12 @@ namespace CumulusMX
 		public static string PressINstr(double pressure)
 		{
 			return ConvertUnits.UserPressToIN(pressure).ToString("F3", CultureInfo.InvariantCulture);
+		}
+
+		public static string PresshPastr(double pressure)
+		{
+			// return value to hPa
+			return ConvertUnits.UserPressToMB(pressure).ToString("F1", CultureInfo.InvariantCulture);
 		}
 
 		public static string PressPAstr(double pressure)
