@@ -3507,33 +3507,32 @@ namespace CumulusMX
 
 		public bool IsMoonUp()
 		{
-			// Moon down all day
-			if (MoonRiseTime == TimeSpan.FromHours(-1) && MoonSetTime == TimeSpan.FromHours(-1))
+			var now = DateTime.Now.TimeOfDay;
+			var down = TimeSpan.FromHours(-1);
+			var up = TimeSpan.FromHours(-2);
+
+			// Always down
+			if (MoonRiseTime == down && MoonSetTime == down)
 				return false;
 
-			// Moon up all day
-			if (MoonRiseTime == TimeSpan.FromHours(-2) && MoonSetTime == TimeSpan.FromHours(-2))
+			// Always up
+			if (MoonRiseTime == up && MoonSetTime == up)
 				return true;
 
-			TimeSpan current = DateTime.Now.TimeOfDay;
+			// Up at midnight, sets today
+			if (MoonRiseTime == up)
+				return now < MoonSetTime;
 
-			// Already up at midnight, sets later
-			if (MoonRiseTime == TimeSpan.FromHours(-2))
-				return current < MoonSetTime;
+			// Down at midnight, rises today and never sets
+			if (MoonSetTime == down)
+				return now >= MoonRiseTime;
 
-			// Already down at midnight, rises later
-			if (MoonSetTime == TimeSpan.FromHours(-1))
-				return current >= MoonRiseTime;
-
-
-			// Normal case: rise before set
+			// Normal rise/set pair
 			if (MoonRiseTime < MoonSetTime)
-			{
-				return current >= MoonRiseTime && current < MoonSetTime;
-			}
+				return now >= MoonRiseTime && now < MoonSetTime;
 
-			// Rise today, set tomorrow
-			return current >= MoonRiseTime || current < MoonSetTime;
+			// Sets today, then rises
+			return now >= MoonRiseTime || now < MoonSetTime;
 		}
 
 		public double MoonAge { get; set; }
