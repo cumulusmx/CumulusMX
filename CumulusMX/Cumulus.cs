@@ -3517,9 +3517,6 @@ namespace CumulusMX
 
 			TimeSpan current = DateTime.Now.TimeOfDay;
 
-			bool riseMissing = MoonRiseTime < TimeSpan.Zero;
-			bool setMissing = MoonRiseTime < TimeSpan.Zero;
-
 			// Already up at midnight, sets later
 			if (MoonRiseTime == TimeSpan.FromHours(-2))
 				return current < MoonSetTime;

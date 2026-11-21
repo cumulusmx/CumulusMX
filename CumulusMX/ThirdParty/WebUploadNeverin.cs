@@ -355,7 +355,6 @@ namespace CumulusMX.ThirdParty
 			public string[] fields { get; set; }
 			public string[] extra { get; set; }
 			public int request_id { get; set; }
-			public 
 		}
 
 		private class ErrorResponse
