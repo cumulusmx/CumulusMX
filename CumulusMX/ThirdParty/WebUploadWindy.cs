@@ -28,8 +28,8 @@ namespace CumulusMX.ThirdParty
 			// Random jitter
 			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
-			string apistring;
-			string url = GetURL(out apistring, timestamp);
+			// API Key is sent in the header
+			string url = GetURL(out _, timestamp);
 
 			// we will try this twice in case the first attempt fails
 			var maxRetryAttempts = 2;

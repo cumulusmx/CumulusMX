@@ -326,6 +326,8 @@ namespace CumulusMX
 		internal ThirdParty.WebUploadOwm OpenWeatherMap;
 		internal string WxnowComment = string.Empty;
 
+		internal ThirdParty.WebUploadNeverin Neverin;
+
 		// MQTT settings
 		public struct MqttConfig
 		{
@@ -603,6 +605,7 @@ namespace CumulusMX
 			AWEKAS = new ThirdParty.WebUploadAwekas(this, "AWEKAS");
 			WCloud = new ThirdParty.WebUploadWCloud(this, "WCloud");
 			OpenWeatherMap = new ThirdParty.WebUploadOwm(this, "OpenWeatherMap");
+			Neverin = new ThirdParty.WebUploadNeverin(this, "Neverin");
 			Bluesky = new ThirdParty.WebUploadBlueSky(this, "BlueSky")
 			{
 				DefaultInterval = 60
@@ -1544,6 +1547,7 @@ namespace CumulusMX
 				AWEKAS.station = station;
 				WCloud.station = station;
 				OpenWeatherMap.station = station;
+				Neverin.station = station;
 				Bluesky.station = station;
 				Bluesky.CancelToken = Program.ExitSystemToken;
 
@@ -3400,8 +3404,34 @@ namespace CumulusMX
 			double[] moonriseset = MoonriseMoonset.MoonRise(now.Date, (double) Latitude, (double) Longitude);
 			// avoid DST issues - work in UTC and convert to local
 			var utcToday = now.Date.ToUniversalTime();
-			MoonRiseTime = utcToday.AddHours(moonriseset[0]).ToLocalTime().TimeOfDay;
-			MoonSetTime = utcToday.AddHours(moonriseset[1]).ToLocalTime().TimeOfDay;
+			if (moonriseset[0] == -1)
+			{
+				// No rise and Moon was down at 00:00
+				MoonRiseTime = TimeSpan.FromHours(-1);
+			}
+			else if (moonriseset[0] == -2)
+			{
+				// No rise and Moon was up at 00:00
+				MoonRiseTime = TimeSpan.FromHours(-2);
+			}
+			else
+			{
+				MoonRiseTime = utcToday.AddHours(moonriseset[0]).ToLocalTime().TimeOfDay;
+			}
+			if (moonriseset[1] == -1)
+			{
+				// No set and Moon was down at 00:00
+				MoonSetTime = TimeSpan.FromHours(-1);
+			}
+			else if (moonriseset[1] == -2)
+			{
+				// No set and Moon was up at 00:00
+				MoonSetTime = TimeSpan.FromHours(-2);
+			}
+			else
+			{
+				MoonSetTime = utcToday.AddHours(moonriseset[1]).ToLocalTime().TimeOfDay;
+			}
 
 			var moonPos = MoonriseMoonset.MoonPos(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour + utcNow.Minute / 60.0, (double) Latitude, (double) Longitude);
 
@@ -3473,6 +3503,40 @@ namespace CumulusMX
 					MoonImage.ReadyToCopy = true;
 				}
 			}
+		}
+
+		public bool IsMoonUp()
+		{
+			// Moon down all day
+			if (MoonRiseTime == TimeSpan.FromHours(-1) && MoonSetTime == TimeSpan.FromHours(-1))
+				return false;
+
+			// Moon up all day
+			if (MoonRiseTime == TimeSpan.FromHours(-2) && MoonSetTime == TimeSpan.FromHours(-2))
+				return true;
+
+			TimeSpan current = DateTime.Now.TimeOfDay;
+
+			bool riseMissing = MoonRiseTime < TimeSpan.Zero;
+			bool setMissing = MoonRiseTime < TimeSpan.Zero;
+
+			// Already up at midnight, sets later
+			if (MoonRiseTime == TimeSpan.FromHours(-2))
+				return current < MoonSetTime;
+
+			// Already down at midnight, rises later
+			if (MoonSetTime == TimeSpan.FromHours(-1))
+				return current >= MoonRiseTime;
+
+
+			// Normal case: rise before set
+			if (MoonRiseTime < MoonSetTime)
+			{
+				return current >= MoonRiseTime && current < MoonSetTime;
+			}
+
+			// Rise today, set tomorrow
+			return current >= MoonRiseTime || current < MoonSetTime;
 		}
 
 		public double MoonAge { get; set; }
@@ -3864,6 +3928,23 @@ namespace CumulusMX
 			return (DateTime.Now > SunSetTime) && (DateTime.Now <= Dusk);
 		}
 
+		/// <summary>
+		/// Returns the current daylight state
+		/// </summary>
+		/// <returns>
+		/// 0 = sun is up
+		/// 1 = dawn/dusk
+		/// 2 = night
+		/// </returns>
+		public int DaylightState()
+		{
+			if (IsSunUp())
+				return 0;
+			else if (IsDaylight())
+				return 1;
+			else
+				return 2;
+		}
 
 		private void ReadIniFile()
 		{
@@ -5149,6 +5230,19 @@ namespace CumulusMX
 			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", string.Empty);
 			OpenWeatherMap.Interval = ini.GetValue("OpenWeatherMap", "Interval", OpenWeatherMap.DefaultInterval, 1);
 
+			Neverin.Enabled = ini.GetValue("Neverin", "Enabled", false);
+			Neverin.PW = ini.GetValue("Neverin", "APIkey", string.Empty);
+			Neverin.Interval = ini.GetValue("Neverin", "Interval", (decimal) 60, (decimal) 2.5);
+			Neverin.SendUV = ini.GetValue("Neverin", "SendUV", false);
+			Neverin.SendSolar = ini.GetValue("Neverin", "SendSR", false);
+			Neverin.SendExtraTemp = ini.GetValue("Neverin", "SendExtraTemp", new bool[8]);
+			Neverin.SendExtraHum = ini.GetValue("Neverin", "SendExtraHum", new bool[8]);
+			Neverin.SendSoilTemp = ini.GetValue("Neverin", "SendSoilTemp", new bool[8]);
+			Neverin.SendSoilMoisture = ini.GetValue("Neverin", "SendSoilMoist", new bool[8]);
+			Neverin.SendLeafWetness = ini.GetValue("Neverin", "SendLeafWet", new bool[8]);
+			Neverin.SendAirQuality = ini.GetValue("Neverin", "SendAirQuality", false);
+			Neverin.SendLightning = ini.GetValue("Neverin", "SendLightning", false);
+
 			Bluesky.Enabled = ini.GetValue("Bluesky", "Enabled", false);
 			Bluesky.ID = ini.GetValue("Bluesky", "ID", string.Empty);
 			Bluesky.PW = ini.GetValue("Bluesky", "Password", string.Empty);
@@ -6212,6 +6306,7 @@ namespace CumulusMX
 					APRS.PW = Crypto.DecryptString(APRS.PW, Program.InstanceId, "APRS.PW");
 				}
 				OpenWeatherMap.PW = Crypto.DecryptString(OpenWeatherMap.PW, Program.InstanceId, "OpenWeatherMap.PW");
+				Neverin.PW = Crypto.DecryptString(Neverin.PW, Program.InstanceId, "Neverin.PW");
 				Bluesky.PW = Crypto.DecryptString(Bluesky.PW, Program.InstanceId, "Bluesky.PW");
 				MQTT.Username = Crypto.DecryptString(MQTT.Username, Program.InstanceId, "MQTT.Username");
 				MQTT.Password = Crypto.DecryptString(MQTT.Password, Program.InstanceId, "MQTT.Password");
@@ -6938,6 +7033,19 @@ namespace CumulusMX
 			ini.SetValue("WindGuru", "Password", Crypto.EncryptString(WindGuru.PW, Program.InstanceId, "WindGuru.PW"));
 			ini.SetValue("WindGuru", "Interval", WindGuru.Interval);
 			ini.SetValue("WindGuru", "SendRain", WindGuru.SendRain);
+
+			ini.SetValue("Neverin", "Enabled", Neverin.Enabled);
+			ini.SetValue("Neverin", "APIkey", Crypto.EncryptString(Neverin.PW, Program.InstanceId, "Neverin.PW"));
+			ini.SetValue("Neverin", "Interval", Neverin.Interval);
+			ini.SetValue("Neverin", "SendUV", Neverin.SendUV);
+			ini.SetValue("Neverin", "SendSR", Neverin.SendSolar);
+			ini.SetValue("Neverin", "SendExtraTemp", Neverin.SendExtraTemp);
+			ini.SetValue("Neverin", "SendExtraHum", Neverin.SendExtraHum);
+			ini.SetValue("Neverin", "SendSoilTemp", Neverin.SendSoilTemp);
+			ini.SetValue("Neverin", "SendSoilMoist", Neverin.SendSoilMoisture);
+			ini.SetValue("Neverin", "SendLeafWet", Neverin.SendLeafWetness);
+			ini.SetValue("Neverin", "SendAirQuality", Neverin.SendAirQuality);
+			ini.SetValue("Neverin", "SendLightning", Neverin.SendLightning);
 
 			ini.SetValue("Bluesky", "Enabled", Bluesky.Enabled);
 			ini.SetValue("Bluesky", "ID", Bluesky.ID);
@@ -9726,6 +9834,7 @@ namespace CumulusMX
 			try { Wund.IntTimer?.Stop(); } catch { /* do nothing */ }
 			try { WebTimer?.Stop(); } catch { /* do nothing */ }
 			try { AWEKAS.IntTimer?.Stop(); } catch { /* do nothing */ }
+			try { Neverin.IntTimer?.Stop(); } catch { /* do nothing */ }
 
 			try
 			{
@@ -14058,6 +14167,9 @@ namespace CumulusMX
 
 			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
 			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
+
+			Neverin.IntTimer.Interval = (double) Neverin.Interval * 1000;
+			Neverin.IntTimer.Enabled = Neverin.Enabled;
 
 			if (MySqlFuncs.MySqlList.IsEmpty)
 			{

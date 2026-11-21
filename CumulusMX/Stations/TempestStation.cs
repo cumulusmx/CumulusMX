@@ -357,8 +357,8 @@ namespace CumulusMX.Stations
 						var alt = ConvertUnits.AltitudeM(cumulus.Altitude);
 						var avgTemp = CalculateBaro12hAvgTemp(ts);
 						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, StationPressure, ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+						cumulus.LogDebugMessage($"TempestPressure: RawStation:{wp.Observation.StationPressure} hPa, CalStation:{ConvertUnits.UserPressToHpa(StationPressure)} hPa, MSLP:{seaLevel} hPa, Altitude:{alt} m");
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
-						cumulus.LogDebugMessage($"TempestPressure: RawStation:{wp.Observation.StationPressure} mb, CalStation:{StationPressure} mb,MSLP:{seaLevel} mb, Altitude:{alt} m");
 
 						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 						{

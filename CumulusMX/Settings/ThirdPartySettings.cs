@@ -325,6 +325,38 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// Neverin
+				try
+				{
+					cumulus.Neverin.Enabled = settings.neverin.enabled;
+					if (cumulus.Neverin.Enabled)
+					{
+						cumulus.Neverin.SendSolar = settings.neverin.includesolar;
+						cumulus.Neverin.SendUV = settings.neverin.includeuv;
+						cumulus.Neverin.SendAirQuality = settings.neverin.includeaq;
+						cumulus.Neverin.SendExtraTemp = settings.neverin.extratemp;
+						cumulus.Neverin.SendExtraHum = settings.neverin.extrahum;
+						cumulus.Neverin.SendSoilTemp = settings.neverin.soiltemp;
+						cumulus.Neverin.SendSoilMoisture = settings.neverin.soilmoist;
+						cumulus.Neverin.SendLeafWetness = settings.neverin.leafwet;
+						cumulus.Neverin.SendLightning = settings.neverin.lightning;
+						cumulus.Neverin.Interval = settings.neverin.interval;
+						cumulus.Neverin.PW = string.IsNullOrWhiteSpace(settings.neverin.password) ? string.Empty : settings.neverin.password.Trim();
+
+						cumulus.Neverin.IntTimer.Interval = (double) cumulus.Neverin.Interval * 1000;
+					}
+
+					cumulus.Neverin.IntTimer.Enabled = cumulus.Neverin.Enabled;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Neverin settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// BlueSky
 				try
 				{
@@ -597,6 +629,22 @@ namespace CumulusMX.Settings
 				interval = cumulus.WindGuru.Interval
 			};
 
+			var neverinsettings = new JsonNeverin()
+			{
+				enabled = cumulus.Neverin.Enabled,
+				includesolar = cumulus.Neverin.SendSolar,
+				includeuv = cumulus.Neverin.SendUV,
+				includeaq = cumulus.Neverin.SendAirQuality,
+				interval = cumulus.Neverin.Interval,
+				password = cumulus.Neverin.PW,
+				extratemp = cumulus.Neverin.SendExtraTemp,
+				extrahum = cumulus.Neverin.SendExtraHum,
+				soiltemp = cumulus.Neverin.SendSoilTemp,
+				soilmoist = cumulus.Neverin.SendSoilMoisture,
+				leafwet = cumulus.Neverin.SendLeafWetness,
+				lightning = cumulus.Neverin.SendLightning
+			};
+
 			if (File.Exists("web/Bluesky.txt"))
 			{
 				try
@@ -742,6 +790,7 @@ namespace CumulusMX.Settings
 				cwop = cwopsettings,
 				openweathermap = openweathermapsettings,
 				windguru = windgurusettings,
+				neverin = neverinsettings,
 				bluesky = blueskysettings,
 				customhttp = customhttp
 			};
@@ -762,6 +811,7 @@ namespace CumulusMX.Settings
 			public JsonWCloud weathercloud { get; set; }
 			public JsonOpenweatherMap openweathermap { get; set; }
 			public JsonWindGuru windguru { get; set; }
+			public JsonNeverin neverin { get; set; }
 			public JsonBlueSky bluesky { get; set; }
 			public JsonCustomHttpSettings customhttp { get; set; }
 		}
@@ -783,6 +833,22 @@ namespace CumulusMX.Settings
 			public int extratemp2 { get; set; }
 			public int extratemp3 { get; set; }
 			public int extratemp4 { get; set; }
+		}
+
+		private sealed class JsonNeverin
+		{
+			public bool enabled { get; set; }
+			public string password { get; set; }
+			public decimal interval { get; set; }
+			public bool includeuv { get; set; }
+			public bool includesolar { get; set; }
+			public bool includeaq { get; set; }
+			public bool lightning { get; set; }
+			public bool[] extratemp { get; set; } = new bool[8];
+			public bool[] extrahum { get; set; } = new bool[8];
+			public bool[] soiltemp { get; set; } = new bool[8];
+			public bool[] soilmoist { get; set; } = new bool[8];
+			public bool[] leafwet { get; set; } = new bool[8];
 		}
 
 		private sealed class JsonWindy

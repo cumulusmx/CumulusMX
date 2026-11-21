@@ -3740,6 +3740,11 @@ namespace CumulusMX
 			return cumulus.IsDusk() ? "1" : "0";
 		}
 
+		private string TagDaylightState(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DaylightState().ToString();
+		}
+
 		private string TagSensorContactLost(Dictionary<string, string> tagParams)
 		{
 			return station.SensorContactLost ? "1" : "0";
@@ -3758,6 +3763,11 @@ namespace CumulusMX
 		private string Tagmoonset(Dictionary<string, string> tagParams)
 		{
 			return cumulus.MoonSetTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonSetTime.TotalSeconds), cumulus.Trans.WebTagGenTime, tagParams);
+		}
+
+		private string TagIsMoonUp(Dictionary<string, string> tagParams)
+		{
+			return cumulus.IsMoonUp() ? "1" : "0";
 		}
 
 		private string Tagmoonphase(Dictionary<string, string> tagParams)
@@ -8164,9 +8174,11 @@ namespace CumulusMX
 				{ "IsSunUp", TagIsSunUp },
 				{ "IsDawn", TagIsDawn },
 				{ "IsDusk", TagIsDusk },
+				{ "DaylightState", TagDaylightState },
 				{ "SensorContactLost", TagSensorContactLost },
 				{ "moonrise", Tagmoonrise },
 				{ "moonset", Tagmoonset },
+				{ "IsMoonUp", TagIsMoonUp },
 				{ "moonphase", Tagmoonphase },
 				{ "chillhours", TagChillHours },
 				{ "chillhoursToday", TagChillHoursToday },
