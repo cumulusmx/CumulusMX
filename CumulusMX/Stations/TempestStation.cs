@@ -356,7 +356,11 @@ namespace CumulusMX.Stations
 						// Calculate MSLP using the calibrated station pressure
 						var alt = ConvertUnits.AltitudeM(cumulus.Altitude);
 						var avgTemp = CalculateBaro12hAvgTemp(ts);
-						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, StationPressure, ConvertUnits.UserTempToC(avgTemp), cumulus.Latitude);
+						var seaLevel = MeteoLib.GetSeaLevelPressure(
+							alt,
+							ConvertUnits.UserPressToHpa(StationPressure),
+							ConvertUnits.UserTempToC(avgTemp),
+							cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: RawStation:{wp.Observation.StationPressure} mb, CalStation:{StationPressure} mb,MSLP:{seaLevel} mb, Altitude:{alt} m");
 

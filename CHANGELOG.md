@@ -10,6 +10,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.2.2 \[b5029\] - 2026-11-22][39]
+
+### Fixed
+
+- PurpleAir polling time and allowed timeout
+- Tempest station sea level pressure
+
+---
+
 ## [5.2.1 \[b5027\] - 2026-11-17][38]
 
 ### New
@@ -1707,3 +1716,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [36]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5016
 [37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5026
 [38]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5027
+[39]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5029
