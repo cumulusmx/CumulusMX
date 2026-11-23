@@ -10,6 +10,39 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.3.0 \[b5030\] - 2026-12-20][40]
+
+## [5.3.0 \[b5029\] - 2026-11-25][39]
+
+### New
+
+- Adds two new web tags:
+	 `<#DaylightState>` - returns: 0 = Daylight, 1 = Dawn or Dusk, 2 = Night
+	 `<#IsMoonUp>` - returns: 0 = Below horizon, 1 = Above horizon
+
+- Adds support for Third Party uploads to the Neverin service
+
+### Changed
+
+- MQTT templates can now optionally have a full path to the template files
+
+### Fixed
+
+- Moon rise/set times when there is no rise/set/both events during the day
+
+### Package Updates
+
+- MailKit
+- Microsoft.Win32.SystemEvents
+- MySqlConnector
+- NLog.Extensions.Logging
+- SSH.NET
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
+
+---
+
 ## [5.2.2 \[b5029\] - 2026-11-22][39]
 
 ### Fixed
@@ -1717,3 +1750,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [37]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5026
 [38]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5027
 [39]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5029
+[40]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5030

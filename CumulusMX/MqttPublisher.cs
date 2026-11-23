@@ -129,8 +129,10 @@ namespace CumulusMX
 
 				if (cumulus.MQTT.EnableDataUpdate && !string.IsNullOrEmpty(cumulus.MQTT.UpdateTemplate))
 				{
-					// read the config file into memory
-					var template = "mqtt/" + cumulus.MQTT.UpdateTemplate;
+					// read the config file into memory - just filename assume local mqtt folder, otherwise use the path as supplied
+					var template = Path.GetDirectoryName(cumulus.MQTT.UpdateTemplate) == string.Empty
+						? "mqtt/" + cumulus.MQTT.UpdateTemplate
+						: cumulus.MQTT.UpdateTemplate;
 
 					if (File.Exists(template))
 					{
