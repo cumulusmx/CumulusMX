@@ -361,7 +361,7 @@ namespace CumulusMX.Stations
 							ConvertUnits.UserPressToHpa(StationPressure),
 							ConvertUnits.UserTempToC(avgTemp),
 							cumulus.Latitude);
-						cumulus.LogDebugMessage($"TempestPressure: RawStation:{wp.Observation.StationPressure} hPa, CalStation:{ConvertUnits.UserPressToHpa(StationPressure)} hPa, MSLP:{seaLevel} hPa, Altitude:{alt} m");
+						cumulus.LogDebugMessage($"TempestPressure: RawStation:{wp.Observation.StationPressure:F1} hPa, CalStation:{ConvertUnits.UserPressToHpa(StationPressure):F1} hPa, MSLP:{seaLevel:F1} hPa, Altitude:{alt:F0} m");
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 
 						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
