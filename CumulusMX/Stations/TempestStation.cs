@@ -390,7 +390,9 @@ namespace CumulusMX.Stations
 						UpdateStatusPanel(ts.ToUniversalTime());
 						UpdateMQTT();
 
-						cumulus.BatteryLowAlarm.Triggered = wp.Observation.BatteryVoltage <= 2.355M;
+						var battLow = wp.Observation.BatteryVoltage <= 2.355M;
+						LowBatteryDevices = battLow ? ["Tempest=" + wp.Observation.BatteryVoltage + "V"] : [];
+						cumulus.BatteryLowAlarm.Triggered = battLow;
 
 						break;
 					case WeatherPacket.MessageType.RapidWind:

@@ -24,6 +24,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - MQTT templates can now optionally have a full path to the template files
 - Improvements to the wind direction chart plots
+- Battery Low alarms now include a list of the device(s) currently reporting a low battery in the log, email, and Bluesky alarm messages
+	- Low battery devices are now reported for Ecowitt HTTP (custom server), Ambient HTTP, Tempest, WMR100, and WMR928 stations
 
 ### Fixed
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
@@ -585,7 +586,15 @@ namespace CumulusMX.Stations
 
 		private void CheckBatteryStatus()
 		{
-			if (IndoorBattStatus == 4 || WindBattStatus == 4 || RainBattStatus == 4 || TempBattStatus == 4 || UVBattStatus == 4)
+			var lowDevices = new List<string>();
+			if (IndoorBattStatus == 4) lowDevices.Add("Indoor=LOW");
+			if (WindBattStatus == 4) lowDevices.Add("Wind=LOW");
+			if (RainBattStatus == 4) lowDevices.Add("Rain=LOW");
+			if (TempBattStatus == 4) lowDevices.Add("Temp=LOW");
+			if (UVBattStatus == 4) lowDevices.Add("UV=LOW");
+			LowBatteryDevices = lowDevices;
+
+			if (lowDevices.Count > 0)
 			{
 				cumulus.BatteryLowAlarm.Triggered = true;
 			}

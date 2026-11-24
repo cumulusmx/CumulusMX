@@ -96,12 +96,18 @@ namespace CumulusMX
 					// If we were not set before, so we need to send an email?
 					if (!triggered)
 					{
-						if (Id == AlarmIds.BatteryLow && cumulus.Station.LowBatteryDevices.Count > 0)
+						// For battery low alarms, list the devices currently reporting a low battery
+						var lowBattDevices = string.Empty;
+						if (Id == AlarmIds.BatteryLow)
 						{
-							LastMessage += "\r\n" + string.Join(", ", cumulus.Station.LowBatteryDevices);
+							var devices = cumulus.Station?.LowBatteryDevices;
+							if (devices != null && devices.Count > 0)
+							{
+								lowBattDevices = string.Join(", ", devices);
+							}
 						}
 
-						cumulus.LogMessage($"Alarm ({Name}): Triggered, value = {value}, threshold = {Value}" + (string.IsNullOrEmpty(LastMessage) ? "" : $", Message = {LastMessage}"));
+						cumulus.LogMessage($"Alarm ({Name}): Triggered, value = {value}, threshold = {Value}" + (string.IsNullOrEmpty(LastMessage) ? "" : $", Message = {LastMessage}") + (string.IsNullOrEmpty(lowBattDevices) ? "" : $", Low battery devices = {lowBattDevices}"));
 
 						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 						{
@@ -112,6 +118,11 @@ namespace CumulusMX
 							};
 							var body = parser.ToStringFromString();
 							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + body;
+
+							if (!string.IsNullOrEmpty(lowBattDevices))
+							{
+								msg += "\r\nLow battery devices: " + lowBattDevices;
+							}
 
 							if (!string.IsNullOrEmpty(LastMessage))
 							{
@@ -175,6 +186,11 @@ namespace CumulusMX
 									if (template.Contains("|IncludeAlarmMessage|"))
 									{
 										var msg = EmailMsg ?? string.Empty;
+
+										if (!string.IsNullOrEmpty(lowBattDevices))
+										{
+											msg += "\r\nLow battery devices: " + lowBattDevices;
+										}
 
 										if (!string.IsNullOrEmpty(LastMessage))
 										{

@@ -1132,7 +1132,6 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				cumulus.BatteryLowAlarm.LastMessage = string.Join(",", LowBatteryDevices);
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}
 		}

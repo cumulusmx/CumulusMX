@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 
@@ -843,26 +844,38 @@ namespace CumulusMX.Stations
 			battrain		Rain Gauge [0 or 1]
 			*/
 
-			var lowBatt = false;
-			lowBatt = lowBatt || data["battout"] != null && data["battout"] == "0";
-			lowBatt = lowBatt || data["battin"] != null && data["battin"] == "0";
-			lowBatt = lowBatt || data["batt_25"] != null && data["batt_25"] == "0";
-			lowBatt = lowBatt || data["batt_25in"] != null && data["batt_25in"] == "0";
-			lowBatt = lowBatt || data["batt_lightning"] != null && data["batt_lightning"] == "0";
-			lowBatt = lowBatt || data["battrain"] != null && data["battrain"] == "0";
-			for (var i = 1; i <= 4; i++)
+			var lowDevices = new List<string>();
+
+			// Ambient flags - 0 = low battery
+			void CheckFlag(string key)
 			{
-				lowBatt = lowBatt || data["batt" + i] != null && data["batt" + i] == "0";
-				lowBatt = lowBatt || data["batleak" + i] != null && data["batleak" + i] == "0";
-				lowBatt = lowBatt || data["battsm" + i] != null && data["battsm" + i] == "0";
-			}
-			for (var i = 5; i <= 10; i++)
-			{
-				lowBatt = lowBatt || data["batt" + i] != null && data["batt" + i] == "0";
-				lowBatt = lowBatt || data["battr" + i] != null && data["battr" + i] == "0";
+				if (data[key] != null && data[key] == "0")
+					lowDevices.Add(key + "=LOW");
 			}
 
-			cumulus.BatteryLowAlarm.Triggered = lowBatt;
+			CheckFlag("battout");
+			CheckFlag("battin");
+			CheckFlag("batt_25");
+			CheckFlag("batt_25in");
+			CheckFlag("batt_lightning");
+			CheckFlag("battrain");
+			for (var i = 1; i <= 10; i++)
+			{
+				CheckFlag("batt" + i);
+				CheckFlag("battr" + i);
+			}
+			for (var i = 1; i <= 4; i++)
+			{
+				CheckFlag("batleak" + i);
+				CheckFlag("battsm" + i);
+			}
+
+			if (mainStation)
+			{
+				LowBatteryDevices = lowDevices;
+			}
+
+			cumulus.BatteryLowAlarm.Triggered = lowDevices.Count > 0;
 		}
 
 		private static void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)

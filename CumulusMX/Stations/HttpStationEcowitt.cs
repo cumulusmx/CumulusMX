@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
@@ -1653,41 +1654,54 @@ namespace CumulusMX.Stations
 
 		private void ProcessBatteries(NameValueCollection data)
 		{
-			var lowBatt = false;
-			lowBatt = lowBatt || (data["wh25batt"] != null && data["wh25batt"] == "1");
-			lowBatt = lowBatt || (data["wh26batt"] != null && data["wh26batt"] == "1");
-			lowBatt = lowBatt || (data["wh40batt"] != null && data["wh40batt"] == "1");
-			lowBatt = lowBatt || (data["wh40batt"] != null && data["wh40batt"] == "1");
-			lowBatt = lowBatt || (data["wh57batt"] != null && data["wh57batt"] == "1");
-			lowBatt = lowBatt || (data["wh65batt"] != null && data["wh65batt"] == "1");
-			lowBatt = lowBatt || (data["wh68batt"] != null && Convert.ToDouble(data["wh68batt"], invNum) <= 1.2);
-			lowBatt = lowBatt || (data["wh80batt"] != null && Convert.ToDouble(data["wh80batt"], invNum) <= 1.2);
-			lowBatt = lowBatt || (data["wh90batt"] != null && Convert.ToDouble(data["wh90batt"], invNum) <= 2.4);
-			for (var i = 1; i < 5; i++)
+			var lowDevices = new List<string>();
+
+			// flag sensors - 1 = low battery
+			void CheckFlag(string key)
 			{
-				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
-				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["pm25batt" + i] != null && data["pm25batt" + i] == "1");
-				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
-				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["ldsbatt" + i] != null && Convert.ToDouble(data["ldsbatt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
-			}
-			for (var i = 5; i < 9; i++)
-			{
-				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
-				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
-			}
-			for (var i = 9;  i < 17; i++)
-			{
-				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
+				if (data[key] != null && data[key] == "1")
+					lowDevices.Add(key + "=LOW");
 			}
 
-			cumulus.BatteryLowAlarm.Triggered = lowBatt;
+			// voltage sensors - low if at or below the threshold
+			void CheckVolts(string key, double threshold)
+			{
+				if (data[key] != null && double.TryParse(data[key], NumberStyles.Float, invNum, out var volts) && volts <= threshold)
+					lowDevices.Add(key + "=" + data[key] + "V");
+			}
+
+			CheckFlag("wh25batt");
+			CheckFlag("wh26batt");
+			CheckFlag("wh40batt");
+			CheckFlag("wh57batt");
+			CheckFlag("wh65batt");
+			CheckVolts("wh68batt", 1.2);
+			CheckVolts("wh80batt", 1.2);
+			CheckVolts("wh90batt", 2.4);
+			for (var i = 1; i < 5; i++)
+			{
+				CheckFlag("pm25batt" + i);
+				CheckFlag("leakbatt" + i);
+				CheckVolts("ldsbatt" + i, 1.2);
+			}
+			for (var i = 1; i < 9; i++)
+			{
+				CheckFlag("batt" + i);
+				CheckVolts("soilbatt" + i, 1.2);
+				CheckVolts("tf_batt" + i, 1.2);
+				CheckVolts("leaf_batt" + i, 1.2);
+			}
+			for (var i = 1; i < 17; i++)
+			{
+				CheckVolts("soil_ec_batt" + i, 1.2);
+			}
+
+			if (mainStation)
+			{
+				LowBatteryDevices = lowDevices;
+			}
+
+			cumulus.BatteryLowAlarm.Triggered = lowDevices.Count > 0;
 		}
 
 		private static void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
