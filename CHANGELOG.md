@@ -12,8 +12,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [5.3.0 \[b5030\] - 2026-12-20][40]
 
-## [5.3.0 \[b5029\] - 2026-11-25][39]
-
 ### New
 
 - Adds two new web tags:
@@ -25,6 +23,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - MQTT templates can now optionally have a full path to the template files
+- Improvements to the wind direction chart plots
 
 ### Fixed
 
@@ -312,7 +311,7 @@ Version 5.1.3 also addresses some issues identified in the withdrawn 5.1.2 relea
 
 ---
 
-## 5.1.1 [b5009] - 2026-05-25
+## 5.1.2 [b5009] - 2026-05-25
 
 Withdrawn
 
