@@ -324,9 +324,6 @@ namespace CumulusMX
 		// PWS Weather object
 		internal ThirdParty.WebUploadServiceBase PWS;
 
-		// WOW object
-		internal ThirdParty.WebUploadWow WOW;
-
 		// WOW-BE object
 		internal ThirdParty.WebUploadWowBe WOW_BE;
 
@@ -619,7 +616,6 @@ namespace CumulusMX
 			Windy = new ThirdParty.WebUploadWindy(this, "Windy");
 			WindGuru = new ThirdParty.WebUploadWindGuru(this, "WindGuru");
 			PWS = new ThirdParty.WebUploadPws(this, "PWS");
-			WOW = new ThirdParty.WebUploadWow(this, "WOW");
 			WOW_BE = new ThirdParty.WebUploadWowBe(this, "WOW-BE");
 			APRS = new ThirdParty.WebUploadAprs(this, "APRS");
 			AWEKAS = new ThirdParty.WebUploadAwekas(this, "AWEKAS");
@@ -1561,7 +1557,6 @@ namespace CumulusMX
 				Windy.station = station;
 				WindGuru.station = station;
 				PWS.station = station;
-				WOW.station = station;
 				WOW_BE.station = station;
 				APRS.station = station;
 				AWEKAS.station = station;
@@ -5206,18 +5201,6 @@ namespace CumulusMX
 			PWS.SendSolar = ini.GetValue("PWSweather", "SendSR", false);
 			PWS.CatchUp = ini.GetValue("PWSweather", "CatchUp", true);
 
-			WOW.ID = ini.GetValue("WOW", "ID", string.Empty);
-			WOW.PW = ini.GetValue("WOW", "Password", string.Empty);
-			WOW.Enabled = ini.GetValue("WOW", "Enabled", false);
-			WOW.Interval = ini.GetValue("WOW", "Interval", WOW.DefaultInterval, 1);
-			WOW.SendUV = ini.GetValue("WOW", "SendUV", false);
-			WOW.SendSolar = ini.GetValue("WOW", "SendSR", false);
-			WOW.SendSoilTemp = ini.GetValue("WOW", "SendSoilTemp", false);
-			WOW.SoilTempSensor = ini.GetValue("WOW", "SoilTempSensor", 1, 1, 16);
-			WOW.SendSoilMoisture = ini.GetValue("WOW", "SendSoilMoist", false);
-			WOW.SoilMoistureSensor = ini.GetValue("WOW", "SoilMoistSensor", 1, 1, 16);
-			WOW.CatchUp = false;
-
 			WOW_BE.ID = ini.GetValue("WOW-BE", "ID", string.Empty);
 			WOW_BE.PW = ini.GetValue("WOW-BE", "Password", string.Empty);
 			WOW_BE.Enabled = ini.GetValue("WOW-BE", "Enabled", false);
@@ -6315,7 +6298,6 @@ namespace CumulusMX
 				WindGuru.PW = Crypto.DecryptString(WindGuru.PW, Program.InstanceId, "WindGuru.PW");
 				WCloud.PW = Crypto.DecryptString(WCloud.PW, Program.InstanceId, "WCloud.PW");
 				PWS.PW = Crypto.DecryptString(PWS.PW, Program.InstanceId, "PWS.PW");
-				WOW.PW = Crypto.DecryptString(WOW.PW, Program.InstanceId, "WOW.PW");
 				WOW_BE.PW = Crypto.DecryptString(WOW_BE.PW, Program.InstanceId, "WOW-BE.PW");
 				if (APRS.PW != "-1")
 				{
@@ -7004,20 +6986,8 @@ namespace CumulusMX
 			ini.SetValue("PWSweather", "SendSR", PWS.SendSolar);
 			ini.SetValue("PWSweather", "CatchUp", PWS.CatchUp);
 
-			ini.SetValue("WOW", "ID", WOW.ID);
-			ini.SetValue("WOW", "Password", Crypto.EncryptString(WOW.PW, Program.InstanceId, "WOW.PW"));
-			ini.SetValue("WOW", "Enabled", WOW.Enabled);
-			ini.SetValue("WOW", "Interval", WOW.Interval);
-			ini.SetValue("WOW", "SendUV", WOW.SendUV);
-			ini.SetValue("WOW", "SendSR", WOW.SendSolar);
-			ini.SetValue("WOW", "SendSoilTemp", WOW.SendSoilTemp);
-			ini.SetValue("WOW", "SoilTempSensor", WOW.SoilTempSensor);
-			ini.SetValue("WOW", "SendSoilMoist", WOW.SendSoilMoisture);
-			ini.SetValue("WOW", "SoilMoistSensor", WOW.SoilMoistureSensor);
-			ini.SetValue("WOW", "CatchUp", false);
-
 			ini.SetValue("WOW-BE", "ID", WOW_BE.ID);
-			ini.SetValue("WOW-BE", "Password", Crypto.EncryptString(WOW_BE.PW, Program.InstanceId, "WOW.PW"));
+			ini.SetValue("WOW-BE", "Password", Crypto.EncryptString(WOW_BE.PW, Program.InstanceId, "WOW-BE.PW"));
 			ini.SetValue("WOW-BE", "Enabled", WOW_BE.Enabled);
 			ini.SetValue("WOW-BE", "Interval", WOW_BE.Interval);
 			ini.SetValue("WOW-BE", "SendUV", WOW_BE.SendUV);
@@ -14743,53 +14713,6 @@ namespace CumulusMX
 		}
 
 		/*
-		public async Task UpdateWOW(DateTime timestamp)
-		{
-			if (!WOW.Updating)
-			{
-				WOW.Updating = true;
-
-				string pwstring;
-				string URL = station.GetWOWURL(out pwstring, timestamp);
-
-				string starredpwstring = "&siteAuthenticationKey=" + new string('*', WOW.PW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-				LogDebugMessage("WOW URL = " + LogURL);
-
-				try
-				{
-					using var response = await MyHttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
-					{
-						var msg = $"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}";
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-					else
-					{
-						LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
-						ThirdPartyAlarm.Triggered = false;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "WOW update: " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-				finally
-				{
-					WOW.Updating = false;
-				}
-			}
-		}
-		*/
-
-		/*
 		public async Task MySqlCommandAsync(string Cmd, string CallingFunction)
 		{
 			var Cmds = new ConcurrentQueue<SqlCache>();
@@ -15222,7 +15145,6 @@ namespace CumulusMX
 			Wund.AddToList(timestamp);
 			//Windy.AddToList(timestamp);
 			PWS.AddToList(timestamp);
-			//WOW.AddToList(timestamp)
 			OpenWeatherMap.AddToList(timestamp);
 		}
 

@@ -2149,11 +2149,6 @@ namespace CumulusMX
 						_ = cumulus.PWS.DoUpdate(now);
 					}
 
-					if (cumulus.WOW.Enabled && now.Minute % cumulus.WOW.Interval == 0 && !string.IsNullOrWhiteSpace(cumulus.WOW.ID) && !string.IsNullOrWhiteSpace(cumulus.WOW.PW))
-					{
-						_ = cumulus.WOW.DoUpdate(now);
-					}
-
 					if (cumulus.WOW_BE.Enabled && now.Minute % cumulus.WOW_BE.Interval == 0 && !string.IsNullOrWhiteSpace(cumulus.WOW_BE.ID) && !string.IsNullOrWhiteSpace(cumulus.WOW_BE.PW))
 					{
 						_ = cumulus.WOW_BE.DoUpdate(now);

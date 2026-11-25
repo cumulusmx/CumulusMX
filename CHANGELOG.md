@@ -22,6 +22,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
+- Removed Third Party uploads to the Met Office WOW service (WOW-BE uploads are unaffected)
 - MQTT templates can now optionally have a full path to the template files
 - Improvements to the wind direction chart plots
 - Battery Low alarms now include a list of the device(s) currently reporting a low battery - from the main station and any extra sensor stations - in the log, email, and Bluesky alarm messages

@@ -191,42 +191,6 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
-				// WOW
-				try
-				{
-					cumulus.WOW.Enabled = settings.wow.enabled;
-					if (cumulus.WOW.Enabled)
-					{
-						cumulus.WOW.SendSolar = settings.wow.includesolar;
-						cumulus.WOW.SendUV = settings.wow.includeuv;
-						cumulus.WOW.SendSoilTemp = settings.wow.includesoiltemp;
-						cumulus.WOW.SoilTempSensor = settings.wow.soiltempsensor;
-						cumulus.WOW.SendSoilMoisture = settings.wow.includesoilmoisture;
-						cumulus.WOW.SoilMoistureSensor = settings.wow.soilmoistsensor;
-
-						if (settings.wow.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wow.soilmoistsensor] != "%")
-						{
-							var msg = "WOW Settings: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
-							cumulus.LogMessage(msg);
-							errorMsg += msg + "\n\n";
-
-							cumulus.WOW.SendSoilMoisture = false;
-							cumulus.WOW.SoilMoistureSensor = 0;
-						}
-						cumulus.WOW.Interval = settings.wow.interval;
-						cumulus.WOW.PW = string.IsNullOrWhiteSpace(settings.wow.password) ? string.Empty : settings.wow.password.Trim();
-						cumulus.WOW.ID = string.IsNullOrWhiteSpace(settings.wow.stationid) ? string.Empty : settings.wow.stationid.Trim();
-						cumulus.WOW.CatchUp = settings.wow.catchup;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing WOW settings: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// WOW-BE
 				try
 				{
@@ -570,21 +534,6 @@ namespace CumulusMX.Settings
 				stationid = cumulus.PWS.ID
 			};
 
-			var wowsettings = new JsonWow()
-			{
-				catchup = cumulus.WOW.CatchUp,
-				enabled = cumulus.WOW.Enabled,
-				includesolar = cumulus.WOW.SendSolar,
-				includeuv = cumulus.WOW.SendUV,
-				soiltempsensor = cumulus.WOW.SoilTempSensor,
-				includesoiltemp = cumulus.WOW.SendSoilTemp,
-				includesoilmoisture = cumulus.WOW.SendSoilMoisture,
-				soilmoistsensor = cumulus.WOW.SoilMoistureSensor,
-				interval = cumulus.WOW.Interval,
-				password = cumulus.WOW.PW,
-				stationid = cumulus.WOW.ID
-			};
-
 			var wowbesettings = new JsonWow()
 			{
 				catchup = cumulus.WOW_BE.CatchUp,
@@ -785,7 +734,6 @@ namespace CumulusMX.Settings
 				awekas = awekassettings,
 				weathercloud = wcloudsettings,
 				pwsweather = pwssettings,
-				wow = wowsettings,
 				wowbe = wowbesettings,
 				cwop = cwopsettings,
 				openweathermap = openweathermapsettings,
@@ -804,7 +752,6 @@ namespace CumulusMX.Settings
 			public JsonWunderground wunderground { get; set; }
 			public JsonWindy windy { get; set; }
 			public JsonPWSweather pwsweather { get; set; }
-			public JsonWow wow { get; set; }
 			public JsonWow wowbe { get; set; }
 			public JsonCwop cwop { get; set; }
 			public JsonAwekas awekas { get; set; }
