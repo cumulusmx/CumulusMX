@@ -284,7 +284,9 @@ namespace CumulusMX.Stations
 											var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 											cumulus.LogDebugMessage(msg);
 										}
-									} while ((bcastTask.Status < TaskStatus.RanToCompletion) && Program.ExitSystemToken.IsCancellationRequested);
+										// after a timeout, keep waiting on the same receive: a new one would leave this one queued on the
+										// socket, and once the broadcasts resume they'd complete the abandoned receives first
+									} while ((bcastTask.Status < TaskStatus.RanToCompletion) && !Program.ExitSystemToken.IsCancellationRequested);
 								}
 								catch (SocketException exp)
 								{
