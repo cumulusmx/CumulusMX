@@ -41,14 +41,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
-- MailKit
-- Microsoft.Win32.SystemEvents
-- MySqlConnector
-- NLog.Extensions.Logging
-- SSH.NET
-- System.CodeDom
-- System.IO.Ports
-- System.ServiceProcess.ServiceController
+None
 
 ---
 
@@ -58,6 +51,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - PurpleAir polling time and allowed timeout
 - Tempest station sea level pressure
+
+### Package Updates
+
+- MailKit
+- Microsoft.Win32.SystemEvents
+- MySqlConnector
+- NLog.Extensions.Logging
+- SSH.NET
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
 
 ---
 
