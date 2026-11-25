@@ -24,11 +24,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - MQTT templates can now optionally have a full path to the template files
 - Improvements to the wind direction chart plots
-- Battery Low alarms now include a list of the device(s) currently reporting a low battery in the log, email, and Bluesky alarm messages
+- Battery Low alarms now include a list of the device(s) currently reporting a low battery - from the main station and any extra sensor stations - in the log, email, and Bluesky alarm messages
+	- The `<#LowBatteryList>` web tag now also includes devices from extra sensor stations
 	- Low battery devices are now reported for Ecowitt HTTP (custom server), Ambient HTTP, Tempest, WMR100, and WMR928 stations
+	- The Battery Low alarm is now set/cleared using the combined low battery list from all stations, so one station no longer clears an alarm raised by another
 
 ### Fixed
 
+- Ecowitt Cloud station always cleared the Battery Low alarm immediately after setting it
+- Ecowitt TCP API station live data battery checks cleared Battery Low alarms raised from the sensor info battery data
+- Davis VP2 transmitter low battery states were not being added to the low battery list
+- Davis WLL with a data logger key was clearing the low battery list on every current data update
 - Moon rise/set times when there is no rise/set/both events during the day
 
 ### Package Updates

@@ -1317,20 +1317,21 @@ namespace CumulusMX.Stations
 
 				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
-				LowBatteryDevices.Clear();
-
-				if (!cumulus.StationOptions.UseDataLogger && TxBatText.Contains("LOW"))
+				if (!cumulus.StationOptions.UseDataLogger)
 				{
-					cumulus.BatteryLowAlarm.Triggered = true;
 					// Just the low battery list
+					var lowDevices = new List<string>();
 					var arr = TxBatText.Split(' ');
 					for (int i = 0; i < arr.Length; i++)
 					{
 						if (arr[i].Contains("LOW"))
 						{
-							LowBatteryDevices.Add(arr[i]);
+							lowDevices.Add(arr[i]);
 						}
 					}
+
+					LowBatteryDevices = lowDevices;
+					cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 				}
 			}
 			catch (Exception exp)
@@ -3082,22 +3083,23 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage("WLL Health: exception: " + ex.Message);
 				}
-				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || wllVoltageLow;
-
 				// Just the low battery list
-				LowBatteryDevices.Clear();
+				var lowDevices = new List<string>();
 				if (wllVoltageLow)
 				{
-					LowBatteryDevices.Add("Console-" + ConBatText);
+					lowDevices.Add("Console-" + ConBatText);
 				}
 				var arr = TxBatText.Split(' ');
 				for (int i = 0; i < arr.Length; i++)
 				{
 					if (arr[i].Contains("LOW"))
 					{
-						LowBatteryDevices.Add(arr[i]);
+						lowDevices.Add(arr[i]);
 					}
 				}
+
+				LowBatteryDevices = lowDevices;
+				cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 			}
 			catch (Exception ex)
 			{

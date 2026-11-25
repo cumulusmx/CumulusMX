@@ -338,14 +338,7 @@ namespace CumulusMX.Stations
 			if (TempBattStatus == 4) lowDevices.Add("Temp=LOW");
 			LowBatteryDevices = lowDevices;
 
-			if (lowDevices.Count > 0)
-			{
-				cumulus.BatteryLowAlarm.Triggered = true;
-			}
-			else if (cumulus.BatteryLowAlarm.Triggered)
-			{
-				cumulus.BatteryLowAlarm.Triggered = false;
-			}
+			cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 		}
 
 		private void WMR928ExtraOutdoor(List<int> buff)

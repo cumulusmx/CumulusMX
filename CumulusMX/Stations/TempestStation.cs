@@ -392,7 +392,7 @@ namespace CumulusMX.Stations
 
 						var battLow = wp.Observation.BatteryVoltage <= 2.355M;
 						LowBatteryDevices = battLow ? ["Tempest=" + wp.Observation.BatteryVoltage + "V"] : [];
-						cumulus.BatteryLowAlarm.Triggered = battLow;
+						cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 
 						break;
 					case WeatherPacket.MessageType.RapidWind:

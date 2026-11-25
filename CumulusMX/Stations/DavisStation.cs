@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -1770,18 +1771,19 @@ namespace CumulusMX.Stations
 
 				DoForecast(forecast, false);
 
-				LowBatteryDevices.Clear();
+				var lowDevices = new List<string>();
 
 				ConBatText = loopData.ConBatVoltage.ToString("F2");
 
 				if (loopData.ConBatVoltage <= 3.5)
 				{
-					LowBatteryDevices.Add("Console-" + ConBatText);
+					lowDevices.Add("Console-" + ConBatText);
 				}
 
-				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
+				TxBatText = ProcessTxBatt(loopData.TXbattStatus, lowDevices);
 
-				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || loopData.ConBatVoltage <= 3.5;
+				LowBatteryDevices = lowDevices;
+				cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 
 
 				if (cumulus.StationOptions.LogExtraSensors)
@@ -1825,16 +1827,17 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private string ProcessTxBatt(byte txStatus)
+		private static string ProcessTxBatt(byte txStatus, List<string> lowDevices)
 		{
 			StringBuilder response = new();
 
 			for (var i = 0; i < 8; i++)
 			{
-				var status = (txStatus & 1 << i) == 0 ? "-ok " : "-LOW ";
-				if (status == "-LOW")
+				var low = (txStatus & 1 << i) != 0;
+				var status = low ? "-LOW " : "-ok ";
+				if (low)
 				{
-					LowBatteryDevices.Add(i + 1 + status);
+					lowDevices.Add(i + 1 + "-LOW");
 				}
 				response.Append(i + 1 + status);
 			}

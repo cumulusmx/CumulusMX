@@ -127,6 +127,26 @@ namespace CumulusMX
 		internal JsonStation stationJsonExtra;
 		internal PurpleAir purpleAir;
 
+		/// <summary>
+		/// Returns the combined list of low battery devices reported by the main station and any extra sensor stations
+		/// </summary>
+		internal List<string> GetLowBatteryDevices()
+		{
+			var devices = new List<string>();
+
+			foreach (var stn in new WeatherStation[] { Station, ecowittExtra, ambientExtra, ecowittCloudExtra, stationJsonExtra })
+			{
+				var list = stn?.LowBatteryDevices;
+				if (list != null)
+				{
+					// take a snapshot, the station may be updating its list on another thread
+					devices.AddRange(list.ToArray());
+				}
+			}
+
+			return devices.Distinct().ToList();
+		}
+
 		internal DateTime LastUpdateTime; // use UTC to avoid DST issues
 
 		internal WebTags WebTags;

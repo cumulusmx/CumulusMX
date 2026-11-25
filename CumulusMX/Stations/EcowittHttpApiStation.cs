@@ -39,7 +39,6 @@ namespace CumulusMX.Stations
 		int windDirLast = -999;
 		double outdoortemp = -999;
 		double windchill = -999;
-		bool batteryLow = false;
 
 		// We check the new value against what we have already, if older then ignore it!
 		double newLightningDistance = 999;
@@ -316,7 +315,7 @@ namespace CumulusMX.Stations
 								}
 							}
 
-							cumulus.BatteryLowAlarm.Triggered = batteryLow;
+							cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 
 							UpdateStatusPanel(dataLastRead.ToUniversalTime());
 							UpdateMQTT();
@@ -942,8 +941,7 @@ namespace CumulusMX.Stations
 				return;
 			}
 
-			batteryLow = false;
-			LowBatteryDevices.Clear();
+			var lowDevices = new List<string>();
 
 			if (sensors != null && sensors.Length > 0)
 			{
@@ -1051,16 +1049,14 @@ namespace CumulusMX.Stations
 								case 1001: // battery type 1 (0=OK, 1=LOW)
 									if (sensor.batt == 1)
 									{
-										batteryLow = true;
-										LowBatteryDevices.Add(name + " - LOW");
+										lowDevices.Add(name + " - LOW");
 									}
 									break;
 
 								case 1003: // battery type 3 (0-1=LOW, 2-5=OK, 6=DC, 9=OFF)
 									if (!TestBattery3(sensor.batt))
 									{
-										batteryLow = true;
-										LowBatteryDevices.Add(name + " - " + sensor.batt);
+										lowDevices.Add(name + " - " + sensor.batt);
 									}
 									break;
 
@@ -1083,6 +1079,8 @@ namespace CumulusMX.Stations
 			{
 				cumulus.LogWarningMessage("GetSensorIds: No sensor data returned");
 			}
+
+			LowBatteryDevices = lowDevices;
 		}
 
 		private void ProcessCommonList(EcowittLocalApi.CommonSensor[] sensors, DateTime dateTime)

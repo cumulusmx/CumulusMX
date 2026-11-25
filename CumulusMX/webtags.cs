@@ -1254,7 +1254,7 @@ namespace CumulusMX
 
 		private string TagLowBatteryList(Dictionary<string, string> tagParams)
 		{
-			return string.Join(",", station.LowBatteryDevices);
+			return string.Join(",", cumulus.GetLowBatteryDevices());
 		}
 
 		private string TagMulticastGoodCnt(Dictionary<string, string> tagParams)

@@ -100,8 +100,8 @@ namespace CumulusMX
 						var lowBattDevices = string.Empty;
 						if (Id == AlarmIds.BatteryLow)
 						{
-							var devices = cumulus.Station?.LowBatteryDevices;
-							if (devices != null && devices.Count > 0)
+							var devices = cumulus.GetLowBatteryDevices();
+							if (devices.Count > 0)
 							{
 								lowBattDevices = string.Join(", ", devices);
 							}

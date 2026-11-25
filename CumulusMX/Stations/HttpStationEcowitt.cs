@@ -1696,12 +1696,10 @@ namespace CumulusMX.Stations
 				CheckVolts("soil_ec_batt" + i, 1.2);
 			}
 
-			if (mainStation)
-			{
-				LowBatteryDevices = lowDevices;
-			}
+			LowBatteryDevices = lowDevices;
 
-			cumulus.BatteryLowAlarm.Triggered = lowDevices.Count > 0;
+			// trigger on the combined list from all stations so one station does not clear another's alarm
+			cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 		}
 
 		private static void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)

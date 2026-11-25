@@ -594,14 +594,7 @@ namespace CumulusMX.Stations
 			if (UVBattStatus == 4) lowDevices.Add("UV=LOW");
 			LowBatteryDevices = lowDevices;
 
-			if (lowDevices.Count > 0)
-			{
-				cumulus.BatteryLowAlarm.Triggered = true;
-			}
-			else if (cumulus.BatteryLowAlarm.Triggered)
-			{
-				cumulus.BatteryLowAlarm.Triggered = false;
-			}
+			cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 		}
 
 		public override void Stop()

@@ -345,7 +345,6 @@ namespace CumulusMX.Stations
 
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{
-			var batteryLow = false;
 			token.ThrowIfCancellationRequested();
 
 			try
@@ -693,8 +692,6 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				cumulus.BatteryLowAlarm.Triggered = batteryLow;
-
 				if (mainStation)
 				{
 					if (cumulus.StationOptions.CalculateSLP)
@@ -990,149 +987,128 @@ namespace CumulusMX.Stations
 
 		private void ProcessBatteries(EcowittApi.CurrentDataData data)
 		{
-			var lowBatt = false;
-
 			if (data.battery != null)
 			{
-				LowBatteryDevices.Clear();
+				var lowDevices = new List<string>();
 
 				if (data.battery.t_rh_p_sensor != null && data.battery.t_rh_p_sensor.value == 1) // flag
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("THP=LOW");
+					lowDevices.Add("THP=LOW");
 				}
 				if (data.battery.ws1900_console != null && data.battery.ws1900_console.value < 1.2)              // volts - val ???
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("WS1900=" + data.battery.ws1900_console.value + "V");
+					lowDevices.Add("WS1900=" + data.battery.ws1900_console.value + "V");
 				}
 				if (data.battery.ws1800_console != null && data.battery.ws1800_console.value < 1.2)              // volts - val ???
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("WS1800=" + data.battery.ws1800_console.value + "V");
+					lowDevices.Add("WS1800=" + data.battery.ws1800_console.value + "V");
 				}
 				if (data.battery.ws6006_console != null && data.battery.ws6006_console.value < 15)               // %  val ???
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("WS6006=" + data.battery.ws6006_console.value / 10 + "V");
+					lowDevices.Add("WS6006=" + data.battery.ws6006_console.value / 10 + "V");
 				}
 				if (data.battery.console != null && data.battery.console.value < 2.4)                            // volts  val ???
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Console=" + data.battery.console.value + "V");
+					lowDevices.Add("Console=" + data.battery.console.value + "V");
 				}
 				if (data.battery.outdoor_t_rh_sensor != null && data.battery.outdoor_t_rh_sensor.value == 1)     // flag
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("OutdoorTH=LOW");
+					lowDevices.Add("OutdoorTH=LOW");
 				}
 				if (data.battery.wind_sensor != null && data.battery.wind_sensor.value < 1.2)                    // volts
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("WindSensor=" + data.battery.wind_sensor.value + "V");
+					lowDevices.Add("WindSensor=" + data.battery.wind_sensor.value + "V");
 				}
 				if (data.battery.haptic_array_battery != null && data.battery.haptic_array_battery.value < 2.4)  // volts
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Haptic=" + data.battery.haptic_array_battery.value + "V");
+					lowDevices.Add("Haptic=" + data.battery.haptic_array_battery.value + "V");
 				}
 				//lowBatt = lowBatt || (data.battery.haptic_array_capacitor != null && data.battery.haptic_array_capacitor.value == 2.4); // volts
 				if (data.battery.sonic_array != null && data.battery.sonic_array.value < 1.2)                    // volts
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Sonic=" + data.battery.sonic_array.value + "V");
+					lowDevices.Add("Sonic=" + data.battery.sonic_array.value + "V");
 				}
 				if (data.battery.rainfall_sensor != null && data.battery.rainfall_sensor.value < 1.2)            // volts
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Rainfall=" + data.battery.rainfall_sensor.value + "V");
+					lowDevices.Add("Rainfall=" + data.battery.rainfall_sensor.value + "V");
 				}
 				if (data.battery.sensor_array != null && data.battery.sensor_array.value == 1)                   // flag
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SensorArray=LOW");
+					lowDevices.Add("SensorArray=LOW");
 				}
 				if (data.battery.lightning_sensor != null && data.battery.lightning_sensor.value == 1)           // flag
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Lightning=LOW");
+					lowDevices.Add("Lightning=LOW");
 				}
 				if (data.battery.aqi_combo_sensor != null && data.battery.aqi_combo_sensor.value == 1)           // flag
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("AQIcombo=LOW");
+					lowDevices.Add("AQIcombo=LOW");
 				}
 				for (var i = 1; i <= 4; i++)
 				{
 					if (data.battery["water_leak_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValInt) data.battery["water_leak_sensor_ch" + i]).value == 1) // flag
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"Leak#{i}=LOW");
+						lowDevices.Add($"Leak#{i}=LOW");
 					}
 				}
 				for (var i = 1; i <= 4; i++)
 				{
 					if (data.battery["pm25_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValInt) data.battery["pm25_sensor_ch" + i]).value == 1)             // flag
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"pm2.5#{i}=LOW");
+						lowDevices.Add($"pm2.5#{i}=LOW");
 					}
 				}
 				for (var i = 1; i <= 8; i++)
 				{
 					if (data.battery["temp_humidity_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValInt) data.battery["temp_humidity_sensor_ch" + i]).value == 1)  // flag
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"TH#{i}=LOW");
+						lowDevices.Add($"TH#{i}=LOW");
 					}
 				}
 				for (var i = 1; i <= 8; i++)
 				{
 					if (data.battery["soilmoisture_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_sensor_ch" + i]).value < 1.2)    // volts
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"SoilMoist#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_sensor_ch" + i]).value + "V");
+						lowDevices.Add($"SoilMoist#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_sensor_ch" + i]).value + "V");
 					}
 				}
 				for (var i = 1; i <= 8; i++)
 				{
 					if (data.battery["temperature_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["temperature_sensor_ch" + i]).value < 1.2)      // volts
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"Temp#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["temperature_sensor_ch" + i]).value + "V");
+						lowDevices.Add($"Temp#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["temperature_sensor_ch" + i]).value + "V");
 					}
 				}
 				for (var i = 1; i <= 8; i++)
 				{
 					if (data.battery["leaf_wetness_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["leaf_wetness_sensor_ch" + i]).value < 1.2)      // volts
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"Leaf#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["leaf_wetness_sensor_ch" + i]).value + "V");
+						lowDevices.Add($"Leaf#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["leaf_wetness_sensor_ch" + i]).value + "V");
 					}
 				}
 				for (var i = 1; i <= 4; i++)
 				{
 					if (data.battery["ldsbatt_" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["ldsbatt_" + i]).value < 1.2)      // volts
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"LDS#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["ldsbatt_" + i]).value + "V");
+						lowDevices.Add($"LDS#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["ldsbatt_" + i]).value + "V");
 					}
 				}
 				if (data.battery.bgt_sensor != null && data.battery.bgt_sensor.value < 1.2)      // volts
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("BGT=" + data.battery.bgt_sensor.value + "V");
+					lowDevices.Add("BGT=" + data.battery.bgt_sensor.value + "V");
 				}
 				for (var i = 1; i <= 16; i++)
 				{
 					if (data.battery["soilmoisture_ec_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_ec_sensor_ch" + i]).value < 1.2) // volts
 					{
-						lowBatt = true;
-						LowBatteryDevices.Add($"SoilEC#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_ec_sensor_ch" + i]).value + "V");
+						lowDevices.Add($"SoilEC#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_ec_sensor_ch" + i]).value + "V");
 					}
 				}
 
-				cumulus.BatteryLowAlarm.Triggered = lowBatt;
+				LowBatteryDevices = lowDevices;
+
+				// trigger on the combined list from all stations so one station does not clear another's alarm
+				cumulus.BatteryLowAlarm.Triggered = cumulus.GetLowBatteryDevices().Count > 0;
 			}
 		}
 
