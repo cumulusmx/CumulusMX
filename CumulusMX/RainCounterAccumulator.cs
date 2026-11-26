@@ -16,7 +16,7 @@ namespace CumulusMX
 		{
 			if (LastTotalRainfall is not null)
 			{
-				double delta = totalRainfall - LastTotalRainfall.Value;
+				double delta = Math.Abs(totalRainfall - LastTotalRainfall.Value);
 
 				bool plausible = delta >= 0 && delta <= MaxPlausibleDelta;
 
@@ -27,7 +27,7 @@ namespace CumulusMX
 				else
 				{
 					var format = Program.cumulus.RainFormat;
-					Program.cumulus.LogWarningMessage($"Rain Counter has jumped by {delta.ToString(format)}. Previous = {LastTotalRainfall.Value.ToString(format)}, New = {totalRainfall.ToString(format)}");
+					Program.cumulus.LogWarningMessage($"Rain Counter has jumped by {delta.ToString(format)}. Previous={LastTotalRainfall.Value.ToString(format)}, New={totalRainfall.ToString(format)}, Limit={MaxPlausibleDelta:F2}");
 				}
 			}
 
