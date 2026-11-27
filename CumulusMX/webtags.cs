@@ -4810,7 +4810,7 @@ namespace CumulusMX
 				}
 
 				if (total.HasValue)
-					return CheckRcDp(CheckTempUnit(total.Value, tagParams), tagParams, cumulus.RainDPlaces);
+					return CheckRcDp(CheckRainUnit(total.Value, tagParams), tagParams, cumulus.RainDPlaces);
 				else
 					return tagParams.Get("nv") ?? "-";
 			}
