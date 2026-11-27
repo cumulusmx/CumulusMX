@@ -38,7 +38,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis WLL with a data logger key was clearing the low battery list on every current data update
 - Moon rise/set times when there is no rise/set/both events during the day
 - Fix a bug in Davis WLL handling that queues listeners on the UDP port when broadcasts stop being received
-- RecentRain, MonthRainfall web tags unit conversion
+- RecentRain, MonthRainfall, MonthAvgTotalWindRun web tags unit conversion
 
 ### Package Updates
 

@@ -3455,7 +3455,7 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "-";
 			}
 
-			return CheckRcDp(CheckRainUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckWindRunUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagMonthAvgTotalSunHours(Dictionary<string, string> tagParams)
@@ -3468,7 +3468,7 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "-";
 			}
 
-			return CheckRcDp(CheckRainUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(val, tagParams, cumulus.SunshineDPlaces);
 		}
 
 		private string TagMonthAvgTotalET(Dictionary<string, string> tagParams)
