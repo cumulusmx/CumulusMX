@@ -7561,7 +7561,7 @@ namespace CumulusMX
 				}
 			}
 
-			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagRecentRainToday(Dictionary<string, string> tagParams)
