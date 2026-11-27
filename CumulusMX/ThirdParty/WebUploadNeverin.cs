@@ -20,7 +20,7 @@ namespace CumulusMX.ThirdParty
 		public bool[] SendExtraHum = new bool[8];
 		public bool SendLightning;
 
-		private static string url = "http://ws.neverin.hr/v2/";
+		private static readonly string url = "http://ws.neverin.hr/v2/";
 
 
 		internal WebUploadNeverin(Cumulus cumulus, string name) : base(cumulus, name)

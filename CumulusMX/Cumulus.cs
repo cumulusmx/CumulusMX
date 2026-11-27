@@ -1599,10 +1599,7 @@ namespace CumulusMX
 
 
 				// Do the start-up  MySQL commands before the station is started
-				if (MySqlFuncs.MySqlSettings.CustomStartUp.Enabled)
-				{
-					CustomMySqlStartUp();
-				}
+				CustomMySqlStartUp();
 
 				if (station.timerStartNeeded)
 				{
@@ -14304,9 +14301,9 @@ namespace CumulusMX
 
 		internal async void CustomMysqlSecondsChanged()
 		{
-			if (station.DataStopped)
+			if (!MySqlFuncs.MySqlSettings.CustomSecs.Enabled || station.DataStopped)
 			{
-				// No data coming in, do not do anything
+				// No data coming in, or disbaled, do not do anything
 				return;
 			}
 
@@ -14345,9 +14342,9 @@ namespace CumulusMX
 
 		internal async Task CustomMysqlMinutesUpdate(DateTime now, bool live)
 		{
-			if (station.DataStopped)
+			if (!MySqlFuncs.MySqlSettings.CustomMins.Enabled || station.DataStopped)
 			{
-				// No data coming in, do not do anything
+				// No data coming in, or disbaled, do not do anything
 				return;
 			}
 
@@ -14402,9 +14399,9 @@ namespace CumulusMX
 
 		internal async Task CustomMysqlRollover(bool live)
 		{
-			if (station.DataStopped)
+			if (!MySqlFuncs.MySqlSettings.CustomRollover.Enabled || station.DataStopped)
 			{
-				// No data coming in, do not do anything
+				// No data coming in, or disbaled, do not do anything
 				return;
 			}
 
@@ -14441,9 +14438,9 @@ namespace CumulusMX
 
 		internal async Task CustomMySqlTimedUpdate(DateTime now)
 		{
-			if (station.DataStopped)
+			if (!MySqlFuncs.MySqlSettings.CustomTimed.Enabled || station.DataStopped)
 			{
-				// No data coming in, do not do anything
+				// No data coming in, or disbaled, do not do anything
 				return;
 			}
 
@@ -14506,6 +14503,12 @@ namespace CumulusMX
 
 		internal void CustomMySqlStartUp()
 		{
+			if (!MySqlFuncs.MySqlSettings.CustomStartUp.Enabled)
+			{
+				// No data coming in, or disbaled, do not do anything
+				return;
+			}
+
 			LogMessage("Starting custom start-up MySQL commands");
 
 			var tokenParser = new TokenParser(TokenParserOnToken);

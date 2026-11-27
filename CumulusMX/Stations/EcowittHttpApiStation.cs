@@ -856,10 +856,7 @@ namespace CumulusMX.Stations
 				}
 
 				// Custom MySQL update - minutes interval
-				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
-				{
-					_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
-				}
+				_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
 
 				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainAccumulator.RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);

@@ -2815,10 +2815,8 @@ namespace CumulusMX.Stations
 									}
 
 									// Custom MySQL update - minutes interval
-									if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
-									{
-										_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
-									}
+									_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+
 									cumulus.AddToWebServiceLists(timestamp);
 								}
 								catch (Exception ex)

@@ -2062,16 +2062,10 @@ namespace CumulusMX
 					}
 
 					// Custom MySQL update - minutes interval
-					if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
-					{
-						_ = cumulus.CustomMysqlMinutesUpdate(now, true);
-					}
+					_ = cumulus.CustomMysqlMinutesUpdate(now, true);
 
 					// Custom MySQL Timed interval
-					if (cumulus.MySqlFuncs.MySqlSettings.CustomTimed.Enabled)
-					{
-						_ = cumulus.CustomMySqlTimedUpdate(now);
-					}
+					_ = cumulus.CustomMySqlTimedUpdate(now);
 
 					// Custom HTTP update - minutes interval
 					if (cumulus.CustomHttpMinutesEnabled)
@@ -8706,10 +8700,7 @@ namespace CumulusMX
 				// any last updates?
 				DoTrendValues(timestamp, true);
 
-				if (cumulus.MySqlFuncs.MySqlSettings.CustomRollover.Enabled)
-				{
-					_ = cumulus.CustomMysqlRollover(cumulus.NormalRunning);
-				}
+				_ = cumulus.CustomMysqlRollover(cumulus.NormalRunning);
 
 				if (cumulus.CustomHttpRolloverEnabled)
 				{
