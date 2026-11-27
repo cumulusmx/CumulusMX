@@ -2122,7 +2122,7 @@ namespace CumulusMX
 					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.DateTimeOriginal, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
 
 					// finally save the image and clean-up
-					Program.cumulus.LogDebugMessage("CreateMoonImage: Saving new image to: " + destination ?? "./web/moon.png");
+					Program.cumulus.LogDebugMessage("CreateMoonImage: Saving new image to: " + (destination ?? "./web/moon.png"));
 					bmp.SaveAsPng(destination ?? "./web/moon.png");
 				});
 			}
